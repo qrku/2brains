@@ -1,7 +1,4 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { LandingClient } from './_components/LandingClient';
 
 const FEATURES = [
   {
@@ -22,40 +19,12 @@ const FEATURES = [
 ];
 
 export default function LandingPage() {
-  const router = useRouter();
-  const [ready,  setReady]  = useState(false);
-  const [email,  setEmail]  = useState('');
-  const [error,  setError]  = useState('');
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (localStorage.getItem('auth_v1')) {
-      router.replace('/space');
-    } else {
-      setReady(true);
-    }
-  }, [router]);
-
-  const submit = () => {
-    if (!email.includes('@') || !email.includes('.')) {
-      setError('Введи корректную почту');
-      return;
-    }
-    setLoading(true);
-    localStorage.setItem('auth_v1', email);
-    router.push('/space');
-  };
-
-  if (!ready) return null;
-
   return (
     <div className="land">
-      {/* Header */}
       <header className="land-header">
         <span className="land-logo-text">2brain</span>
       </header>
 
-      {/* Hero */}
       <main className="land-hero">
         <div className="land-ovals" aria-hidden>
           <div className="land-oval land-oval-l" />
@@ -67,25 +36,9 @@ export default function LandingPage() {
           Всё в одном месте — редактор, доска, трекеры.
         </p>
 
-        <div className="land-form">
-          <input
-            className={`land-input${error ? ' err' : ''}`}
-            type="email"
-            placeholder="Электронная почта"
-            value={email}
-            onChange={(e) => { setEmail(e.target.value); setError(''); }}
-            onKeyDown={(e) => e.key === 'Enter' && submit()}
-            autoFocus
-          />
-          <button className="land-btn" onClick={submit} disabled={loading}>
-            {loading ? '...' : 'Начать →'}
-          </button>
-        </div>
-        {error && <p className="land-error">{error}</p>}
-        <p className="land-hint">Только почта — никаких паролей пока</p>
+        <LandingClient />
       </main>
 
-      {/* Features */}
       <section className="land-features">
         {FEATURES.map((f) => (
           <div key={f.title} className="land-feat">

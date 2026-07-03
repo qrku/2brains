@@ -73,6 +73,10 @@ function taCaretCoords(ta: HTMLTextAreaElement, pos: number): { top: number; lef
   return res;
 }
 
+/* ─── Preview width preference (visual mode) ──────────────────────────────── */
+const PREVIEW_WIDTH_KEY = 'space_editor_preview_width';
+const DEFAULT_PREVIEW_WIDTH = 70;
+
 /* ─── Types ────────────────────────────────────────────────────────────────── */
 type Mode = 'md' | 'visual';
 
@@ -97,6 +101,7 @@ export function MarkdownEditor() {
   const [saved,    setSaved]    = useState(true);
   const [slash,    setSlash]    = useState<SlashState | null>(null);
   const [slashIdx, setSlashIdx] = useState(0);
+  const [previewWidth, setPreviewWidth] = useState(DEFAULT_PREVIEW_WIDTH);
 
   const saveTimer     = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentFileId = useRef<string | null>(null);
@@ -110,6 +115,19 @@ export function MarkdownEditor() {
   const [fileKey, setFileKey] = useState(0);
 
   const openNode = openFileId ? nodes.find((n) => n.id === openFileId) : null;
+
+  /* ── Load saved preview width preference ──────────────────────────── */
+  useEffect(() => {
+    try {
+      const saved = Number(localStorage.getItem(PREVIEW_WIDTH_KEY));
+      if (saved) setPreviewWidth(saved);
+    } catch {}
+  }, []);
+
+  const handlePreviewWidthChange = (val: number) => {
+    setPreviewWidth(val);
+    try { localStorage.setItem(PREVIEW_WIDTH_KEY, String(val)); } catch {}
+  };
 
   /* ── Load file ─────────────────────────────────────────────────────── */
   useEffect(() => {
@@ -431,6 +449,19 @@ export function MarkdownEditor() {
         <span className="editor-filename">{openNode.name}</span>
         <div className="editor-toolbar-right">
           {!saved && <span className="editor-saving">сохранение...</span>}
+          {mode === 'visual' && (
+            <div className="editor-width-control" title="Ширина текста">
+              <input
+                type="range"
+                min={40}
+                max={100}
+                step={5}
+                value={previewWidth}
+                onChange={(e) => handlePreviewWidthChange(Number(e.target.value))}
+              />
+              <span className="editor-width-value">{previewWidth}%</span>
+            </div>
+          )}
           <div className="editor-mode-toggle">
             <button
               className={`editor-mode-btn${mode === 'md' ? ' active' : ''}`}
@@ -465,16 +496,19 @@ export function MarkdownEditor() {
 
       {/* Visual / WYSIWYG */}
       {mode === 'visual' && (
-        <div
-          ref={visualRef}
-          className="editor-preview editor-visual"
-          contentEditable
-          suppressContentEditableWarning
-          onInput={handleVisualInput}
-          onKeyDown={handleVisualKeyDown}
-          onSelect={handleVisualSelect}
-          data-placeholder="Начни вводить... или введи / для вставки блока"
-        />
+        <div className="editor-visual-scroll">
+          <div
+            ref={visualRef}
+            className="editor-preview editor-visual"
+            style={{ '--preview-width': `${previewWidth}%` } as React.CSSProperties}
+            contentEditable
+            suppressContentEditableWarning
+            onInput={handleVisualInput}
+            onKeyDown={handleVisualKeyDown}
+            onSelect={handleVisualSelect}
+            data-placeholder="Начни вводить... или введи / для вставки блока"
+          />
+        </div>
       )}
 
       {/* Slash command menu */}

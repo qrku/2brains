@@ -28,9 +28,10 @@ export function Nav() {
 
   const { profile } = profileState;
 
-  const isProfile = pathname.startsWith('/profile');
-  const isSpace   = pathname.startsWith('/space');
-  const isBoard   = pathname.startsWith('/board');
+  const isProfile  = pathname.startsWith('/profile');
+  const isSpace    = pathname.startsWith('/space');
+  const isBoard    = pathname.startsWith('/board');
+  const isCalendar = pathname.startsWith('/calendar');
 
   const enabledModules = ALL_MODULES.filter((m) => modulesState.enabled.includes(m.id));
 
@@ -51,6 +52,9 @@ export function Nav() {
           </Link>
           <Link href="/board" className={`nav-link${isBoard ? ' active' : ''}`}>
             Доска
+          </Link>
+          <Link href="/calendar" className={`nav-link${isCalendar ? ' active' : ''}`}>
+            Календарь
           </Link>
 
           {enabledModules.map((mod) => (
