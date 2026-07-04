@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Modal, Button } from 'mikro-ui';
 import type { Question } from '@/entities/interview';
+import { Icon } from '@/shared/ui/Icon';
 
 type Result = 'knew' | 'didnt';
 
@@ -132,8 +133,8 @@ export function PracticeModal({ title, questions, onClose }: Props) {
               <p className="practice-a-label">Ответ</p>
               <p className="practice-a-text">{current.answer}</p>
               <div className="practice-actions">
-                <Button variant="outline" onClick={() => answer('didnt')}>✗ Не знал</Button>
-                <Button onClick={() => answer('knew')}>✓ Знал</Button>
+                <Button variant="outline" onClick={() => answer('didnt')}><Icon name="close" size={12} /> Не знал</Button>
+                <Button onClick={() => answer('knew')}><Icon name="check-circle-1" size={12} /> Знал</Button>
               </div>
             </>
           )}

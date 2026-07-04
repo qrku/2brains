@@ -5,6 +5,7 @@ import { Modal, Input, toast } from 'mikro-ui';
 import { useSpaceStore, spaceDeleteContent } from '@/app/providers/SpaceStoreProvider';
 import type { SpaceNode } from '@/entities/space';
 import { uid } from '@/shared/lib/uid';
+import { Icon } from '@/shared/ui/Icon';
 
 interface FlatItem { node: SpaceNode; depth: number }
 
@@ -124,17 +125,19 @@ export function FileTree() {
               onMouseLeave={() => setHoverId(null)}
             >
               <span className="tree-icon">
-                {node.type === 'folder' ? (isExpand ? '▾' : '▸') : '·'}
+                {node.type === 'folder'
+                  ? <Icon name="chevron-down" size={9} style={isExpand ? undefined : { transform: 'rotate(-90deg)' }} />
+                  : <Icon name="file" size={9} />}
               </span>
               <span className="tree-name" title={node.name}>{node.name}</span>
 
               {hover && (
                 <div className="tree-row-actions" onClick={(e) => e.stopPropagation()}>
                   {node.type === 'folder' && (
-                    <button className="tree-mini-btn" title="Файл внутри" onClick={() => openCreate(node.id, 'file')}>+</button>
+                    <button className="tree-mini-btn" title="Файл внутри" onClick={() => openCreate(node.id, 'file')}><Icon name="add" size={10} /></button>
                   )}
-                  <button className="tree-mini-btn" title="Переименовать" onClick={() => setRenaming({ id: node.id, name: node.name })}>✎</button>
-                  <button className="tree-mini-btn danger" title="Удалить" onClick={() => handleDelete(node)}>✕</button>
+                  <button className="tree-mini-btn" title="Переименовать" onClick={() => setRenaming({ id: node.id, name: node.name })}><Icon name="edit-01" size={10} /></button>
+                  <button className="tree-mini-btn danger" title="Удалить" onClick={() => handleDelete(node)}><Icon name="close" size={10} /></button>
                 </div>
               )}
             </div>

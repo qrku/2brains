@@ -6,6 +6,7 @@ import { Button, toast } from 'mikro-ui';
 import { useInterviewStore } from '@/app/providers/InterviewStoreProvider';
 import { PracticeModal } from '@/features/practice-mode';
 import type { Interview } from '@/entities/interview';
+import { Icon } from '@/shared/ui/Icon';
 
 interface Props {
   interview: Interview;
@@ -40,13 +41,13 @@ export function InterviewListCard({ interview }: Props) {
         <div className="iv-card-actions">
           {count > 0 && (
             <Button size="sm" variant="outline" onClick={() => setPracticing(true)}>
-              ▶ Практика
+              <Icon name="arrow-forward" size={11} /> Практика
             </Button>
           )}
           <Link href={`/tests/${interview.id}`} className="btn-link">
             Открыть
           </Link>
-          <button className="icon-btn danger" onClick={handleDelete}>✕</button>
+          <button className="icon-btn danger" onClick={handleDelete}><Icon name="close" size={12} /></button>
         </div>
       </div>
 

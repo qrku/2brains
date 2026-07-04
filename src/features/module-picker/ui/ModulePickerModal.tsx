@@ -3,6 +3,7 @@
 import { Modal } from 'mikro-ui';
 import { ALL_MODULES } from '@/entities/module';
 import { useModulesStore } from '@/app/providers/ModulesStoreProvider';
+import { Icon } from '@/shared/ui/Icon';
 
 interface Props {
   open: boolean;
@@ -30,7 +31,7 @@ export function ModulePickerModal({ open, onClose }: Props) {
               <div className="module-card-name">{mod.label}</div>
               <div className="module-card-desc">{mod.description}</div>
               <div className="module-card-status">
-                {on ? '✓ Включён' : 'Выключен'}
+                {on ? <><Icon name="check-circle-1" size={10} /> Включён</> : 'Выключен'}
               </div>
             </div>
           );

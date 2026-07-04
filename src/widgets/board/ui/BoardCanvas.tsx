@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback, memo, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { parseMarkdown } from '@/shared/lib/markdown';
 import { spaceReadContent } from '@/app/providers/SpaceStoreProvider';
+import { Icon, type IconName } from '@/shared/ui/Icon';
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
 type NodeKind  = 'box' | 'text' | 'draw';
@@ -61,12 +62,23 @@ const PEN_MIN_W = 1, PEN_MAX_W = 14;
 const DEF_PEN_COLOR = '#1c1c1e', DEF_PEN_WIDTH = 3;
 
 /* ─── Tools / shapes ─────────────────────────────────────────────────────── */
-const TOOLS: { id: Tool; icon: string; label: string }[] = [
-  { id: 'cursor', icon: '↖', label: 'Курсор'   },
-  { id: 'hand',   icon: '✋', label: 'Рука'     },
-  { id: 'box',    icon: '□', label: 'Блок'     },
-  { id: 'text',   icon: 'T', label: 'Текст'    },
-  { id: 'pencil', icon: '✎', label: 'Карандаш' },
+const TOOL_ICONS: Record<Tool, IconName> = {
+  hand:   'hand',
+  cursor: 'navigation',
+  box:    'draw',
+  text:   'text-1',
+  pencil: 'edit-01',
+};
+function ToolIcon({ id }: { id: Tool }) {
+  return <Icon name={TOOL_ICONS[id]} size={18} />;
+}
+
+const TOOLS: { id: Tool; label: string }[] = [
+  { id: 'hand',   label: 'Рука'     },
+  { id: 'cursor', label: 'Курсор'   },
+  { id: 'box',    label: 'Блок'     },
+  { id: 'text',   label: 'Текст'    },
+  { id: 'pencil', label: 'Карандаш' },
 ];
 
 const SHAPES: { id: NodeShape; icon: string; label: string }[] = [
@@ -526,12 +538,6 @@ export function BoardCanvas() {
           );
           setSelected(hits.map((n) => n.id));
         }
-      } else if (d.type === 'nodes') {
-        const moved = Math.abs(e.clientX - d.startX) > 4 || Math.abs(e.clientY - d.startY) > 4;
-        if (!moved && !e.ctrlKey && !e.metaKey && d.ids.length === 1) {
-          const n = nodesRef.current.find((n) => n.id === d.ids[0]);
-          if (n && n.kind !== 'draw') setEditing(d.ids[0]);
-        }
       } else if (d.type === 'pencil') {
         if (d.points.length >= 2) {
           const id = uid();
@@ -966,6 +972,7 @@ export function BoardCanvas() {
             dropTarget={dragTargetId === node.id}
             dropSide={dragTargetId === node.id ? dragTargetSide : null}
             onDown={(e)       => startNodeDrag(e, node)}
+            onDblClick={()    => setEditing(node.id)}
             onHandleDown={(e, side) => startEdge(e, node, side)}
             onResizeDown={(e, edge) => startResize(e, node, edge)}
             onTextInput={(tx) => updateText(node.id, tx)}
@@ -983,7 +990,7 @@ export function BoardCanvas() {
         >
           <span className="bp-val">Стрелка</span>
           <div className="bp-sep" />
-          <button className="bp-btn bp-del" title="Удалить (Del)" onClick={deleteSelectedEdge}>✕</button>
+          <button className="bp-btn bp-del" title="Удалить (Del)" onClick={deleteSelectedEdge}><Icon name="close" size={13} /></button>
         </div>
       )}
 
@@ -1016,9 +1023,9 @@ export function BoardCanvas() {
                 />
               ))}
               <div className="bp-sep" />
-              <button className="bp-btn" onClick={() => changeStrokeW(selNode.id, -1)} title="Тоньше">−</button>
+              <button className="bp-btn" onClick={() => changeStrokeW(selNode.id, -1)} title="Тоньше"><Icon name="remove" size={13} /></button>
               <span className="bp-val">{selNode.strokeW ?? DEF_PEN_WIDTH}px</span>
-              <button className="bp-btn" onClick={() => changeStrokeW(selNode.id, +1)} title="Толще">+</button>
+              <button className="bp-btn" onClick={() => changeStrokeW(selNode.id, +1)} title="Толще"><Icon name="add" size={13} /></button>
             </>
           ) : (
             <>
@@ -1038,7 +1045,7 @@ export function BoardCanvas() {
             </>
           )}
           <div className="bp-sep" />
-          <button className="bp-btn bp-del" title="Удалить (Del)" onClick={deleteSelected}>✕</button>
+          <button className="bp-btn bp-del" title="Удалить (Del)" onClick={deleteSelected}><Icon name="close" size={13} /></button>
         </div>
       )}
 
@@ -1050,7 +1057,7 @@ export function BoardCanvas() {
         >
           <span className="bp-val">{selected.length} выбрано</span>
           <div className="bp-sep" />
-          <button className="bp-btn bp-del" title="Удалить (Del)" onClick={deleteSelected}>✕</button>
+          <button className="bp-btn bp-del" title="Удалить (Del)" onClick={deleteSelected}><Icon name="close" size={13} /></button>
         </div>
       )}
 
@@ -1063,7 +1070,7 @@ export function BoardCanvas() {
             onClick={() => { setTool(tp.id); toolRef.current = tp.id; }}
             title={tp.label}
           >
-            <span className="board-panel-icon">{tp.icon}</span>
+            <span className="board-panel-icon"><ToolIcon id={tp.id} /></span>
             <span className="board-panel-label">{tp.label}</span>
           </button>
         ))}
@@ -1081,24 +1088,24 @@ export function BoardCanvas() {
             />
           ))}
           <div className="bp-sep" />
-          <button className="bp-btn" onClick={() => setPenWidth((w) => clmp(w - 1, PEN_MIN_W, PEN_MAX_W))} title="Тоньше">−</button>
+          <button className="bp-btn" onClick={() => setPenWidth((w) => clmp(w - 1, PEN_MIN_W, PEN_MAX_W))} title="Тоньше"><Icon name="remove" size={13} /></button>
           <span className="bp-val">{penWidth}px</span>
-          <button className="bp-btn" onClick={() => setPenWidth((w) => clmp(w + 1, PEN_MIN_W, PEN_MAX_W))} title="Толще">+</button>
+          <button className="bp-btn" onClick={() => setPenWidth((w) => clmp(w + 1, PEN_MIN_W, PEN_MAX_W))} title="Толще"><Icon name="add" size={13} /></button>
         </div>
       )}
 
       {/* Bottom bar */}
       <div className="board-bar" onMouseDown={(e) => e.stopPropagation()} onMouseEnter={() => { mouseOnUi.current = true; }} onMouseLeave={() => { mouseOnUi.current = false; }}>
-        <button className="board-btn board-btn-icon" onClick={() => zoomBtn(1.25)}>+</button>
+        <button className="board-btn board-btn-icon" onClick={() => zoomBtn(1.25)}><Icon name="add" size={14} /></button>
         <span className="board-zoom-pct">{Math.round(t.scale * 100)}%</span>
-        <button className="board-btn board-btn-icon" onClick={() => zoomBtn(1 / 1.25)}>−</button>
+        <button className="board-btn board-btn-icon" onClick={() => zoomBtn(1 / 1.25)}><Icon name="remove" size={14} /></button>
         <div style={{ flex: 1 }} />
-        <button className="board-btn board-settings-btn" onClick={() => setSettingsOpen(true)} title="Настройки">⚙</button>
+        <button className="board-btn board-settings-btn" onClick={() => setSettingsOpen(true)} title="Настройки"><Icon name="settings-1" size={16} /></button>
       </div>
 
       <div className="board-hint">
         {tool === 'cursor'
-          ? <>Потяни — выделить · Клик по блоку — редактировать · <span className="board-hint-dot">●</span> — стрелка · Клик по стрелке — выделить, ещё раз — изгиб</>
+          ? <>Потяни — выделить · Клик по блоку — выбрать · Двойной клик — редактировать текст · <span className="board-hint-dot">●</span> — стрелка · Клик по стрелке — выделить, ещё раз — изгиб</>
           : tool === 'hand'
           ? <>Потяни — переместить доску</>
           : tool === 'pencil'
@@ -1115,7 +1122,7 @@ export function BoardCanvas() {
           <div className="board-settings-modal" onMouseDown={(e) => e.stopPropagation()} onMouseEnter={() => { mouseOnUi.current = true; }} onMouseLeave={() => { mouseOnUi.current = false; }}>
             <div className="bsm-header">
               <span className="bsm-title">Настройки доски</span>
-              <button className="bsm-close" onClick={() => setSettingsOpen(false)}>✕</button>
+              <button className="bsm-close" onClick={() => setSettingsOpen(false)}><Icon name="close" size={13} /></button>
             </div>
 
             <div className="bsm-group">
@@ -1187,10 +1194,10 @@ function NoteAside({ note, onClose }: { note: { id: string; name: string } | nul
               href={`/space?file=${note.id}`}
               title="Открыть в Пространстве"
             >
-              ↗
+              <Icon name="external-link" size={14} />
             </a>
           )}
-          <button className="ba-close" onClick={onClose}>✕</button>
+          <button className="ba-close" onClick={onClose}><Icon name="close" size={13} /></button>
         </div>
       </div>
       <div
@@ -1225,7 +1232,7 @@ function renderNodeText(
         onClick={(e) => { e.stopPropagation(); onOpenNote(id, name); }}
         onMouseDown={(e) => e.stopPropagation()}
       >
-        📄 {name}
+        <Icon name="file" size={11} /> {name}
       </span>
     );
     last = m.index + m[0].length;
@@ -1275,7 +1282,7 @@ function SlashMenu({ query, x, y, activeIndex, files, onSelect, onClose }: Slash
             className={`bsm-item${i === activeIndex ? ' active' : ''}`}
             onMouseDown={(e) => { e.preventDefault(); onSelect(f); }}
           >
-            <span className="bsm-item-icon">📄</span>
+            <span className="bsm-item-icon"><Icon name="file" size={13} /></span>
             <span className="bsm-item-name">{f.name}</span>
           </div>
         ))}
@@ -1289,6 +1296,7 @@ function SlashMenu({ query, x, y, activeIndex, files, onSelect, onClose }: Slash
 interface NodeProps {
   node: BNode; selected: boolean; soloSelected: boolean; editing: boolean; dropTarget: boolean; dropSide: Side | null;
   onDown: (e: React.MouseEvent) => void;
+  onDblClick: () => void;
   onHandleDown: (e: React.MouseEvent, side: Side) => void;
   onResizeDown: (e: React.MouseEvent, edge: ResizeEdge) => void;
   onTextInput: (text: string) => void;
@@ -1300,7 +1308,7 @@ const RESIZE_EDGES: ResizeEdge[] = ['n', 's', 'e', 'w'];
 const RESIZE_CORNERS: ResizeEdge[] = ['nw', 'ne', 'sw', 'se'];
 
 const BoardNode = memo(function BoardNode({
-  node, selected, soloSelected, editing, dropTarget, dropSide, onDown, onHandleDown, onResizeDown, onTextInput, onBlur, onOpenNote,
+  node, selected, soloSelected, editing, dropTarget, dropSide, onDown, onDblClick, onHandleDown, onResizeDown, onTextInput, onBlur, onOpenNote,
 }: NodeProps) {
   const ref          = useRef<HTMLDivElement>(null);
   const savedRange   = useRef<Range | null>(null);
@@ -1429,6 +1437,7 @@ const BoardNode = memo(function BoardNode({
       className={`board-node${isText ? ' bk-text' : ''}${isDraw ? ' draw-kind' : ''} shape-${node.shape}${selected ? ' sel' : ''}${dropTarget ? ' drop-target' : ''}`}
       style={{ left: node.x, top: node.y, width: node.w, height: nodeH }}
       onMouseDown={onDown}
+      onDoubleClick={(e) => { if (!isDraw) { e.stopPropagation(); onDblClick(); } }}
     >
       {!isText && !isDraw && <div className="node-bg" />}
 

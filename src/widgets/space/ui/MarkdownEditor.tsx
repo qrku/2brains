@@ -4,11 +4,13 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSpaceStore, spaceReadContent, spaceSaveContent } from '@/app/providers/SpaceStoreProvider';
 import { parseMarkdown } from '@/shared/lib/markdown';
 import { htmlToMarkdown } from '@/shared/lib/htmlToMarkdown';
+import { Icon, type IconName } from '@/shared/ui/Icon';
 
 /* ─── Slash commands ──────────────────────────────────────────────────────── */
 interface Cmd {
   id: string;
   icon: string;
+  svgIcon?: IconName; // when set, renders in place of the text glyph in `icon`
   label: string;
   group: string;
   snippet: string;      // '|' = cursor position (MD mode)
@@ -21,15 +23,15 @@ const CMDS: Cmd[] = [
   { id: 'h2',     icon: 'H2', group: 'Заголовки', label: 'Заголовок 2',   snippet: '## |',                                                         visual: '## Заголовок'                                                     },
   { id: 'h3',     icon: 'H3', group: 'Заголовки', label: 'Заголовок 3',   snippet: '### |',                                                        visual: '### Заголовок'                                                    },
   { id: 'h4',     icon: 'H4', group: 'Заголовки', label: 'Заголовок 4',   snippet: '#### |',                                                       visual: '#### Заголовок'                                                   },
-  { id: 'ul',     icon: '•',  group: 'Списки',    label: 'Маркированный', snippet: '- |',                                                          visual: '- Элемент'                                                        },
+  { id: 'ul',     icon: '•',  svgIcon: 'list',       group: 'Списки',    label: 'Маркированный', snippet: '- |',                                                          visual: '- Элемент'                                                        },
   { id: 'ol',     icon: '1.', group: 'Списки',    label: 'Нумерованный',  snippet: '1. |',                                                         visual: '1. Элемент'                                                       },
-  { id: 'todo',   icon: '☐',  group: 'Списки',    label: 'Задача',        snippet: '- [ ] |',                                                      visual: '- [ ] Задача'                                                     },
+  { id: 'todo',   icon: '☐',  svgIcon: 'list-check', group: 'Списки',    label: 'Задача',        snippet: '- [ ] |',                                                      visual: '- [ ] Задача'                                                     },
   { id: 'quote',  icon: '❝',  group: 'Блоки',     label: 'Цитата',        snippet: '> |',                                                          visual: '> Цитата'                                                         },
   { id: 'code',   icon: '<>', group: 'Блоки',     label: 'Блок кода',     snippet: '```\n|\n```',                                                  visual: '```\nКод\n```'                                                    },
-  { id: 'detail', icon: '▸',  group: 'Блоки',     label: 'Детали / Спойлер', snippet: '<details>\n<summary>|</summary>\n\n\n</details>',          visual: '<details>\n<summary>Заголовок</summary>\n\nСодержание\n\n</details>', search: 'details detail spoiler спойлер' },
+  { id: 'detail', icon: '▸',  svgIcon: 'chevron-down', group: 'Блоки',     label: 'Детали / Спойлер', snippet: '<details>\n<summary>|</summary>\n\n\n</details>',          visual: '<details>\n<summary>Заголовок</summary>\n\nСодержание\n\n</details>', search: 'details detail spoiler спойлер' },
   { id: 'hr',     icon: '—',  group: 'Блоки',     label: 'Разделитель',   snippet: '\n---\n|',                                                     visual: '---'                                                              },
-  { id: 'table',  icon: '⊞',  group: 'Блоки',     label: 'Таблица',       snippet: '| Кол 1 | Кол 2 |\n|---|---|\n| | |',                         visual: '| Кол 1 | Кол 2 |\n|---|---|\n| Ячейка | Ячейка |'             },
-  { id: 'bold',   icon: 'B',  group: 'Формат',    label: 'Жирный',        snippet: '**|**',                                                        visual: '**жирный**'                                                       },
+  { id: 'table',  icon: '⊞',  svgIcon: 'grid',       group: 'Блоки',     label: 'Таблица',       snippet: '| Кол 1 | Кол 2 |\n|---|---|\n| | |',                         visual: '| Кол 1 | Кол 2 |\n|---|---|\n| Ячейка | Ячейка |'             },
+  { id: 'bold',   icon: 'B',  svgIcon: 'format-bold', group: 'Формат',    label: 'Жирный',        snippet: '**|**',                                                        visual: '**жирный**'                                                       },
   { id: 'italic', icon: 'I',  group: 'Формат',    label: 'Курсив',        snippet: '*|*',                                                          visual: '*курсив*'                                                         },
   { id: 'strike', icon: 'S',  group: 'Формат',    label: 'Зачёркнутый',  snippet: '~~|~~',                                                        visual: '~~зачёркнутый~~'                                                  },
   { id: 'icode',  icon: '`',  group: 'Формат',    label: 'Код в строке',  snippet: '`|`',                                                          visual: '`код`'                                                            },
@@ -96,7 +98,7 @@ export function MarkdownEditor() {
   const { state }             = useSpaceStore();
   const { openFileId, nodes } = state;
 
-  const [mode,     setMode]     = useState<Mode>('md');
+  const [mode,     setMode]     = useState<Mode>('visual');
   const [content,  setContent]  = useState('');
   const [saved,    setSaved]    = useState(true);
   const [slash,    setSlash]    = useState<SlashState | null>(null);
@@ -108,7 +110,7 @@ export function MarkdownEditor() {
   const taRef         = useRef<HTMLTextAreaElement>(null);
   const visualRef     = useRef<HTMLDivElement>(null);
   // Always-current ref so file-load effect can read mode without stale closure
-  const modeRef       = useRef<Mode>('md');
+  const modeRef       = useRef<Mode>('visual');
   useEffect(() => { modeRef.current = mode; });
 
   // Increments every time a different file is opened — used to trigger visual refresh
@@ -197,6 +199,24 @@ export function MarkdownEditor() {
   const grouped = filteredCmds.reduce<Record<string, Cmd[]>>((acc, c) => {
     (acc[c.group] ??= []).push(c); return acc;
   }, {});
+
+  /* ── Keep the slash menu on-screen when the caret is near a viewport edge ── */
+  const slashMenuStyle = (): React.CSSProperties => {
+    const margin = 12;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const style: React.CSSProperties = { left: Math.max(margin, Math.min(slash!.left, vw - 250)) };
+    const spaceBelow = vh - slash!.top - margin;
+    if (spaceBelow >= 150) {
+      style.top = slash!.top;
+      style.maxHeight = Math.min(340, spaceBelow);
+    } else {
+      // Not enough room below the caret — pin the menu to the bottom of the viewport instead.
+      style.bottom = margin;
+      style.maxHeight = Math.min(340, vh - margin * 2);
+    }
+    return style;
+  };
 
   /* ── Insert in MD textarea ─────────────────────────────────────────── */
   const insertMdCmd = useCallback((cmd: Cmd) => {
@@ -513,7 +533,7 @@ export function MarkdownEditor() {
 
       {/* Slash command menu */}
       {slash && filteredCmds.length > 0 && (
-        <div className="slash-menu" style={{ top: slash.top, left: slash.left }}>
+        <div className="slash-menu" style={slashMenuStyle()}>
           {Object.entries(grouped).map(([group, cmds]) => (
             <div key={group} className="slash-group">
               <div className="slash-group-label">{group}</div>
@@ -526,7 +546,11 @@ export function MarkdownEditor() {
                     onMouseDown={(e) => { e.preventDefault(); insertCmd(cmd); }}
                     onMouseEnter={() => setSlashIdx(idx)}
                   >
-                    <span className="slash-icon">{cmd.icon}</span>
+                    <span className="slash-icon">
+                      {cmd.svgIcon
+                        ? <Icon name={cmd.svgIcon} size={15} style={cmd.id === 'detail' ? { transform: 'rotate(-90deg)' } : undefined} />
+                        : cmd.icon}
+                    </span>
                     <span className="slash-label">{cmd.label}</span>
                   </div>
                 );

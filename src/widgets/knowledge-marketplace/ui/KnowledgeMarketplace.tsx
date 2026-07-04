@@ -8,6 +8,7 @@ import { builtinPacks } from '@/data/packs/builtin';
 import { readPackProgress } from '@/shared/lib/storage';
 import { CATEGORY_LABELS } from '@/entities/pack';
 import type { PackCategory, BuiltinPackDef } from '@/entities/pack';
+import { Icon } from '@/shared/ui/Icon';
 
 type SortKey = 'default' | 'progress' | 'az';
 
@@ -41,7 +42,7 @@ function MarketCard({ pack, progress }: { pack: BuiltinPackDef; progress: PackPr
             ? `${progress.pct}% пройдено`
             : `${pack.sections.length} разделов · ${progress.total} тем`}
         </span>
-        <span className="market-card-open">Открыть →</span>
+        <span className="market-card-open">Открыть <Icon name="arrow-forward" size={11} /></span>
       </div>
     </Link>
   );
@@ -152,7 +153,7 @@ export function KnowledgeMarketplace() {
                   <div style={{ flex: 1 }} />
                   <div className="market-card-footer">
                     <span className="market-card-stats">Пользовательский</span>
-                    <span className="market-card-open">Открыть →</span>
+                    <span className="market-card-open">Открыть <Icon name="arrow-forward" size={11} /></span>
                   </div>
                 </Link>
               ))}

@@ -6,6 +6,7 @@ import { Button, Input, toast } from 'mikro-ui';
 import { useInterviewStore } from '@/app/providers/InterviewStoreProvider';
 import { QuestionCard, AddQuestionForm } from '@/features/manage-questions';
 import { PracticeModal } from '@/features/practice-mode';
+import { Icon } from '@/shared/ui/Icon';
 
 interface Props {
   id: string;
@@ -42,7 +43,7 @@ export function InterviewDetail({ id }: Props) {
     return (
       <div className="container">
         <Link href="/tests" className="btn-link ghost" style={{ marginBottom: 28, display: 'inline-flex' }}>
-          ← Назад
+          <Icon name="arrow-back" size={12} /> Назад
         </Link>
         <div className="empty-state" style={{ marginTop: 64 }}>Тест не найден</div>
       </div>
@@ -62,7 +63,7 @@ export function InterviewDetail({ id }: Props) {
     <>
       <div className="container">
         <Link href="/tests" className="btn-link ghost" style={{ marginBottom: 24, display: 'inline-flex' }}>
-          ← Тесты
+          <Icon name="arrow-back" size={12} /> Тесты
         </Link>
 
         <div className="detail-header">
@@ -89,7 +90,7 @@ export function InterviewDetail({ id }: Props) {
                 title="Переименовать"
                 onClick={() => { setDraftTitle(interview.title); setEditingTitle(true); }}
               >
-                ✎
+                <Icon name="edit-01" size={12} />
               </button>
             </div>
           )}
@@ -102,7 +103,7 @@ export function InterviewDetail({ id }: Props) {
             </span>
             {interview.questions.length > 0 && (
               <Button size="sm" variant="outline" onClick={() => setPracticing(true)}>
-                ▶ Начать практику
+                <Icon name="arrow-forward" size={11} /> Начать практику
               </Button>
             )}
           </div>

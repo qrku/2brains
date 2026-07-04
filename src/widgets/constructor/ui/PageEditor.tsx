@@ -6,20 +6,21 @@ import type {
   StatItem, CheckItem, KanbanCard, KanbanCol, BadgeItem, LinkItem, GalleryCard,
 } from '@/entities/custom-page';
 import { loadPage, savePage } from '@/entities/custom-page';
+import { Icon, type IconName } from '@/shared/ui/Icon';
 
 /* ─── Catalog ────────────────────────────────────────────────────────────── */
-export const BLOCK_CATALOG: { type: BlockType; icon: string; label: string; desc: string }[] = [
+export const BLOCK_CATALOG: { type: BlockType; icon: string; svgIcon?: IconName; label: string; desc: string }[] = [
   { type: 'heading',   icon: 'H',  label: 'Заголовок',   desc: 'H1 / H2 / H3' },
   { type: 'text',      icon: '¶',  label: 'Текст',       desc: 'Абзац текста' },
   { type: 'divider',   icon: '—',  label: 'Разделитель', desc: 'Горизонтальная линия' },
   { type: 'note',      icon: '💬', label: 'Заметка',     desc: 'Цветной блок-выноска' },
   { type: 'progress',  icon: '▓',  label: 'Прогресс',    desc: 'Полоса с подписью и %' },
   { type: 'stat',      icon: '#',  label: 'Статистика',  desc: 'Большие числа-метрики' },
-  { type: 'checklist', icon: '✓',  label: 'Чеклист',     desc: 'Список с чекбоксами' },
-  { type: 'table',     icon: '⊞',  label: 'Таблица',     desc: 'Строки и столбцы' },
+  { type: 'checklist', icon: '✓',  svgIcon: 'list-check', label: 'Чеклист',     desc: 'Список с чекбоксами' },
+  { type: 'table',     icon: '⊞',  svgIcon: 'grid',       label: 'Таблица',     desc: 'Строки и столбцы' },
   { type: 'kanban',    icon: '⧉',  label: 'Канбан',      desc: 'Колонки с карточками' },
   { type: 'badges',    icon: '⬡',  label: 'Теги',        desc: 'Набор цветных меток' },
-  { type: 'link',      icon: '⎋',  label: 'Ссылки',      desc: 'Карточки со ссылками' },
+  { type: 'link',      icon: '⎋',  svgIcon: 'link-1',     label: 'Ссылки',      desc: 'Карточки со ссылками' },
   { type: 'rating',    icon: '★',  label: 'Рейтинг',     desc: 'Оценка звёздами' },
   { type: 'gallery',   icon: '▦',  label: 'Галерея',     desc: 'Сетка карточек' },
 ];
@@ -223,7 +224,7 @@ export function PageEditor({ pageId }: { pageId: string }) {
                       onChange={(e) => updItems((is) => is.map((x) => x.id === it.id ? { ...x, label: e.target.value } : x))} />
                     <input className="ctor-stat-sub-input" value={it.sub ?? ''} placeholder="Подпись"
                       onChange={(e) => updItems((is) => is.map((x) => x.id === it.id ? { ...x, sub: e.target.value } : x))} />
-                    <button className="ctor-mini-del" onClick={() => updItems((is) => is.filter((x) => x.id !== it.id))}>×</button>
+                    <button className="ctor-mini-del" onClick={() => updItems((is) => is.filter((x) => x.id !== it.id))}><Icon name="close" size={11} /></button>
                   </>
                 ) : (
                   <>
@@ -236,7 +237,7 @@ export function PageEditor({ pageId }: { pageId: string }) {
             ))}
             {editing && (
               <button className="ctor-stat-add" onClick={() => updItems((is) => [...is, { id: uid(), value: '0', label: 'Метрика' }])}>
-                +
+                <Icon name="add" size={13} />
               </button>
             )}
           </div>
@@ -271,13 +272,13 @@ export function PageEditor({ pageId }: { pageId: string }) {
                       onChange={(e) => updItems((is) => is.map((x) => x.id === it.id ? { ...x, text: e.target.value } : x))} />
                   : <span className={`ctor-check-text${it.done ? ' done' : ''}`}>{it.text}</span>
                 }
-                {editing && <button className="ctor-mini-del" onClick={() => updItems((is) => is.filter((x) => x.id !== it.id))}>×</button>}
+                {editing && <button className="ctor-mini-del" onClick={() => updItems((is) => is.filter((x) => x.id !== it.id))}><Icon name="close" size={11} /></button>}
               </div>
             ))}
             {editing && (
               <button className="ctor-add-row"
                 onClick={() => updItems((is) => [...is, { id: uid(), text: '', done: false }])}>
-                + Добавить пункт
+                <Icon name="add" size={11} /> Добавить пункт
               </button>
             )}
           </div>
@@ -305,7 +306,7 @@ export function PageEditor({ pageId }: { pageId: string }) {
                   ))}
                   {editing && <th><button className="ctor-mini-del" onClick={() => {
                     updTable({ cols: [...cols, 'Колонка'], rows: rows.map((r) => [...r, '']) });
-                  }}>+</button></th>}
+                  }}><Icon name="add" size={11} /></button></th>}
                 </tr>
               </thead>
               <tbody>
@@ -323,14 +324,14 @@ export function PageEditor({ pageId }: { pageId: string }) {
                         }
                       </td>
                     ))}
-                    {editing && <td><button className="ctor-mini-del" onClick={() => updTable({ rows: rows.filter((_, i) => i !== ri) })}>×</button></td>}
+                    {editing && <td><button className="ctor-mini-del" onClick={() => updTable({ rows: rows.filter((_, i) => i !== ri) })}><Icon name="close" size={11} /></button></td>}
                   </tr>
                 ))}
               </tbody>
             </table>
             {editing && (
               <button className="ctor-add-row" onClick={() => updTable({ rows: [...rows, cols.map(() => '')] })}>
-                + Добавить строку
+                <Icon name="add" size={11} /> Добавить строку
               </button>
             )}
           </div>
@@ -361,7 +362,7 @@ export function PageEditor({ pageId }: { pageId: string }) {
                             onClick={() => updCols((cs) => cs.map((c) => c.id === col.id ? { ...c, color: bc.id } : c))} />
                         ))}
                         <button className="ctor-mini-del ml"
-                          onClick={() => updCols((cs) => cs.filter((c) => c.id !== col.id))}>×</button>
+                          onClick={() => updCols((cs) => cs.filter((c) => c.id !== col.id))}><Icon name="close" size={11} /></button>
                       </div>
                     )}
                   </div>
@@ -379,7 +380,7 @@ export function PageEditor({ pageId }: { pageId: string }) {
                         {editing && (
                           <button className="ctor-mini-del"
                             onClick={() => updCols((cs) => cs.map((c) => c.id === col.id
-                              ? { ...c, cards: c.cards.filter((k) => k.id !== card.id) } : c))}>×</button>
+                              ? { ...c, cards: c.cards.filter((k) => k.id !== card.id) } : c))}><Icon name="close" size={11} /></button>
                         )}
                       </div>
                     ))}
@@ -388,7 +389,7 @@ export function PageEditor({ pageId }: { pageId: string }) {
                     <button className="ctor-add-row"
                       onClick={() => updCols((cs) => cs.map((c) => c.id === col.id
                         ? { ...c, cards: [...c.cards, { id: uid(), text: 'Карточка' }] } : c))}>
-                      + Карточка
+                      <Icon name="add" size={11} /> Карточка
                     </button>
                   )}
                 </div>
@@ -397,7 +398,7 @@ export function PageEditor({ pageId }: { pageId: string }) {
             {editing && (
               <button className="ctor-kanban-add-col"
                 onClick={() => updCols((cs) => [...cs, { id: uid(), title: 'Колонка', color: 'gray', cards: [] }])}>
-                +
+                <Icon name="add" size={14} />
               </button>
             )}
           </div>
@@ -431,14 +432,14 @@ export function PageEditor({ pageId }: { pageId: string }) {
                           style={{ background: bc.bg, borderColor: bc.text, outline: it.color === bc.id ? `2px solid ${bc.text}` : 'none' }}
                           onClick={() => updItems((is) => is.map((x) => x.id === it.id ? { ...x, color: bc.id } : x))} />
                       ))}
-                      <button className="ctor-mini-del" onClick={() => updItems((is) => is.filter((x) => x.id !== it.id))}>×</button>
+                      <button className="ctor-mini-del" onClick={() => updItems((is) => is.filter((x) => x.id !== it.id))}><Icon name="close" size={11} /></button>
                     </span>
                   )}
                 </span>
               ))}
               {editing && (
                 <button className="ctor-badge ctor-badge-add" onClick={() => updItems((is) => [...is, { id: uid(), text: 'Тег', color: 'blue' }])}>
-                  + Добавить
+                  <Icon name="add" size={10} /> Добавить
                 </button>
               )}
             </div>
@@ -462,7 +463,7 @@ export function PageEditor({ pageId }: { pageId: string }) {
                       onChange={(e) => updItems((is) => is.map((x) => x.id === it.id ? { ...x, url: e.target.value } : x))} />
                     <input className="ctor-inline-input" value={it.desc ?? ''} placeholder="Описание (необязательно)"
                       onChange={(e) => updItems((is) => is.map((x) => x.id === it.id ? { ...x, desc: e.target.value } : x))} />
-                    <button className="ctor-mini-del" onClick={() => updItems((is) => is.filter((x) => x.id !== it.id))}>×</button>
+                    <button className="ctor-mini-del" onClick={() => updItems((is) => is.filter((x) => x.id !== it.id))}><Icon name="close" size={11} /></button>
                   </div>
                 ) : (
                   <a href={it.url || '#'} target="_blank" rel="noopener noreferrer" className="ctor-link-a">
@@ -476,7 +477,7 @@ export function PageEditor({ pageId }: { pageId: string }) {
             {editing && (
               <button className="ctor-add-row"
                 onClick={() => updItems((is) => [...is, { id: uid(), title: 'Ссылка', url: '', desc: '' }])}>
-                + Добавить ссылку
+                <Icon name="add" size={11} /> Добавить ссылку
               </button>
             )}
           </div>
@@ -539,7 +540,7 @@ export function PageEditor({ pageId }: { pageId: string }) {
                         style={{ background: bc.bg, borderColor: bc.text, outline: it.color === bc.id ? `2px solid ${bc.text}` : 'none' }}
                         onClick={() => updItems((is) => is.map((x) => x.id === it.id ? { ...x, color: bc.id } : x))} />
                     ))}
-                    <button className="ctor-mini-del" onClick={() => updItems((is) => is.filter((x) => x.id !== it.id))}>×</button>
+                    <button className="ctor-mini-del" onClick={() => updItems((is) => is.filter((x) => x.id !== it.id))}><Icon name="close" size={11} /></button>
                   </div>
                 )}
               </div>
@@ -547,7 +548,7 @@ export function PageEditor({ pageId }: { pageId: string }) {
             {editing && (
               <button className="ctor-gallery-add"
                 onClick={() => updItems((is) => [...is, { id: uid(), title: 'Карточка', status: 'Новое', color: 'blue' }])}>
-                +
+                <Icon name="add" size={16} />
               </button>
             )}
           </div>
@@ -561,15 +562,15 @@ export function PageEditor({ pageId }: { pageId: string }) {
     <div key={block.id} className={`ctor-block${editing ? ' editable' : ''}`}>
       {editing && (
         <div className="ctor-block-toolbar">
-          <button className="ctor-tb-btn" onClick={() => moveBlock(block.id, -1)} title="Вверх">↑</button>
-          <button className="ctor-tb-btn" onClick={() => moveBlock(block.id,  1)} title="Вниз">↓</button>
+          <button className="ctor-tb-btn" onClick={() => moveBlock(block.id, -1)} title="Вверх"><Icon name="arrow-up" size={12} /></button>
+          <button className="ctor-tb-btn" onClick={() => moveBlock(block.id,  1)} title="Вниз"><Icon name="arrow-down" size={12} /></button>
           <span className="ctor-tb-type">{BLOCK_CATALOG.find((c) => c.type === block.type)?.label}</span>
-          <button className="ctor-tb-del" onClick={() => removeBlock(block.id)} title="Удалить">×</button>
+          <button className="ctor-tb-del" onClick={() => removeBlock(block.id)} title="Удалить"><Icon name="close" size={13} /></button>
         </div>
       )}
       {renderBlock(block)}
       {editing && (
-        <button className="ctor-add-between" onClick={() => setPicker(idx)} title="Добавить блок">+</button>
+        <button className="ctor-add-between" onClick={() => setPicker(idx)} title="Добавить блок"><Icon name="add" size={13} /></button>
       )}
     </div>
   );
@@ -598,11 +599,11 @@ export function PageEditor({ pageId }: { pageId: string }) {
       <div className="ctor-blocks">
         {editing && page.blocks.length === 0 && (
           <button className="ctor-add-first" onClick={() => setPicker(-1)}>
-            + Добавить первый блок
+            <Icon name="add" size={13} /> Добавить первый блок
           </button>
         )}
         {editing && page.blocks.length > 0 && (
-          <button className="ctor-add-between top" onClick={() => setPicker(-1)}>+</button>
+          <button className="ctor-add-between top" onClick={() => setPicker(-1)}><Icon name="add" size={13} /></button>
         )}
         {page.blocks.map((b, i) => wrapBlock(b, i))}
       </div>
@@ -615,7 +616,7 @@ export function PageEditor({ pageId }: { pageId: string }) {
             <div className="ctor-picker-grid">
               {BLOCK_CATALOG.map((cat) => (
                 <button key={cat.type} className="ctor-picker-card" onClick={() => addBlock(cat.type, picker)}>
-                  <span className="ctor-picker-icon">{cat.icon}</span>
+                  <span className="ctor-picker-icon">{cat.svgIcon ? <Icon name={cat.svgIcon} size={16} /> : cat.icon}</span>
                   <span className="ctor-picker-label">{cat.label}</span>
                   <span className="ctor-picker-desc">{cat.desc}</span>
                 </button>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Textarea, Button, toast } from 'mikro-ui';
 import { useExperienceStore } from '@/app/providers/ExperienceStoreProvider';
 import type { Point } from '@/entities/experience';
+import { Icon } from '@/shared/ui/Icon';
 
 interface Props {
   experienceId: string;
@@ -52,14 +53,14 @@ export function PointItem({ experienceId, point }: Props) {
             title="Редактировать"
             onClick={() => { setDraftText(point.text); setEditing(true); }}
           >
-            ✎
+            <Icon name="edit-01" size={12} />
           </button>
           <button
             className="icon-btn danger"
             title="Удалить"
             onClick={() => dispatch({ type: 'DELETE_POINT', experienceId, pointId: point.id })}
           >
-            ✕
+            <Icon name="close" size={12} />
           </button>
         </div>
       )}

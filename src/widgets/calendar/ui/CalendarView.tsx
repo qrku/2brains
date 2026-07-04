@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { uid } from '@/shared/lib/uid';
+import { Icon } from '@/shared/ui/Icon';
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
 interface CalEvent {
@@ -110,9 +111,9 @@ export function CalendarView() {
       <div className="cal-header">
         <div className="cal-title">{MONTHS[cursor.getMonth()]} {cursor.getFullYear()}</div>
         <div className="cal-nav">
-          <button className="cal-nav-btn" onClick={() => setCursor((c) => addMonths(c, -1))} title="Предыдущий месяц">‹</button>
+          <button className="cal-nav-btn" onClick={() => setCursor((c) => addMonths(c, -1))} title="Предыдущий месяц"><Icon name="arrow-back-simple" size={13} /></button>
           <button className="cal-today-btn" onClick={() => setCursor(startOfMonth(new Date()))}>Сегодня</button>
-          <button className="cal-nav-btn" onClick={() => setCursor((c) => addMonths(c, 1))} title="Следующий месяц">›</button>
+          <button className="cal-nav-btn" onClick={() => setCursor((c) => addMonths(c, 1))} title="Следующий месяц"><Icon name="arrow-forward-simple" size={13} /></button>
         </div>
       </div>
 
@@ -134,7 +135,7 @@ export function CalendarView() {
             >
               <div className="cal-cell-head">
                 <span className="cal-cell-num">{day.getDate()}</span>
-                <button className="cal-cell-add" onClick={(e) => { e.stopPropagation(); openCreate(day); }} title="Добавить событие">+</button>
+                <button className="cal-cell-add" onClick={(e) => { e.stopPropagation(); openCreate(day); }} title="Добавить событие"><Icon name="add" size={11} /></button>
               </div>
               <div className="cal-cell-events">
                 {dayEvents.slice(0, MAX_VISIBLE_EVENTS).map((ev) => (
@@ -211,7 +212,7 @@ function EventModal({ date, event, onSave, onDelete, onClose }: EventModalProps)
       <div className="cal-modal" onKeyDown={onKeyDown}>
         <div className="cal-modal-header">
           <span className="cal-modal-date">{date.getDate()} {MONTHS[date.getMonth()]} {date.getFullYear()}</span>
-          <button className="cal-modal-close" onClick={onClose}>✕</button>
+          <button className="cal-modal-close" onClick={onClose}><Icon name="close" size={13} /></button>
         </div>
 
         <input

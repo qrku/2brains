@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Input, Select, Button } from 'mikro-ui';
 import { usePrepStore } from '@/app/providers/PrepStoreProvider';
+import { Icon } from '@/shared/ui/Icon';
 
 const PRIORITY_OPTIONS = [
   { value: '', label: 'без' },
@@ -50,7 +51,7 @@ export function AddTopicForm({ sectionId }: Props) {
           onChange={setPriority}
         />
       </div>
-      <Button size="sm" onClick={handleAdd}>+</Button>
+      <Button size="sm" onClick={handleAdd}><Icon name="add" size={12} /></Button>
     </div>
   );
 }

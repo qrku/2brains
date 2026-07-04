@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { loadPages, savePages, deletePage } from '@/entities/custom-page';
 import type { CustomPage } from '@/entities/custom-page';
+import { Icon } from '@/shared/ui/Icon';
 
 const EMOJIS = ['📋','📊','🗂️','📌','🏆','🎯','🧩','💡','🔖','📝','🚀','🌟','🔧','📈','🎨'];
 
@@ -47,7 +48,7 @@ export default function ConstructorIndex() {
           <h1 className="ctor-index-title">Конструктор</h1>
           <p className="ctor-index-sub">Собирай страницы из блоков под свои задачи</p>
         </div>
-        <button className="ctor-new-btn" onClick={() => setModal(true)}>+ Новая страница</button>
+        <button className="ctor-new-btn" onClick={() => setModal(true)}><Icon name="add" size={13} /> Новая страница</button>
       </div>
 
       {pages.length === 0 ? (
@@ -55,7 +56,7 @@ export default function ConstructorIndex() {
           <div className="ctor-empty-icon">🧩</div>
           <div className="ctor-empty-title">Пока нет страниц</div>
           <div className="ctor-empty-sub">Создай первую — собери нужные блоки в любом порядке</div>
-          <button className="ctor-new-btn" onClick={() => setModal(true)}>+ Создать</button>
+          <button className="ctor-new-btn" onClick={() => setModal(true)}><Icon name="add" size={13} /> Создать</button>
         </div>
       ) : (
         <div className="ctor-pages-grid">
@@ -70,7 +71,7 @@ export default function ConstructorIndex() {
                   {new Date(p.createdAt).toLocaleDateString('ru', { day: 'numeric', month: 'short' })}
                 </div>
               </Link>
-              <button className="ctor-page-card-del" onClick={() => del(p.id)} title="Удалить">×</button>
+              <button className="ctor-page-card-del" onClick={() => del(p.id)} title="Удалить"><Icon name="close" size={12} /></button>
             </div>
           ))}
         </div>

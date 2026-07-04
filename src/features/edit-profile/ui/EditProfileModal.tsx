@@ -3,6 +3,7 @@
 import { useState, type KeyboardEvent } from 'react';
 import { Button, Modal, Input, Select, toast } from 'mikro-ui';
 import { useProfileStore } from '@/app/providers/ProfileStoreProvider';
+import { Icon } from '@/shared/ui/Icon';
 import {
   AVATAR_OPTIONS,
   STACK_SUGGESTIONS,
@@ -107,7 +108,7 @@ export function EditProfileModal({ onClose }: Props) {
             {stack.map((tag) => (
               <span key={tag} className="stack-chip">
                 {tag}
-                <button className="stack-chip-remove" onClick={() => removeTag(tag)}>✕</button>
+                <button className="stack-chip-remove" onClick={() => removeTag(tag)}><Icon name="close" size={9} /></button>
               </span>
             ))}
             <input

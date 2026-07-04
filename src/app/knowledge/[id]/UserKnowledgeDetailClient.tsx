@@ -7,6 +7,7 @@ import { ProgressSummary } from '@/widgets/progress-summary';
 import { SectionList } from '@/widgets/section-list';
 import { FilterBar } from '@/features/filter-sections';
 import { AddSectionButton } from '@/features/manage-sections';
+import { Icon } from '@/shared/ui/Icon';
 
 interface Props {
   id: string;
@@ -31,7 +32,7 @@ export function UserKnowledgeDetailClient({ id }: Props) {
     return (
       <div className="container">
         <Link href="/knowledge" className="btn-link ghost" style={{ marginBottom: 28, display: 'inline-flex' }}>
-          ← Знания
+          <Icon name="arrow-back" size={12} /> Знания
         </Link>
         <div className="empty-state" style={{ marginTop: 64 }}>Набор не найден</div>
       </div>
@@ -41,7 +42,7 @@ export function UserKnowledgeDetailClient({ id }: Props) {
   return (
     <div className="container">
       <Link href="/knowledge" className="btn-link ghost" style={{ marginBottom: 24, display: 'inline-flex' }}>
-        ← Знания
+        <Icon name="arrow-back" size={12} /> Знания
       </Link>
       <div className="header">
         <h1>{pack.title}</h1>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useApplicationStore } from '@/app/providers/ApplicationStoreProvider';
 import { ApplicationModal } from '@/features/manage-applications';
 import { STATUS_LABELS, type Application } from '@/entities/application';
+import { Icon } from '@/shared/ui/Icon';
 
 interface Props {
   application: Application;
@@ -47,8 +48,8 @@ export function ApplicationCard({ application: app }: Props) {
         </div>
 
         <div className="app-card-actions">
-          <button className="icon-btn" title="Редактировать" onClick={() => setEditing(true)}>✎</button>
-          <button className="icon-btn danger" title="Удалить" onClick={handleDelete}>✕</button>
+          <button className="icon-btn" title="Редактировать" onClick={() => setEditing(true)}><Icon name="edit-01" size={12} /></button>
+          <button className="icon-btn danger" title="Удалить" onClick={handleDelete}><Icon name="close" size={12} /></button>
         </div>
       </div>
 

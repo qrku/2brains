@@ -5,6 +5,7 @@ import { toast } from 'mikro-ui';
 import { useProblemStore } from '@/app/providers/ProblemStoreProvider';
 import { ProblemModal } from '@/features/manage-problems';
 import { PATTERN_MAP, STATUS_LABELS, type Problem } from '@/entities/problem';
+import { Icon } from '@/shared/ui/Icon';
 
 const STATUS_ICONS: Record<string, string> = {
   todo:   '○',
@@ -79,8 +80,8 @@ export function ProblemCard({ problem }: Props) {
         </div>
 
         <div className="problem-actions">
-          <button className="icon-btn" title="Редактировать" onClick={() => setEditing(true)}>✎</button>
-          <button className="icon-btn danger" title="Удалить" onClick={handleDelete}>✕</button>
+          <button className="icon-btn" title="Редактировать" onClick={() => setEditing(true)}><Icon name="edit-01" size={12} /></button>
+          <button className="icon-btn danger" title="Удалить" onClick={handleDelete}><Icon name="close" size={12} /></button>
         </div>
       </div>
 

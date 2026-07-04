@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Icon } from '@/shared/ui/Icon';
 
 export function LandingClient() {
   const router = useRouter();
@@ -36,7 +37,7 @@ export function LandingClient() {
           autoFocus
         />
         <button className="land-btn" onClick={submit} disabled={loading}>
-          {loading ? '...' : 'Начать →'}
+          {loading ? '...' : <>Начать <Icon name="arrow-forward" size={12} /></>}
         </button>
       </div>
       {error && <p className="land-error">{error}</p>}

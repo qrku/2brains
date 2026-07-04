@@ -189,6 +189,9 @@ main        { padding: 32px 24px 80px; }
 .module-card.on .module-card-desc { color: rgba(255,255,255,0.45); }
 
 .module-card-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 11px;
   font-weight: 500;
   color: #ccc;
@@ -245,7 +248,7 @@ main        { padding: 32px 24px 80px; }
 .mini-bar-bg   { width: 52px; height: 2px; background: #e8e8e8; flex-shrink: 0; }
 .mini-bar-fill { height: 100%; background: #111; transition: width 0.3s; }
 
-.chevron      { color: #bbb; flex-shrink: 0; transition: transform 0.18s, color 0.12s; font-size: 10px; }
+.chevron      { display: inline-flex; align-items: center; justify-content: center; color: #bbb; flex-shrink: 0; transition: transform 0.18s, color 0.12s; font-size: 10px; }
 .chevron.open { transform: rotate(180deg); }
 .section-header:hover .chevron { color: #666; }
 
@@ -254,6 +257,9 @@ main        { padding: 32px 24px 80px; }
 /* ─── Icon button (small inline actions) ─────────────────────────────────── */
 
 .icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   cursor: pointer;
@@ -301,6 +307,7 @@ main        { padding: 32px 24px 80px; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 5px;
   height: 26px;
   padding: 0 8px;
   font-size: 12px;
@@ -572,6 +579,9 @@ main        { padding: 32px 24px 80px; }
   font-weight: 500;
 }
 .stack-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   color: rgba(255,255,255,0.6);
@@ -790,7 +800,7 @@ main        { padding: 32px 24px 80px; }
   margin-top: 4px;
 }
 .market-card-stats { font-size: 12px; color: #bbb; }
-.market-card-open  { font-size: 12px; color: #999; transition: color 120ms; }
+.market-card-open  { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; color: #999; transition: color 120ms; }
 .market-card:hover .market-card-open { color: #111; }
 
 /* User packs section */
@@ -1257,7 +1267,7 @@ main        { padding: 32px 24px 80px; }
   transition: background 0.1s;
 }
 .board-btn:hover  { background: #f3f3f3; }
-.board-btn-icon   { width: 28px; padding: 5px 0; text-align: center; font-size: 16px; font-weight: 400; }
+.board-btn-icon   { display: inline-flex; align-items: center; justify-content: center; width: 28px; padding: 5px 0; font-size: 16px; font-weight: 400; }
 .board-zoom-pct   { font-size: 11px; color: #aaa; min-width: 38px; text-align: center; }
 
 /* Property panel (dark pill above selected node) */
@@ -1273,6 +1283,7 @@ main        { padding: 32px 24px 80px; }
   white-space: nowrap;
 }
 .bp-btn {
+  display: inline-flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 500;
   color: #ddd; background: transparent;
   border: none; border-radius: 6px;
@@ -1329,6 +1340,9 @@ main        { padding: 32px 24px 80px; }
 
 /* Settings button */
 .board-settings-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 15px;
   color: #888;
   padding: 5px 8px;
@@ -1360,6 +1374,7 @@ main        { padding: 32px 24px 80px; }
 }
 .bsm-title { font-size: 13px; font-weight: 700; color: #111; }
 .bsm-close {
+  display: inline-flex; align-items: center; justify-content: center;
   background: none; border: none; cursor: pointer;
   font-size: 14px; color: #aaa; padding: 2px 4px;
   border-radius: 4px;
@@ -1433,7 +1448,7 @@ main        { padding: 32px 24px 80px; }
 }
 .board-panel-btn:hover  { background: #f5f5f5; }
 .board-panel-btn.active { background: #efefef; border-color: #d0d0d0; }
-.board-panel-icon  { font-size: 17px; line-height: 1; color: #555; }
+.board-panel-icon  { display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; color: #555; }
 .board-panel-btn.active .board-panel-icon { color: #111; }
 .board-panel-label { font-size: 10px; color: #999; font-weight: 500; }
 .board-panel-btn.active .board-panel-label { color: #333; }
@@ -1485,6 +1500,7 @@ main        { padding: 32px 24px 80px; }
 }
 .ba-open-link:hover { background: #f3f3f3; color: #555; }
 .ba-close {
+  display: inline-flex; align-items: center; justify-content: center;
   background: none; border: none; cursor: pointer;
   font-size: 14px; color: #aaa; padding: 2px 4px;
   width: 26px; height: 26px;
@@ -1631,7 +1647,7 @@ main        { padding: 32px 24px 80px; }
 .tree-row--active { background: #f0f0f0; }
 .tree-row--active .tree-name { color: #111; font-weight: 500; }
 
-.tree-icon { font-size: 10px; color: #bbb; flex-shrink: 0; width: 12px; text-align: center; }
+.tree-icon { display: inline-flex; align-items: center; justify-content: center; font-size: 10px; color: #bbb; flex-shrink: 0; width: 12px; }
 .tree-row--folder .tree-icon { color: #888; }
 
 .tree-name {
@@ -1646,6 +1662,9 @@ main        { padding: 32px 24px 80px; }
 
 .tree-row-actions { display: flex; gap: 2px; flex-shrink: 0; margin-left: 4px; }
 .tree-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-family: inherit;
   font-size: 10px;
   color: #bbb;
@@ -1724,7 +1743,7 @@ main        { padding: 32px 24px 80px; }
   resize: none;
   border: none;
   outline: none;
-  padding: 24px 32px;
+  padding: 24px 32px 140px;
   font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
   font-size: 13px;
   line-height: 1.8;
@@ -1735,7 +1754,7 @@ main        { padding: 32px 24px 80px; }
 .editor-textarea::placeholder { color: #ccc; }
 
 .editor-preview {
-  padding: 28px 40px 40px;
+  padding: 28px 40px 140px;
 }
 
 /* Visual (WYSIWYG) mode: scroll lives on the full-width wrapper so the
@@ -1989,6 +2008,7 @@ main        { padding: 32px 24px 80px; }
 .ctor-index-title  { font-size: 26px; font-weight: 700; margin: 0 0 4px; }
 .ctor-index-sub    { font-size: 14px; color: #888; margin: 0; }
 .ctor-new-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
   font-size: 13px; font-weight: 600;
   background: #111; color: #fff;
   border: none; border-radius: 9px;
@@ -2021,6 +2041,7 @@ main        { padding: 32px 24px 80px; }
 .ctor-page-card-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
 .ctor-page-card-meta  { font-size: 12px; color: #aaa; }
 .ctor-page-card-del {
+  display: inline-flex; align-items: center; justify-content: center;
   position: absolute; top: 10px; right: 10px;
   font-size: 16px; color: #ccc; background: none; border: none;
   cursor: pointer; line-height: 1; padding: 2px 5px; border-radius: 5px;
@@ -2125,12 +2146,14 @@ main        { padding: 32px 24px 80px; }
   margin-bottom: 4px; padding: 0 2px;
 }
 .ctor-tb-btn {
+  display: inline-flex; align-items: center; justify-content: center;
   font-size: 13px; color: #bbb; background: none;
   border: none; cursor: pointer; padding: 2px 5px; border-radius: 4px;
 }
 .ctor-tb-btn:hover { color: #555; background: #f0f0f0; }
 .ctor-tb-type { font-size: 11px; color: #ccc; flex: 1; }
 .ctor-tb-del  {
+  display: inline-flex; align-items: center; justify-content: center;
   font-size: 15px; color: #ddd; background: none; border: none;
   cursor: pointer; padding: 2px 5px; border-radius: 4px;
 }
@@ -2138,13 +2161,14 @@ main        { padding: 32px 24px 80px; }
 
 /* Add between / first block buttons */
 .ctor-add-between {
-  display: block; width: 100%; margin-top: 4px;
+  display: flex; align-items: center; justify-content: center; width: 100%; margin-top: 4px;
   font-size: 16px; color: #ccc; background: none; border: none;
   cursor: pointer; padding: 2px; border-radius: 6px; text-align: center;
   transition: color 0.1s, background 0.1s;
 }
 .ctor-add-between:hover { color: #888; background: #f5f5f5; }
 .ctor-add-first {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
   width: 100%; padding: 32px; border: 2px dashed #e0e0e0;
   border-radius: 12px; background: none; cursor: pointer;
   font-size: 14px; color: #aaa;
@@ -2261,6 +2285,7 @@ main        { padding: 32px 24px 80px; }
 .ctor-stat-lbl-input   { font-size: 12px; color: #888; border: none; outline: none; background: transparent; width: 100%; }
 .ctor-stat-sub-input   { font-size: 11px; color: #bbb; border: none; outline: none; background: transparent; width: 100%; }
 .ctor-stat-add {
+  display: flex; align-items: center; justify-content: center;
   min-width: 80px; background: none; border: 2px dashed #e0e0e0;
   border-radius: 12px; cursor: pointer; font-size: 22px; color: #ccc; padding: 12px 20px;
 }
@@ -2324,6 +2349,7 @@ main        { padding: 32px 24px 80px; }
   flex: 1; font-size: 13px; border: none; outline: none; background: transparent; font-family: inherit;
 }
 .ctor-kanban-add-col {
+  display: flex; align-items: center; justify-content: center;
   min-width: 40px; height: 40px; background: none;
   border: 2px dashed #e0e0e0; border-radius: 8px;
   cursor: pointer; font-size: 20px; color: #ccc; align-self: flex-start; margin-top: 0;
@@ -2416,13 +2442,14 @@ main        { padding: 32px 24px 80px; }
 .ctor-inline-input:focus { border-bottom-color: #aaa; }
 .ctor-inline-input.ctor-checklist-title { font-weight: 600; }
 .ctor-add-row {
-  display: block; width: 100%; margin-top: 6px;
+  display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 6px;
   font-size: 12px; color: #aaa; background: none;
   border: 1px dashed #e8e8e8; border-radius: 6px;
   padding: 6px; cursor: pointer; text-align: left;
 }
 .ctor-add-row:hover { color: #555; border-color: #bbb; }
 .ctor-mini-del {
+  display: inline-flex; align-items: center; justify-content: center;
   font-size: 14px; color: #ccc; background: none;
   border: none; cursor: pointer; padding: 1px 4px; border-radius: 4px;
   flex-shrink: 0;
@@ -2548,6 +2575,7 @@ main        { padding: 32px 24px 80px; }
 .land-input:focus { border-color: #aaa; }
 .land-input.err   { border-color: #f87171; }
 .land-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   font-size: 14px; font-weight: 700;
   background: #111; color: #fff;
   border: none; border-radius: 12px;
@@ -2608,6 +2636,7 @@ main        { padding: 32px 24px 80px; }
 .cal-title { font-size: 19px; font-weight: 600; letter-spacing: -0.3px; text-transform: capitalize; }
 .cal-nav   { display: flex; align-items: center; gap: 8px; }
 .cal-nav-btn {
+  display: inline-flex; align-items: center; justify-content: center;
   width: 30px; height: 30px;
   border: 1px solid #e4e4e4;
   border-radius: 8px;
@@ -2692,6 +2721,7 @@ main        { padding: 32px 24px 80px; }
 }
 .cal-cell-num { font-size: 13px; font-weight: 500; color: #333; }
 .cal-cell-add {
+  display: inline-flex; align-items: center; justify-content: center;
   width: 18px; height: 18px;
   border: none;
   border-radius: 5px;
@@ -2758,6 +2788,7 @@ main        { padding: 32px 24px 80px; }
 }
 .cal-modal-date { font-size: 13px; font-weight: 600; color: #555; text-transform: capitalize; }
 .cal-modal-close {
+  display: inline-flex; align-items: center; justify-content: center;
   border: none;
   background: transparent;
   color: #999;

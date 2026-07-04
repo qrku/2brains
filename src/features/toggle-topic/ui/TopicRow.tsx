@@ -3,6 +3,7 @@
 import { Checkbox } from 'mikro-ui';
 import { usePrepStore } from '@/app/providers/PrepStoreProvider';
 import type { Topic } from '@/entities/section';
+import { Icon } from '@/shared/ui/Icon';
 
 interface Props {
   topic: Topic;
@@ -31,7 +32,7 @@ export function TopicRow({ topic, sectionId }: Props) {
           className="icon-btn danger"
           onClick={() => dispatch({ type: 'DELETE_TOPIC', sectionId, topicId: topic.id })}
         >
-          ✕
+          <Icon name="close" size={11} />
         </button>
       </div>
     </div>

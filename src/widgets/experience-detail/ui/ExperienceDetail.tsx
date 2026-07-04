@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button, Input, toast } from 'mikro-ui';
 import { useExperienceStore } from '@/app/providers/ExperienceStoreProvider';
 import { PointItem, AddPointForm } from '@/features/manage-points';
+import { Icon } from '@/shared/ui/Icon';
 
 interface Props {
   id: string;
@@ -41,7 +42,7 @@ export function ExperienceDetail({ id }: Props) {
     return (
       <div className="container">
         <Link href="/experience" className="btn-link ghost" style={{ marginBottom: 28, display: 'inline-flex' }}>
-          ← Назад
+          <Icon name="arrow-back" size={12} /> Назад
         </Link>
         <div className="empty-state" style={{ marginTop: 64 }}>Проект не найден</div>
       </div>
@@ -66,7 +67,7 @@ export function ExperienceDetail({ id }: Props) {
   return (
     <div className="container">
       <Link href="/experience" className="btn-link ghost" style={{ marginBottom: 24, display: 'inline-flex' }}>
-        ← Все проекты
+        <Icon name="arrow-back" size={12} /> Все проекты
       </Link>
 
       <div className="detail-header">
@@ -93,7 +94,7 @@ export function ExperienceDetail({ id }: Props) {
               title="Переименовать"
               onClick={() => { setDraftTitle(exp.title); setEditingTitle(true); }}
             >
-              ✎
+              <Icon name="edit-01" size={12} />
             </button>
           </div>
         )}
@@ -113,7 +114,7 @@ export function ExperienceDetail({ id }: Props) {
               style={{ width: 160 }}
             />
             <Button size="sm" onClick={savePeriod}>OK</Button>
-            <Button size="sm" variant="ghost" onClick={() => setEditingPeriod(false)}>✕</Button>
+            <Button size="sm" variant="ghost" onClick={() => setEditingPeriod(false)}><Icon name="close" size={11} /></Button>
           </div>
         ) : (
           <div className="period-view-row">
@@ -125,7 +126,7 @@ export function ExperienceDetail({ id }: Props) {
               title="Изменить период"
               onClick={() => { setDraftPeriod(exp.period ?? ''); setEditingPeriod(true); }}
             >
-              ✎
+              <Icon name="edit-01" size={12} />
             </button>
           </div>
         )}

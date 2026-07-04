@@ -7,6 +7,7 @@ import { useProfileStore } from '@/app/providers/ProfileStoreProvider';
 import { useModulesStore } from '@/app/providers/ModulesStoreProvider';
 import { ALL_MODULES } from '@/entities/module';
 import { ModulePickerModal } from '@/features/module-picker';
+import { Icon } from '@/shared/ui/Icon';
 
 function BrainIcon() {
   return (
@@ -70,7 +71,7 @@ export function Nav() {
           <div style={{ flex: 1 }} />
 
           <button className="nav-add" onClick={() => setModulesOpen(true)} title="Модули">
-            +
+            <Icon name="add" size={13} />
           </button>
 
           <Link href="/profile" className={`nav-profile${isProfile ? ' active' : ''}`}>

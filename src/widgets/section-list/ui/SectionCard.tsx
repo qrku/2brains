@@ -5,6 +5,7 @@ import { usePrepStore } from '@/app/providers/PrepStoreProvider';
 import { TopicRow } from '@/features/toggle-topic';
 import { AddTopicForm } from '@/features/add-topic';
 import type { Section } from '@/entities/section';
+import { Icon } from '@/shared/ui/Icon';
 
 interface Props {
   section: Section;
@@ -28,7 +29,7 @@ export function SectionCard({ section }: Props) {
           <div className="mini-bar-fill" style={{ width: `${pct}%` }} />
         </div>
         <span className="section-meta">{done}/{total}</span>
-        <span className={`chevron${isOpen ? ' open' : ''}`}>▾</span>
+        <span className={`chevron${isOpen ? ' open' : ''}`}><Icon name="chevron-down" size={11} /></span>
         <button
           className="icon-btn danger"
           onClick={(e) => {
@@ -38,7 +39,7 @@ export function SectionCard({ section }: Props) {
             }
           }}
         >
-          ✕
+          <Icon name="close" size={12} />
         </button>
       </div>
 

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useUserPacksStore } from '@/app/providers/UserPacksStoreProvider';
 import { readPackProgress } from '@/shared/lib/storage';
 import { builtinPacks } from '@/data/packs/builtin';
+import { Icon } from '@/shared/ui/Icon';
 
 interface PackProgress {
   id: string;
@@ -47,7 +48,7 @@ export function ActivePacks() {
     <div className="active-packs">
       <div className="section-header-row">
         <span className="section-label">В процессе</span>
-        <Link href="/knowledge" className="btn-link ghost">Все →</Link>
+        <Link href="/knowledge" className="btn-link ghost">Все <Icon name="arrow-forward" size={11} /></Link>
       </div>
 
       {activePacks.length === 0 ? (

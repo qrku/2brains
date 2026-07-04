@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Textarea, Button, toast } from 'mikro-ui';
 import { useInterviewStore } from '@/app/providers/InterviewStoreProvider';
 import type { Question } from '@/entities/interview';
+import { Icon } from '@/shared/ui/Icon';
 
 interface Props {
   interviewId: string;
@@ -87,8 +88,8 @@ export function QuestionCard({ interviewId, question, index }: Props) {
 
       {!editing && (
         <div className="q-card-actions">
-          <button className="icon-btn" title="Редактировать" onClick={() => setEditing(true)}>✎</button>
-          <button className="icon-btn danger" title="Удалить" onClick={handleDelete}>✕</button>
+          <button className="icon-btn" title="Редактировать" onClick={() => setEditing(true)}><Icon name="edit-01" size={12} /></button>
+          <button className="icon-btn danger" title="Удалить" onClick={handleDelete}><Icon name="close" size={12} /></button>
         </div>
       )}
     </div>

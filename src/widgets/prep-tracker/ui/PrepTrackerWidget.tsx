@@ -5,6 +5,7 @@ import { ProgressSummary } from '@/widgets/progress-summary';
 import { SectionList } from '@/widgets/section-list';
 import { FilterBar } from '@/features/filter-sections';
 import { AddSectionButton } from '@/features/manage-sections';
+import { Icon } from '@/shared/ui/Icon';
 
 interface Props {
   packId: string;
@@ -20,7 +21,7 @@ export function PrepTrackerWidget({ packId, sections, defaultDoneIds, title, des
     <div className="container">
       {backHref && (
         <Link href={backHref} className="btn-link ghost" style={{ marginBottom: 24, display: 'inline-flex' }}>
-          ← Знания
+          <Icon name="arrow-back" size={12} /> Знания
         </Link>
       )}
       <div className="header">

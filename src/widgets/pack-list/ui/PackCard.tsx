@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useUserPacksStore } from '@/app/providers/UserPacksStoreProvider';
 import { readPackProgress } from '@/shared/lib/storage';
 import type { BuiltinPackDef, UserPack } from '@/entities/pack';
+import { Icon } from '@/shared/ui/Icon';
 
 interface BuiltinCardProps {
   pack: BuiltinPackDef;
@@ -57,7 +58,7 @@ export function UserPackCard({ pack }: UserCardProps) {
   return (
     <div className="pack-card pack-card--user">
       <div className="pack-card-top-row">
-        <button className="icon-btn danger" onClick={handleDelete} title="Удалить пак">✕</button>
+        <button className="icon-btn danger" onClick={handleDelete} title="Удалить пак"><Icon name="close" size={12} /></button>
       </div>
       <div className="pack-card-body">
         <div className="pack-title">{pack.title}</div>
