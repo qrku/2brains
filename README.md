@@ -11,7 +11,7 @@ Personal knowledge and prep tracker. Built as a single-user web app — no backe
 - React 19
 - TypeScript
 - Pure CSS (no UI library)
-- localStorage — only persistence layer
+- localStorage
 
 ## Architecture
 
