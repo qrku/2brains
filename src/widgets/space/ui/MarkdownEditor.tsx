@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSpaceStore, spaceReadContent, spaceSaveContent } from '@/app/providers/SpaceStoreProvider';
+import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
 import { parseMarkdown } from '@/shared/lib/markdown';
 import { htmlToMarkdown } from '@/shared/lib/htmlToMarkdown';
 import { Icon, type IconName } from '@/shared/ui/Icon';
@@ -97,6 +98,7 @@ interface SlashState {
 export function MarkdownEditor() {
   const { state }             = useSpaceStore();
   const { openFileId, nodes } = state;
+  const { state: wsState }    = useWorkspaceStore();
 
   const [mode,     setMode]     = useState<Mode>('visual');
   const [content,  setContent]  = useState('');
@@ -107,6 +109,9 @@ export function MarkdownEditor() {
 
   const saveTimer     = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentFileId = useRef<string | null>(null);
+  // The workspace the currently-loaded file belongs to — kept separate from
+  // wsState.currentId so a flush-on-switch always writes back to the right workspace.
+  const currentFileWsId = useRef<string>(wsState.currentId);
   const taRef         = useRef<HTMLTextAreaElement>(null);
   const visualRef     = useRef<HTMLDivElement>(null);
   // Always-current ref so file-load effect can read mode without stale closure
@@ -136,23 +141,24 @@ export function MarkdownEditor() {
     if (!openFileId) return;
     if (currentFileId.current === openFileId) return;
 
-    // Flush pending save for the previous file
+    // Flush pending save for the previous file — write it back to the workspace it belongs to
     if (saveTimer.current) clearTimeout(saveTimer.current);
     if (currentFileId.current) {
       // In visual mode the source of truth is the div's innerHTML, not React state
       const toSave = (modeRef.current === 'visual' && visualRef.current)
         ? htmlToMarkdown(visualRef.current.innerHTML)
         : content;
-      spaceSaveContent(currentFileId.current, toSave);
+      spaceSaveContent(currentFileId.current, toSave, currentFileWsId.current);
     }
 
     currentFileId.current = openFileId;
-    setContent(spaceReadContent(openFileId));
+    currentFileWsId.current = wsState.currentId;
+    setContent(spaceReadContent(openFileId, wsState.currentId));
     setSaved(true);
     setSlash(null);
     setFileKey((k) => k + 1); // signal visual effect to re-render
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openFileId]);
+  }, [openFileId, wsState.currentId]);
 
   /* ── Render visual div (on mode switch OR file change) ────────────── */
   useEffect(() => {
@@ -171,7 +177,7 @@ export function MarkdownEditor() {
     setSaved(false);
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      if (currentFileId.current) { spaceSaveContent(currentFileId.current, val); setSaved(true); }
+      if (currentFileId.current) { spaceSaveContent(currentFileId.current, val, currentFileWsId.current); setSaved(true); }
     }, 600);
   }, []);
 

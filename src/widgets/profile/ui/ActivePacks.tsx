@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useUserPacksStore } from '@/app/providers/UserPacksStoreProvider';
+import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
 import { readPackProgress } from '@/shared/lib/storage';
 import { builtinPacks } from '@/data/packs/builtin';
 import { Icon } from '@/shared/ui/Icon';
@@ -17,15 +18,17 @@ interface PackProgress {
 
 export function ActivePacks() {
   const { state: userPacksState } = useUserPacksStore();
+  const { state: wsState } = useWorkspaceStore();
   const [activePacks, setActivePacks] = useState<PackProgress[]>([]);
 
   useEffect(() => {
+    if (!wsState.hydrated) return;
     const results: PackProgress[] = [];
 
     // Built-in packs
     for (const pack of builtinPacks) {
       const topicIds = pack.sections.flatMap((s) => s.topics.map((t) => t.id));
-      const prog = readPackProgress(pack.id, topicIds, pack.defaultDoneIds);
+      const prog = readPackProgress(pack.id, wsState.currentId, topicIds, pack.defaultDoneIds);
       if (prog.done > 0) {
         results.push({ id: pack.id, title: pack.title, ...prog });
       }
@@ -34,7 +37,7 @@ export function ActivePacks() {
     // User packs
     if (userPacksState.hydrated) {
       for (const pack of userPacksState.packs) {
-        const prog = readPackProgress(pack.id, [], []);
+        const prog = readPackProgress(pack.id, wsState.currentId, [], []);
         if (prog.done > 0) {
           results.push({ id: pack.id, title: pack.title, ...prog });
         }
@@ -42,7 +45,7 @@ export function ActivePacks() {
     }
 
     setActivePacks(results.sort((a, b) => b.pct - a.pct));
-  }, [userPacksState.hydrated, userPacksState.packs]);
+  }, [userPacksState.hydrated, userPacksState.packs, wsState.hydrated, wsState.currentId]);
 
   return (
     <div className="active-packs">

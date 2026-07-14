@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import type { SpaceNode, SpaceState, SpaceAction } from '@/entities/space';
+import { useWorkspaceStore } from './WorkspaceStoreProvider';
+import { wsKey } from '@/shared/lib/workspace';
 
 const NODES_KEY = 'space_nodes_v1';
 const META_KEY  = 'space_meta_v1';
@@ -39,22 +41,24 @@ const Ctx = createContext<{ state: SpaceState; dispatch: React.Dispatch<SpaceAct
 
 export function SpaceStoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, { hydrated: false, nodes: [], openFileId: null, expanded: [] });
+  const { state: wsState } = useWorkspaceStore();
 
   useEffect(() => {
+    if (!wsState.hydrated) return;
     try {
-      const nodes    = JSON.parse(localStorage.getItem(NODES_KEY) ?? '[]') as SpaceNode[];
-      const meta     = JSON.parse(localStorage.getItem(META_KEY)  ?? '{}') as { expanded?: string[]; openFileId?: string };
+      const nodes = JSON.parse(localStorage.getItem(wsKey(NODES_KEY, wsState.currentId)) ?? '[]') as SpaceNode[];
+      const meta  = JSON.parse(localStorage.getItem(wsKey(META_KEY, wsState.currentId)) ?? '{}') as { expanded?: string[]; openFileId?: string };
       dispatch({ type: 'HYDRATE', nodes, expanded: meta.expanded ?? [], openFileId: meta.openFileId ?? null });
     } catch {
       dispatch({ type: 'HYDRATE', nodes: [], expanded: [], openFileId: null });
     }
-  }, []);
+  }, [wsState.hydrated, wsState.currentId]);
 
   useEffect(() => {
     if (!state.hydrated) return;
-    localStorage.setItem(NODES_KEY, JSON.stringify(state.nodes));
-    localStorage.setItem(META_KEY,  JSON.stringify({ expanded: state.expanded, openFileId: state.openFileId }));
-  }, [state.hydrated, state.nodes, state.expanded, state.openFileId]);
+    localStorage.setItem(wsKey(NODES_KEY, wsState.currentId), JSON.stringify(state.nodes));
+    localStorage.setItem(wsKey(META_KEY, wsState.currentId),  JSON.stringify({ expanded: state.expanded, openFileId: state.openFileId }));
+  }, [state.hydrated, state.nodes, state.expanded, state.openFileId, wsState.currentId]);
 
   return <Ctx.Provider value={{ state, dispatch }}>{children}</Ctx.Provider>;
 }
@@ -65,7 +69,14 @@ export function useSpaceStore() {
   return ctx;
 }
 
-// Content helpers — read/write directly to avoid putting large strings in React state
-export const spaceReadContent  = (id: string): string => { try { return localStorage.getItem(`space_file_${id}`) ?? ''; } catch { return ''; } };
-export const spaceSaveContent  = (id: string, text: string) => { try { localStorage.setItem(`space_file_${id}`, text); } catch {} };
-export const spaceDeleteContent = (id: string) => { try { localStorage.removeItem(`space_file_${id}`); } catch {} };
+// Content helpers — read/write directly to avoid putting large strings in React state.
+// Callers must pass the current workspace id (from useWorkspaceStore) so content stays isolated per workspace.
+export const spaceReadContent = (id: string, workspaceId: string): string => {
+  try { return localStorage.getItem(wsKey(`space_file_${id}`, workspaceId)) ?? ''; } catch { return ''; }
+};
+export const spaceSaveContent = (id: string, text: string, workspaceId: string) => {
+  try { localStorage.setItem(wsKey(`space_file_${id}`, workspaceId), text); } catch {}
+};
+export const spaceDeleteContent = (id: string, workspaceId: string) => {
+  try { localStorage.removeItem(wsKey(`space_file_${id}`, workspaceId)); } catch {}
+};

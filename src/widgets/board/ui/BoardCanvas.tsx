@@ -4,6 +4,8 @@ import { useState, useRef, useEffect, useCallback, memo, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { parseMarkdown } from '@/shared/lib/markdown';
 import { spaceReadContent } from '@/app/providers/SpaceStoreProvider';
+import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
+import { wsKey } from '@/shared/lib/workspace';
 import { Icon, type IconName } from '@/shared/ui/Icon';
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
@@ -94,9 +96,9 @@ const uid  = () => Math.random().toString(36).slice(2, 9);
 const clmp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function loadData(): { nodes: BNode[]; edges: BEdge[] } {
+function loadData(workspaceId: string): { nodes: BNode[]; edges: BEdge[] } {
   try {
-    const raw = JSON.parse(localStorage.getItem(KEY) ?? 'null');
+    const raw = JSON.parse(localStorage.getItem(wsKey(KEY, workspaceId)) ?? 'null');
     if (!raw) return { nodes: [], edges: [] };
     return {
       nodes: (raw.nodes ?? []).map((n: any) => ({
@@ -106,22 +108,22 @@ function loadData(): { nodes: BNode[]; edges: BEdge[] } {
     };
   } catch { return { nodes: [], edges: [] }; }
 }
-function saveData(d: { nodes: BNode[]; edges: BEdge[] }) {
-  try { localStorage.setItem(KEY, JSON.stringify(d)); } catch {}
+function saveData(d: { nodes: BNode[]; edges: BEdge[] }, workspaceId: string) {
+  try { localStorage.setItem(wsKey(KEY, workspaceId), JSON.stringify(d)); } catch {}
 }
-function loadSettings(): BoardSettings {
-  try { return { ...DEF_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') }; }
+function loadSettings(workspaceId: string): BoardSettings {
+  try { return { ...DEF_SETTINGS, ...JSON.parse(localStorage.getItem(wsKey(SETTINGS_KEY, workspaceId)) ?? '{}') }; }
   catch { return DEF_SETTINGS; }
 }
-function saveSettings(s: BoardSettings) {
-  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch {}
+function saveSettings(s: BoardSettings, workspaceId: string) {
+  try { localStorage.setItem(wsKey(SETTINGS_KEY, workspaceId), JSON.stringify(s)); } catch {}
 }
-function loadView(): T {
-  try { return { ...DEF_VIEW, ...JSON.parse(localStorage.getItem(VIEW_KEY) ?? '{}') }; }
+function loadView(workspaceId: string): T {
+  try { return { ...DEF_VIEW, ...JSON.parse(localStorage.getItem(wsKey(VIEW_KEY, workspaceId)) ?? '{}') }; }
   catch { return DEF_VIEW; }
 }
-function saveView(t: T) {
-  try { localStorage.setItem(VIEW_KEY, JSON.stringify(t)); } catch {}
+function saveView(t: T, workspaceId: string) {
+  try { localStorage.setItem(wsKey(VIEW_KEY, workspaceId), JSON.stringify(t)); } catch {}
 }
 
 function toC(sx: number, sy: number, t: T): XY { return { x: (sx - t.x) / t.scale, y: (sy - t.y) / t.scale }; }
@@ -331,6 +333,7 @@ function findConnectorMagnet(pos: XY, nodes: BNode[], excludeId: string, radius:
 
 /* ─── BoardCanvas ────────────────────────────────────────────────────────── */
 export function BoardCanvas() {
+  const { state: wsState } = useWorkspaceStore();
   const [nodes,       setNodes]       = useState<BNode[]>([]);
   const [edges,       setEdges]       = useState<BEdge[]>([]);
   const [tr,          setTr]          = useState<T>(DEF_VIEW);
@@ -366,28 +369,35 @@ export function BoardCanvas() {
   const mouseInVp   = useRef(false);
   const mouseOnUi   = useRef(false);
   const clipboardRef = useRef<{ nodes: BNode[]; edges: BEdge[] } | null>(null);
+  // The workspace whose data is currently loaded into nodes/edges/settings/tr —
+  // debounced saves always flush to this, not to wsState.currentId, so a mid-debounce
+  // workspace switch can't leak one workspace's edits into another's storage key.
+  const boardWsId    = useRef(wsState.currentId);
 
   /* ── Load ────────────────────────────────────────────────────────── */
   useEffect(() => {
-    const d = loadData();
+    if (!wsState.hydrated) return;
+    const id = wsState.currentId;
+    const d = loadData(id);
     setNodes(d.nodes); setEdges(d.edges);
-    setSettings(loadSettings());
-    setTr(loadView());
+    setSettings(loadSettings(id));
+    setTr(loadView(id));
+    boardWsId.current = id;
     setReady(true);
-  }, []);
+  }, [wsState.hydrated, wsState.currentId]);
 
   /* ── Save ────────────────────────────────────────────────────────── */
   useEffect(() => {
     if (!ready) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => saveData({ nodes, edges }), 500);
+    saveTimer.current = setTimeout(() => saveData({ nodes, edges }, boardWsId.current), 500);
   }, [nodes, edges, ready]);
 
   /* ── Save view (pan/zoom) ────────────────────────────────────────── */
   useEffect(() => {
     if (!ready) return;
     if (viewSaveTimer.current) clearTimeout(viewSaveTimer.current);
-    viewSaveTimer.current = setTimeout(() => saveView(tr), 300);
+    viewSaveTimer.current = setTimeout(() => saveView(tr, boardWsId.current), 300);
   }, [tr, ready]);
 
   /* ── Edge auto-pan (rAF) ─────────────────────────────────────────── */
@@ -804,7 +814,7 @@ export function BoardCanvas() {
 
   /* ── Settings ─────────────────────────────────────────────────────── */
   const updateSettings = useCallback((patch: Partial<BoardSettings>) => {
-    setSettings((s) => { const next = { ...s, ...patch }; saveSettings(next); return next; });
+    setSettings((s) => { const next = { ...s, ...patch }; saveSettings(next, boardWsId.current); return next; });
   }, []);
 
   /* ── Fit / zoom ───────────────────────────────────────────────────── */
@@ -1166,12 +1176,13 @@ export function BoardCanvas() {
 /* ─── NoteAside ──────────────────────────────────────────────────────────── */
 function NoteAside({ note, onClose }: { note: { id: string; name: string } | null; onClose: () => void }) {
   const [html, setHtml] = useState('');
+  const { state: wsState } = useWorkspaceStore();
 
   useEffect(() => {
     if (!note) { setHtml(''); return; }
-    const md = spaceReadContent(note.id);
+    const md = spaceReadContent(note.id, wsState.currentId);
     setHtml(md ? parseMarkdown(md) : '<p style="color:#ccc">Файл пустой</p>');
-  }, [note?.id]);
+  }, [note?.id, wsState.currentId]);
 
   // Manual <details> toggle: works regardless of browser quirks with
   // native summary activation inside the board environment.
@@ -1310,6 +1321,7 @@ const RESIZE_CORNERS: ResizeEdge[] = ['nw', 'ne', 'sw', 'se'];
 const BoardNode = memo(function BoardNode({
   node, selected, soloSelected, editing, dropTarget, dropSide, onDown, onDblClick, onHandleDown, onResizeDown, onTextInput, onBlur, onOpenNote,
 }: NodeProps) {
+  const { state: wsState } = useWorkspaceStore();
   const ref          = useRef<HTMLDivElement>(null);
   const savedRange   = useRef<Range | null>(null);
   const slashQuery   = useRef('');
@@ -1339,13 +1351,13 @@ const BoardNode = memo(function BoardNode({
 
   const openSlash = useCallback((x: number, y: number) => {
     try {
-      const raw = JSON.parse(localStorage.getItem('space_nodes_v1') ?? '[]') as Array<{ id: string; name: string; type: string }>;
+      const raw = JSON.parse(localStorage.getItem(wsKey('space_nodes_v1', wsState.currentId)) ?? '[]') as Array<{ id: string; name: string; type: string }>;
       setSpaceFiles(raw.filter((n) => n.type === 'file'));
     } catch { setSpaceFiles([]); }
     slashQuery.current = '';
     setActiveIdx(0);
     setSlashMenu({ x, y });
-  }, []);
+  }, [wsState.currentId]);
 
   const closeSlash = useCallback(() => {
     setSlashMenu(null);

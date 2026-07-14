@@ -6,6 +6,7 @@ import type {
   StatItem, CheckItem, KanbanCard, KanbanCol, BadgeItem, LinkItem, GalleryCard,
 } from '@/entities/custom-page';
 import { loadPage, savePage } from '@/entities/custom-page';
+import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
 import { Icon, type IconName } from '@/shared/ui/Icon';
 
 /* ─── Catalog ────────────────────────────────────────────────────────────── */
@@ -83,18 +84,22 @@ function createBlock(type: BlockType): Block {
 
 /* ─── PageEditor ─────────────────────────────────────────────────────────── */
 export function PageEditor({ pageId }: { pageId: string }) {
+  const { state: wsState } = useWorkspaceStore();
   const [page,    setPage]    = useState<CustomPage | null>(null);
   const [editing, setEditing] = useState(false);
   const [picker,  setPicker]  = useState<number | null>(null); // insert after this index
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => { setPage(loadPage(pageId)); }, [pageId]);
+  useEffect(() => {
+    if (!wsState.hydrated) return;
+    setPage(loadPage(pageId, wsState.currentId));
+  }, [pageId, wsState.hydrated, wsState.currentId]);
 
   useEffect(() => {
     if (!page) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => savePage(page), 400);
-  }, [page]);
+    saveTimer.current = setTimeout(() => savePage(page, wsState.currentId), 400);
+  }, [page, wsState.currentId]);
 
   if (!page) return <div className="ctor-empty">Страница не найдена</div>;
 

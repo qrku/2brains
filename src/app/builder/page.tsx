@@ -4,18 +4,24 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { loadPages, savePages, deletePage } from '@/entities/custom-page';
 import type { CustomPage } from '@/entities/custom-page';
+import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
 import { Icon } from '@/shared/ui/Icon';
 
 const EMOJIS = ['📋','📊','🗂️','📌','🏆','🎯','🧩','💡','🔖','📝','🚀','🌟','🔧','📈','🎨'];
 
 export default function ConstructorIndex() {
+  const { state: wsState } = useWorkspaceStore();
   const [pages, setPages]     = useState<CustomPage[]>([]);
   const [ready, setReady]     = useState(false);
   const [modal, setModal]     = useState(false);
   const [title, setTitle]     = useState('');
   const [icon,  setIcon]      = useState('📋');
 
-  useEffect(() => { setPages(loadPages()); setReady(true); }, []);
+  useEffect(() => {
+    if (!wsState.hydrated) return;
+    setPages(loadPages(wsState.currentId));
+    setReady(true);
+  }, [wsState.hydrated, wsState.currentId]);
 
   const create = () => {
     if (!title.trim()) return;
@@ -28,14 +34,14 @@ export default function ConstructorIndex() {
     };
     const next = [...pages, page];
     setPages(next);
-    savePages(next);
+    savePages(next, wsState.currentId);
     setModal(false);
     setTitle('');
     setIcon('📋');
   };
 
   const del = (id: string) => {
-    deletePage(id);
+    deletePage(id, wsState.currentId);
     setPages((ps) => ps.filter((p) => p.id !== id));
   };
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useUserPacksStore } from '@/app/providers/UserPacksStoreProvider';
+import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
 import { CreatePackButton } from '@/features/create-pack';
 import { builtinPacks } from '@/data/packs/builtin';
 import { readPackProgress } from '@/shared/lib/storage';
@@ -50,18 +51,20 @@ function MarketCard({ pack, progress }: { pack: BuiltinPackDef; progress: PackPr
 
 export function KnowledgeMarketplace() {
   const { state: userState } = useUserPacksStore();
+  const { state: wsState } = useWorkspaceStore();
   const [activeCategory, setActiveCategory] = useState<PackCategory | 'all'>('all');
   const [sort, setSort] = useState<SortKey>('default');
   const [progressMap, setProgressMap] = useState<Record<string, PackProgress>>({});
 
   useEffect(() => {
+    if (!wsState.hydrated) return;
     const map: Record<string, PackProgress> = {};
     for (const pack of builtinPacks) {
       const topicIds = pack.sections.flatMap((s) => s.topics.map((t) => t.id));
-      map[pack.id] = readPackProgress(pack.id, topicIds, pack.defaultDoneIds);
+      map[pack.id] = readPackProgress(pack.id, wsState.currentId, topicIds, pack.defaultDoneIds);
     }
     setProgressMap(map);
-  }, []);
+  }, [wsState.hydrated, wsState.currentId]);
 
   // derive available categories from current packs
   const availableCats = useMemo(() => {

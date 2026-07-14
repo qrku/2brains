@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Modal, Input, toast } from 'mikro-ui';
 import { useSpaceStore, spaceDeleteContent } from '@/app/providers/SpaceStoreProvider';
+import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
 import type { SpaceNode } from '@/entities/space';
 import { uid } from '@/shared/lib/uid';
 import { Icon } from '@/shared/ui/Icon';
@@ -36,6 +37,7 @@ type CreateTarget = { parentId: string | null; type: 'file' | 'folder' };
 
 export function FileTree() {
   const { state, dispatch } = useSpaceStore();
+  const { state: wsState } = useWorkspaceStore();
   const [hoverId, setHoverId]     = useState<string | null>(null);
   const [creating, setCreating]   = useState<CreateTarget | null>(null);
   const [newName, setNewName]     = useState('');
@@ -69,10 +71,10 @@ export function FileTree() {
     if (!confirm(`Удалить ${label}?`)) return;
     const descendants = node.type === 'folder' ? getDescendants(state.nodes, node.id) : [];
     // clean up content from localStorage
-    if (node.type === 'file') spaceDeleteContent(node.id);
+    if (node.type === 'file') spaceDeleteContent(node.id, wsState.currentId);
     descendants.forEach((id) => {
       const n = state.nodes.find((x) => x.id === id);
-      if (n?.type === 'file') spaceDeleteContent(id);
+      if (n?.type === 'file') spaceDeleteContent(id, wsState.currentId);
     });
     dispatch({ type: 'DELETE_NODE', id: node.id, descendants });
     if (state.openFileId === node.id || descendants.includes(state.openFileId ?? '')) {

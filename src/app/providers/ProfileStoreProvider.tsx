@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import { DEFAULT_PROFILE, type Profile } from '@/entities/profile';
+import { useWorkspaceStore } from './WorkspaceStoreProvider';
+import { wsKey } from '@/shared/lib/workspace';
 
 const STORAGE_KEY = 'prep_profile_v1';
 
@@ -26,20 +28,22 @@ const Ctx = createContext<{ state: State; dispatch: React.Dispatch<Action> } | n
 
 export function ProfileStoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, { profile: DEFAULT_PROFILE, hydrated: false });
+  const { state: wsState } = useWorkspaceStore();
 
   useEffect(() => {
+    if (!wsState.hydrated) return;
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(wsKey(STORAGE_KEY, wsState.currentId));
       dispatch({ type: 'HYDRATE', profile: raw ? { ...DEFAULT_PROFILE, ...JSON.parse(raw) } : DEFAULT_PROFILE });
     } catch {
       dispatch({ type: 'HYDRATE', profile: DEFAULT_PROFILE });
     }
-  }, []);
+  }, [wsState.hydrated, wsState.currentId]);
 
   useEffect(() => {
     if (!state.hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.profile));
-  }, [state.profile, state.hydrated]);
+    localStorage.setItem(wsKey(STORAGE_KEY, wsState.currentId), JSON.stringify(state.profile));
+  }, [state.profile, state.hydrated, wsState.currentId]);
 
   return <Ctx.Provider value={{ state, dispatch }}>{children}</Ctx.Provider>;
 }

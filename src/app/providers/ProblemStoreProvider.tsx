@@ -1,10 +1,28 @@
 'use client';
 
-import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, type ReactNode } from 'react';
+import { useQuery, useMutation, useSubscription } from 'urql';
 import type { Problem, Difficulty, ProblemStatus, Pattern } from '@/entities/problem';
-import { STATUS_CYCLE } from '@/entities/problem';
+import { useWorkspaceStore } from './WorkspaceStoreProvider';
+import {
+  PROBLEMS_QUERY,
+  PROBLEMS_CHANGED_SUBSCRIPTION,
+  CREATE_PROBLEM,
+  UPDATE_PROBLEM,
+  CYCLE_PROBLEM_STATUS,
+  DELETE_PROBLEM,
+  type GqlProblem,
+  fromGqlProblem,
+  toGqlInput,
+} from '@/shared/api/problems';
 
-const STORAGE_KEY = 'prep_problems_v1';
+/**
+ * Первый стор, переехавший с localStorage на GraphQL.
+ *
+ * Наружу отдаётся тот же контракт `{ state, dispatch }`, что и у остальных сторов,
+ * поэтому потребители (ProblemList, ProblemCard, ProblemModal, ProfileStats) не менялись.
+ * Внутри dispatch больше не редьюсер — это вызов мутации; состояние приходит с сервера.
+ */
 
 interface State {
   problems: Problem[];
@@ -12,7 +30,6 @@ interface State {
 }
 
 type Action =
-  | { type: 'HYDRATE'; problems: Problem[] }
   | {
       type: 'ADD_PROBLEM';
       title: string;
@@ -35,85 +52,64 @@ type Action =
   | { type: 'CYCLE_STATUS'; id: string }
   | { type: 'DELETE_PROBLEM'; id: string };
 
-function uid() {
-  return Math.random().toString(36).slice(2, 10);
-}
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'HYDRATE':
-      return { ...state, problems: action.problems, hydrated: true };
-
-    case 'ADD_PROBLEM':
-      return {
-        ...state,
-        problems: [
-          {
-            id: uid(),
-            title: action.title,
-            url: action.url,
-            difficulty: action.difficulty,
-            status: action.status,
-            patterns: action.patterns,
-            note: action.note,
-            createdAt: new Date().toISOString(),
-          },
-          ...state.problems,
-        ],
-      };
-
-    case 'UPDATE_PROBLEM':
-      return {
-        ...state,
-        problems: state.problems.map((p) =>
-          p.id !== action.id
-            ? p
-            : {
-                ...p,
-                title: action.title,
-                url: action.url,
-                difficulty: action.difficulty,
-                status: action.status,
-                patterns: action.patterns,
-                note: action.note,
-              }
-        ),
-      };
-
-    case 'CYCLE_STATUS':
-      return {
-        ...state,
-        problems: state.problems.map((p) =>
-          p.id === action.id ? { ...p, status: STATUS_CYCLE[p.status] } : p
-        ),
-      };
-
-    case 'DELETE_PROBLEM':
-      return { ...state, problems: state.problems.filter((p) => p.id !== action.id) };
-
-    default:
-      return state;
-  }
-}
-
-const Ctx = createContext<{ state: State; dispatch: React.Dispatch<Action> } | null>(null);
+const Ctx = createContext<{ state: State; dispatch: (action: Action) => void } | null>(null);
 
 export function ProblemStoreProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, { problems: [], hydrated: false });
+  const { state: wsState } = useWorkspaceStore();
+  const workspaceId = wsState.currentId;
+  const pause = !wsState.hydrated;
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      dispatch({ type: 'HYDRATE', problems: raw ? JSON.parse(raw) : [] });
-    } catch {
-      dispatch({ type: 'HYDRATE', problems: [] });
+  const [result] = useQuery<{ problems: GqlProblem[] }>({
+    query: PROBLEMS_QUERY,
+    variables: { workspaceId },
+    pause,
+  });
+
+  /**
+   * Живой канал: сервер пушит весь список задач воркспейса при любом изменении,
+   * в том числе сделанном в другой вкладке. Держим отдельно от результата запроса
+   * и помечаем воркспейсом, иначе при переключении воркспейса на экране на мгновение
+   * останутся задачи предыдущего.
+   */
+  const [live, setLive] = useState<{ workspaceId: string; problems: GqlProblem[] } | null>(null);
+
+  useSubscription<{ problemsChanged: GqlProblem[] }>(
+    { query: PROBLEMS_CHANGED_SUBSCRIPTION, variables: { workspaceId }, pause },
+    (_prev, data) => {
+      setLive({ workspaceId, problems: data.problemsChanged });
+      return data;
+    },
+  );
+
+  const [, createProblem] = useMutation(CREATE_PROBLEM);
+  const [, updateProblem] = useMutation(UPDATE_PROBLEM);
+  const [, cycleStatus] = useMutation(CYCLE_PROBLEM_STATUS);
+  const [, deleteProblem] = useMutation(DELETE_PROBLEM);
+
+  const source =
+    live?.workspaceId === workspaceId ? live.problems : (result.data?.problems ?? []);
+
+  const state: State = {
+    problems: source.map(fromGqlProblem),
+    hydrated: !pause && !result.fetching && result.data !== undefined,
+  };
+
+  const dispatch = (action: Action) => {
+    switch (action.type) {
+      case 'ADD_PROBLEM':
+        createProblem({ workspaceId, input: toGqlInput(action) });
+        break;
+      case 'UPDATE_PROBLEM':
+        updateProblem({ workspaceId, id: action.id, input: toGqlInput(action) });
+        break;
+      case 'CYCLE_STATUS':
+        cycleStatus({ workspaceId, id: action.id });
+        break;
+      case 'DELETE_PROBLEM':
+        deleteProblem({ workspaceId, id: action.id });
+        break;
     }
-  }, []);
-
-  useEffect(() => {
-    if (!state.hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.problems));
-  }, [state.problems, state.hydrated]);
+  };
 
   return <Ctx.Provider value={{ state, dispatch }}>{children}</Ctx.Provider>;
 }

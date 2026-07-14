@@ -6,11 +6,13 @@ import {
   useReducer,
   useEffect,
   useMemo,
+  useRef,
   type ReactNode,
 } from 'react';
 import type { Section, Topic } from '@/entities/section';
 import { loadStorage, saveStorage } from '@/shared/lib/storage';
 import { uid } from '@/shared/lib/uid';
+import { useWorkspaceStore } from './WorkspaceStoreProvider';
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -180,6 +182,7 @@ interface Props {
 }
 
 export function PrepStoreProvider({ packId, defaultSections, defaultDoneIds, children }: Props) {
+  const { state: wsState } = useWorkspaceStore();
   const [state, dispatch] = useReducer(reducer, {
     sections: defaultSections,
     doneIds: new Set<string>(),
@@ -187,15 +190,21 @@ export function PrepStoreProvider({ packId, defaultSections, defaultDoneIds, chi
     openIds: new Set<string>(),
     hydrated: false,
   });
+  // The workspace whose data is currently loaded into state — saves flush to this,
+  // not to wsState.currentId, so a workspace switch can't cross-contaminate storage.
+  const prepWsId = useRef(wsState.currentId);
 
   useEffect(() => {
-    const { sections, doneIds } = loadStorage(packId, defaultSections, defaultDoneIds);
+    if (!wsState.hydrated) return;
+    const { sections, doneIds } = loadStorage(packId, wsState.currentId, defaultSections, defaultDoneIds);
+    prepWsId.current = wsState.currentId;
     dispatch({ type: 'HYDRATE', sections, doneIds });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wsState.hydrated, wsState.currentId]);
 
   useEffect(() => {
     if (!state.hydrated) return;
-    saveStorage(packId, state.sections, Array.from(state.doneIds));
+    saveStorage(packId, prepWsId.current, state.sections, Array.from(state.doneIds));
   }, [state.sections, state.doneIds, state.hydrated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

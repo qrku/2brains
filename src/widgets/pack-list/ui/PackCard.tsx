@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useUserPacksStore } from '@/app/providers/UserPacksStoreProvider';
+import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
 import { readPackProgress } from '@/shared/lib/storage';
 import type { BuiltinPackDef, UserPack } from '@/entities/pack';
 import { Icon } from '@/shared/ui/Icon';
@@ -12,12 +13,15 @@ interface BuiltinCardProps {
 }
 
 export function BuiltinPackCard({ pack }: BuiltinCardProps) {
+  const { state: wsState } = useWorkspaceStore();
   const topicIds = pack.sections.flatMap((s) => s.topics.map((t) => t.id));
   const [progress, setProgress] = useState({ done: 0, total: topicIds.length, pct: 0 });
 
   useEffect(() => {
-    setProgress(readPackProgress(pack.id, topicIds, pack.defaultDoneIds));
-  }, [pack.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!wsState.hydrated) return;
+    setProgress(readPackProgress(pack.id, wsState.currentId, topicIds, pack.defaultDoneIds));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pack.id, wsState.hydrated, wsState.currentId]);
 
   return (
     <div className="pack-card">
@@ -44,11 +48,13 @@ interface UserCardProps {
 
 export function UserPackCard({ pack }: UserCardProps) {
   const { dispatch } = useUserPacksStore();
+  const { state: wsState } = useWorkspaceStore();
   const [progress, setProgress] = useState({ done: 0, total: 0, pct: 0 });
 
   useEffect(() => {
-    setProgress(readPackProgress(pack.id, [], []));
-  }, [pack.id]);
+    if (!wsState.hydrated) return;
+    setProgress(readPackProgress(pack.id, wsState.currentId, [], []));
+  }, [pack.id, wsState.hydrated, wsState.currentId]);
 
   const handleDelete = () => {
     if (!confirm(`Удалить пак «${pack.title}»?`)) return;

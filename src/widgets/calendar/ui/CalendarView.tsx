@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { uid } from '@/shared/lib/uid';
+import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
+import { wsKey } from '@/shared/lib/workspace';
 import { Icon } from '@/shared/ui/Icon';
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
@@ -41,34 +43,40 @@ function buildMonthGrid(monthStart: Date): Date[] {
 }
 
 /* ─── Persistence ───────────────────────────────────────────────────────── */
-function loadEvents(): CalEvent[] {
+function loadEvents(workspaceId: string): CalEvent[] {
   try {
-    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
+    const raw = JSON.parse(localStorage.getItem(wsKey(STORAGE_KEY, workspaceId)) ?? 'null');
     return Array.isArray(raw) ? raw : [];
   } catch { return []; }
 }
-function saveEvents(events: CalEvent[]) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(events)); } catch {}
+function saveEvents(events: CalEvent[], workspaceId: string) {
+  try { localStorage.setItem(wsKey(STORAGE_KEY, workspaceId), JSON.stringify(events)); } catch {}
 }
 
 /* ─── CalendarView ──────────────────────────────────────────────────────── */
 export function CalendarView() {
+  const { state: wsState } = useWorkspaceStore();
   const [events, setEvents] = useState<CalEvent[]>([]);
   const [ready,  setReady]  = useState(false);
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
   const [modal,  setModal]  = useState<{ date: Date; event: CalEvent | null } | null>(null);
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The workspace whose data is currently loaded into `events` — debounced saves
+  // flush to this so a mid-debounce workspace switch can't cross-contaminate storage.
+  const eventsWsId = useRef(wsState.currentId);
 
   useEffect(() => {
-    setEvents(loadEvents());
+    if (!wsState.hydrated) return;
+    setEvents(loadEvents(wsState.currentId));
+    eventsWsId.current = wsState.currentId;
     setReady(true);
-  }, []);
+  }, [wsState.hydrated, wsState.currentId]);
 
   useEffect(() => {
     if (!ready) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => saveEvents(events), 300);
+    saveTimer.current = setTimeout(() => saveEvents(events, eventsWsId.current), 300);
   }, [events, ready]);
 
   const today = useMemo(() => new Date(), []);

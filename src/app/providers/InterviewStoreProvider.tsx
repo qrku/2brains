@@ -9,6 +9,8 @@ import {
 } from 'react';
 import type { Interview, Question } from '@/entities/interview';
 import { uid } from '@/shared/lib/uid';
+import { useWorkspaceStore } from './WorkspaceStoreProvider';
+import { wsKey } from '@/shared/lib/workspace';
 
 const LS_KEY = 'prep_interviews_v1';
 
@@ -136,10 +138,12 @@ export function InterviewStoreProvider({ children }: { children: ReactNode }) {
     interviews: [],
     hydrated: false,
   });
+  const { state: wsState } = useWorkspaceStore();
 
   useEffect(() => {
+    if (!wsState.hydrated) return;
     try {
-      const stored = localStorage.getItem(LS_KEY);
+      const stored = localStorage.getItem(wsKey(LS_KEY, wsState.currentId));
       dispatch({
         type: 'HYDRATE',
         interviews: stored ? (JSON.parse(stored) as Interview[]) : [],
@@ -147,14 +151,14 @@ export function InterviewStoreProvider({ children }: { children: ReactNode }) {
     } catch {
       dispatch({ type: 'HYDRATE', interviews: [] });
     }
-  }, []);
+  }, [wsState.hydrated, wsState.currentId]);
 
   useEffect(() => {
     if (!state.hydrated) return;
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify(state.interviews));
+      localStorage.setItem(wsKey(LS_KEY, wsState.currentId), JSON.stringify(state.interviews));
     } catch {}
-  }, [state.interviews, state.hydrated]);
+  }, [state.interviews, state.hydrated, wsState.currentId]);
 
   return (
     <InterviewContext.Provider value={{ state, dispatch }}>

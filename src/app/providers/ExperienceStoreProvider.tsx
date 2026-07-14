@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import type { Experience } from '@/entities/experience';
+import { useWorkspaceStore } from './WorkspaceStoreProvider';
+import { wsKey } from '@/shared/lib/workspace';
 
 const STORAGE_KEY = 'prep_experience_v1';
 
@@ -104,20 +106,22 @@ const Ctx = createContext<{ state: State; dispatch: React.Dispatch<Action> } | n
 
 export function ExperienceStoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, { experiences: [], hydrated: false });
+  const { state: wsState } = useWorkspaceStore();
 
   useEffect(() => {
+    if (!wsState.hydrated) return;
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(wsKey(STORAGE_KEY, wsState.currentId));
       dispatch({ type: 'HYDRATE', experiences: raw ? JSON.parse(raw) : [] });
     } catch {
       dispatch({ type: 'HYDRATE', experiences: [] });
     }
-  }, []);
+  }, [wsState.hydrated, wsState.currentId]);
 
   useEffect(() => {
     if (!state.hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.experiences));
-  }, [state.experiences, state.hydrated]);
+    localStorage.setItem(wsKey(STORAGE_KEY, wsState.currentId), JSON.stringify(state.experiences));
+  }, [state.experiences, state.hydrated, wsState.currentId]);
 
   return <Ctx.Provider value={{ state, dispatch }}>{children}</Ctx.Provider>;
 }

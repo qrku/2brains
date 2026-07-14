@@ -3,23 +3,26 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useProblemStore } from '@/app/providers/ProblemStoreProvider';
 import { useInterviewStore } from '@/app/providers/InterviewStoreProvider';
+import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
 import { readPackProgress } from '@/shared/lib/storage';
 import { builtinPacks } from '@/data/packs/builtin';
 
 export function ProfileStats() {
   const { state: probState } = useProblemStore();
   const { state: ivState }   = useInterviewStore();
+  const { state: wsState }   = useWorkspaceStore();
 
   // Start at 0/0 so SSR and first client render match, then hydrate from localStorage
   const [frontendProgress, setFrontendProgress] = useState({ done: 0, total: 0 });
 
   useEffect(() => {
+    if (!wsState.hydrated) return;
     const pack = builtinPacks.find((p) => p.id === 'frontend');
     if (!pack) return;
     const topicIds = pack.sections.flatMap((s) => s.topics.map((t) => t.id));
-    const { done, total } = readPackProgress(pack.id, topicIds, pack.defaultDoneIds);
+    const { done, total } = readPackProgress(pack.id, wsState.currentId, topicIds, pack.defaultDoneIds);
     setFrontendProgress({ done, total });
-  }, []);
+  }, [wsState.hydrated, wsState.currentId]);
 
   const solvedProblems = useMemo(
     () => probState.problems.filter((p) => p.status === 'solved').length,
