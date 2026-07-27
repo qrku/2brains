@@ -2,6 +2,30 @@
    Handles both our known CSS classes and browser-injected elements
    (contentEditable wraps new lines in <div> on Chrome, <br> on Firefox). */
 
+/**
+ * Text of a code block, preserving the line breaks contentEditable may have turned into <br> or
+ * per-line <div> wrappers (Chrome) — DOM textContent would silently drop them and merge the lines.
+ */
+function codeText(code: Element): string {
+  let out = '';
+  const walk = (parent: Node): void => {
+    parent.childNodes.forEach((n) => {
+      if (n.nodeType === Node.TEXT_NODE) { out += n.textContent ?? ''; return; }
+      if (n.nodeType !== Node.ELEMENT_NODE) return;
+      const name = (n as Element).tagName.toLowerCase();
+      if (name === 'br') { out += '\n'; return; }
+      if (name === 'div' || name === 'p') {
+        if (out && !out.endsWith('\n')) out += '\n';
+        walk(n);
+        return;
+      }
+      walk(n);
+    });
+  };
+  walk(code);
+  return out.replace(/ /g, ' ').replace(/\n$/, '');
+}
+
 function textContent(el: Element): string {
   return Array.from(el.childNodes).map((n): string => {
     if (n.nodeType === Node.TEXT_NODE) return (n.textContent ?? '').replace(/ /g, ' ');
@@ -39,8 +63,9 @@ function nodeToMd(node: Node): string {
     }
   }
 
-  // Paragraph (skip trailing-only <br> placeholders)
-  if (cls.includes('md-p') || tag === 'p') {
+  // Paragraph (skip trailing-only <br> placeholders).
+  // Exact class match, not substring — otherwise 'md-pre' code blocks match 'md-p' and lose their fences.
+  if (el.classList.contains('md-p') || tag === 'p') {
     const t = textContent(el).replace(/^\n+|\n+$/g, '').trim();
     return t ? `${t}\n\n` : '';
   }
@@ -52,7 +77,7 @@ function nodeToMd(node: Node): string {
   if (cls.includes('md-pre') || tag === 'pre') {
     const code = el.querySelector('code');
     const lang = (code?.className ?? '').replace('language-', '');
-    return `\`\`\`${lang}\n${code?.textContent ?? el.textContent ?? ''}\n\`\`\`\n\n`;
+    return `\`\`\`${lang}\n${codeText(code ?? el)}\n\`\`\`\n\n`;
   }
 
   // Blockquote

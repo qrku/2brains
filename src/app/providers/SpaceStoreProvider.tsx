@@ -16,6 +16,12 @@ function reducer(state: SpaceState, action: SpaceAction): SpaceState {
     case 'ADD_NODE':
       return { ...state, nodes: [...state.nodes, action.node] };
 
+    case 'MOVE_NODE': {
+      // Reparent; a no-op guard keeps a stray self-drop from making a node its own parent.
+      if (action.id === action.parentId) return state;
+      return { ...state, nodes: state.nodes.map((n) => n.id === action.id ? { ...n, parentId: action.parentId } : n) };
+    }
+
     case 'DELETE_NODE': {
       const remove = new Set([action.id, ...action.descendants]);
       return { ...state, nodes: state.nodes.filter((n) => !remove.has(n.id)) };

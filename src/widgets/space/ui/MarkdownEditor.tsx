@@ -39,6 +39,33 @@ const CMDS: Cmd[] = [
   { id: 'mark',   icon: '=',  group: 'Формат',    label: 'Выделение',     snippet: '==|==',                                                        visual: '==выделение=='                                                    },
 ];
 
+/* ─── Code-block editing helpers ──────────────────────────────────────────── */
+/** Nearest ancestor with the given lowercase tag, searching up to (not including) `root`. */
+function closestTag(node: Node | null, tag: string, root: Node): HTMLElement | null {
+  let n: Node | null = node;
+  while (n && n !== root) {
+    if (n.nodeType === Node.ELEMENT_NODE && (n as Element).tagName.toLowerCase() === tag) {
+      return n as HTMLElement;
+    }
+    n = n.parentNode;
+  }
+  return null;
+}
+
+/** Drop `text` in at the caret as a single text node and leave the caret right after it. */
+function insertTextAtCaret(text: string): void {
+  const sel = window.getSelection();
+  if (!sel?.rangeCount) return;
+  const range = sel.getRangeAt(0);
+  range.deleteContents();
+  const tn = document.createTextNode(text);
+  range.insertNode(tn);
+  range.setStartAfter(tn);
+  range.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
 /* ─── Ensure visual editor always ends with an editable paragraph ─────────── */
 function ensureTrailingP(el: HTMLDivElement) {
   const last = el.lastElementChild;
@@ -366,6 +393,33 @@ export function MarkdownEditor() {
     }
   };
 
+  /* ── Serialize the visual editor back to markdown and persist ──────── */
+  const commitVisual = useCallback(() => {
+    if (!visualRef.current) return;
+    const md = htmlToMarkdown(visualRef.current.innerHTML);
+    setContent(md);
+    persist(md);
+  }, [persist]);
+
+  /**
+   * Paste inside a code block as plain text, kept inside the <pre>. Left to the browser, a
+   * multi-line paste gets fragmented into sibling <div>s that escape the block — so on the next
+   * save the fences are gone and the diagram collapses into ordinary paragraphs. Paste elsewhere
+   * keeps its default behavior.
+   */
+  const handleVisualPaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const editor = visualRef.current;
+    if (!editor) return;
+    const sel = window.getSelection();
+    if (!sel?.rangeCount) return;
+    if (!closestTag(sel.getRangeAt(0).startContainer, 'pre', editor)) return;
+    const text = e.clipboardData.getData('text/plain');
+    if (!text) return;
+    e.preventDefault();
+    insertTextAtCaret(text);
+    commitVisual();
+  };
+
   /* ── Visual (contentEditable) handlers ────────────────────────────── */
   const handleVisualInput = () => {
     if (!visualRef.current) return;
@@ -422,6 +476,14 @@ export function MarkdownEditor() {
       const sel = window.getSelection();
       if (!sel?.rangeCount) return;
       const range = sel.getRangeAt(0);
+
+      // Inside a code block: Enter is a literal newline within the <pre>, never a block split.
+      if (closestTag(range.startContainer, 'pre', visualRef.current!)) {
+        e.preventDefault();
+        insertTextAtCaret('\n');
+        commitVisual();
+        return;
+      }
 
       // Walk up to find if we're inside a heading
       let node: Node | null = range.startContainer;
@@ -531,6 +593,7 @@ export function MarkdownEditor() {
             suppressContentEditableWarning
             onInput={handleVisualInput}
             onKeyDown={handleVisualKeyDown}
+            onPaste={handleVisualPaste}
             onSelect={handleVisualSelect}
             data-placeholder="Начни вводить... или введи / для вставки блока"
           />

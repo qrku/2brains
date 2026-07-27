@@ -1,0 +1,25 @@
+export type {
+  BNode, BEdge, BoardDoc, BoardSettings, NodeKind, NodeShape, Rect, ResizeEdge, Side, T, TextAlign, XY,
+} from './model/types';
+
+export type { Guide, ResizeSnapResult, SnapResult } from './lib/snapping';
+export { computeResizeSnap, computeSnap, resizeGuides } from './lib/snapping';
+
+export {
+  CONNECTOR_MAGNET, CONNECTOR_STANDOFF, DEF_FRAME_H, DEF_FRAME_W, DEF_H, DEF_PEN_COLOR,
+  DEF_PEN_WIDTH, DEF_SETTINGS, DEF_VIEW, DEF_W, DRAW_COLORS, EDGE_CORNER_RADIUS, MAX_S,
+  MIN_DRAW_PX, MIN_S, PEN_MAX_W, PEN_MIN_W, SNAP_PX,
+} from './model/constants';
+
+export {
+  boundsOf, clamp, distToSegment, findConnectorMagnet, nodesInFrame, nodesInRect, sidePoint,
+  toC, toS, zoomTo,
+} from './lib/geometry';
+
+export { edgeVerts, routeConnector } from './lib/routing';
+export { roundedPath, smoothPath } from './lib/path';
+export { drawNodePoints, mkDrawNode, mkNode } from './lib/factory';
+
+export {
+  loadBoard, loadBoardSettings, loadBoardView, saveBoard, saveBoardSettings, saveBoardView,
+} from './api/storage';

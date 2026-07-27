@@ -1241,6 +1241,32 @@ main        { padding: 32px 24px 80px; }
 .bk-text.sel   { background: rgba(0,0,0,.04); outline: 1.5px dashed #bbb; outline-offset: 2px; }
 .bk-text .board-node-text { font-weight: 500; }
 
+/* Frame — a container region that sits behind its contents; drag it to move everything inside. */
+.bk-frame {
+  border: 1.5px solid #d3d3da;
+  border-radius: 12px;
+  background: rgba(120, 120, 135, 0.045);
+  cursor: grab;
+}
+.bk-frame:hover { border-color: #bdbdc7; }
+.bk-frame.sel  { border-color: #4a90e2; background: rgba(74, 144, 226, 0.05); }
+.frame-label {
+  position: absolute;
+  bottom: 100%;
+  left: 2px;
+  margin-bottom: 5px;
+  max-width: 100%;
+  font-weight: 600;
+  color: #7a7a85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  outline: none;
+  cursor: text;
+}
+.frame-label.editing { overflow: visible; text-overflow: clip; }
+.bk-frame.sel .frame-label { color: #4a90e2; }
+
 /* Freehand pencil strokes — no card, just the ink; dashed box shows on select for move/resize */
 .draw-kind { border-radius: 6px; }
 .draw-kind.sel { outline: 1.5px dashed #4a90e2; outline-offset: 6px; }
@@ -1352,6 +1378,8 @@ main        { padding: 32px 24px 80px; }
 .bp-btn:hover  { background: rgba(255,255,255,.12); color: #fff; }
 .bp-btn.active { background: rgba(255,255,255,.22); color: #fff; }
 .bp-shape { font-size: 15px; padding: 4px 6px; }
+.bp-align { padding: 4px 5px; }
+.bp-align svg { display: block; }
 .bp-val   { font-size: 11px; color: #888; min-width: 34px; text-align: center; }
 .bp-sep   { width: 1px; height: 16px; background: rgba(255,255,255,.15); margin: 0 3px; flex-shrink: 0; }
 .bp-del   { color: #f87; }
@@ -1395,6 +1423,16 @@ main        { padding: 32px 24px 80px; }
   pointer-events: none;
   z-index: 50;
 }
+
+/* Smart-alignment guides — thin magenta lines while dragging, like Figma's snap hints. */
+.board-guide {
+  position: absolute;
+  background: #f5397e;
+  pointer-events: none;
+  z-index: 60;
+}
+.board-guide-x { width: 1px; }
+.board-guide-y { height: 1px; }
 
 /* Settings button */
 .board-settings-btn {
@@ -1511,6 +1549,62 @@ main        { padding: 32px 24px 80px; }
 .board-panel-label { font-size: 10px; color: #999; font-weight: 500; }
 .board-panel-btn.active .board-panel-label { color: #333; }
 
+/* Frame wheel — an iOS-timer-style picker on the right edge; no chrome, dims until hovered */
+.board-wheel {
+  position: absolute;
+  right: 18px; top: 50%;
+  transform: translateY(-50%);
+  display: flex; flex-direction: column;
+  width: 178px;
+  z-index: 100;
+  opacity: 0.6;
+  transition: opacity 0.18s ease;
+}
+.board-wheel:hover { opacity: 1; }
+
+.board-wheel-search {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 6px 8px;
+  color: #bbb;
+}
+.board-wheel-input {
+  flex: 1; min-width: 0;
+  border: none; outline: none; background: transparent;
+  font-family: inherit; font-size: 12px; color: #111;
+}
+.board-wheel-input::placeholder { color: #bbb; }
+
+.board-wheel-viewport { position: relative; }
+.board-wheel-scroll {
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  /* fade only the very edges so items ease in and out of the wheel */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 12%, #000 88%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 12%, #000 88%, transparent 100%);
+}
+.board-wheel-scroll::-webkit-scrollbar { display: none; }
+.board-wheel-item {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 0 8px;
+  border: none; background: transparent; cursor: pointer;
+  scroll-snap-align: center;
+  text-align: left; flex-shrink: 0;
+  will-change: opacity, transform;
+}
+.board-wheel-idx {
+  flex-shrink: 0; width: 18px;
+  font-size: 10px; font-weight: 600; color: #aaa; text-align: center;
+}
+.board-wheel-item.center .board-wheel-idx { color: #2f6fed; }
+.board-wheel-name {
+  flex: 1; min-width: 0;
+  font-size: 13px; color: #555;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.board-wheel-item.center .board-wheel-name { color: #111; font-weight: 600; }
+.board-wheel-empty { padding: 10px 8px; font-size: 11px; color: #ccc; text-align: center; }
+
 /* Hint */
 .board-hint {
   position: absolute;
@@ -1576,6 +1670,7 @@ main        { padding: 32px 24px 80px; }
 /* Inline space reference chip */
 .board-ref-chip {
   display: inline-flex; align-items: center; gap: 3px;
+  max-width: 100%;
   padding: 1px 7px 1px 5px;
   background: #f0f0f0;
   border: 1px solid #e0e0e0;
@@ -1583,11 +1678,16 @@ main        { padding: 32px 24px 80px; }
   color: #333;
   text-decoration: none;
   font-weight: 500;
-  white-space: nowrap;
+  /* Long file names wrap inside the pill instead of overflowing the block; the chip as a whole
+     still follows the node's text-align. */
+  white-space: normal;
+  overflow-wrap: anywhere;
   cursor: pointer;
-  vertical-align: middle;
+  vertical-align: top;
   transition: background 0.12s;
 }
+/* Keep the file icon from being squeezed when the label wraps. */
+.board-ref-chip svg { flex-shrink: 0; }
 .board-ref-chip:hover { background: #e6e6e6; color: #111; }
 
 /* Slash menu (portal, fixed position) */
@@ -1704,6 +1804,20 @@ main        { padding: 32px 24px 80px; }
 .tree-row:hover { background: #f5f5f5; }
 .tree-row--active { background: #f0f0f0; }
 .tree-row--active .tree-name { color: #111; font-weight: 500; }
+
+/* Drag-and-drop: faded source, magnet-highlighted target folder, ringed root drop zone */
+.tree-row--dragging { opacity: 0.4; }
+.tree-row--drop {
+  background: rgba(74, 144, 226, 0.12);
+  box-shadow: inset 0 0 0 1.5px #4a90e2;
+  border-radius: 4px;
+}
+.tree-row--drop .tree-name { color: #2f6fed; font-weight: 500; }
+.tree-row--drop .tree-icon { color: #4a90e2; }
+.tree-body--drop-root {
+  box-shadow: inset 0 0 0 2px rgba(74, 144, 226, 0.35);
+  border-radius: 6px;
+}
 
 .tree-icon { display: inline-flex; align-items: center; justify-content: center; font-size: 10px; color: #bbb; flex-shrink: 0; width: 12px; }
 .tree-row--folder .tree-icon { color: #888; }

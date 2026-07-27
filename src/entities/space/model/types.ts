@@ -16,6 +16,7 @@ export interface SpaceState {
 export type SpaceAction =
   | { type: 'HYDRATE'; nodes: SpaceNode[]; expanded: string[]; openFileId: string | null }
   | { type: 'ADD_NODE'; node: SpaceNode }
+  | { type: 'MOVE_NODE'; id: string; parentId: string | null }
   | { type: 'DELETE_NODE'; id: string; descendants: string[] }
   | { type: 'RENAME_NODE'; id: string; name: string }
   | { type: 'OPEN_FILE'; id: string }
