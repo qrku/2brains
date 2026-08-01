@@ -1608,7 +1608,8 @@ main        { padding: 32px 24px 80px; }
 /* Hint */
 .board-hint {
   position: absolute;
-  bottom: 20px; right: 20px;
+  /* Отступ справа освобождает угол под кружок ИИ-агента (52px + поля). */
+  bottom: 20px; right: 88px;
   font-size: 11px; color: #bbb;
   pointer-events: none;
 }
@@ -3015,3 +3016,353 @@ main        { padding: 32px 24px 80px; }
 .cal-btn-primary:disabled { opacity: 0.4; cursor: default; }
 .cal-btn-del { color: #e0433d; border-color: #f5d5d2; }
 .cal-btn-del:hover { background: #fdf0ef; }
+
+/* ─── AI agent ───────────────────────────────────────────────────────────── */
+
+/* Bubble: floating circle avatar with two blinking oval eyes (logo motif).
+   z-index sits above ordinary page content but below mikro-ui's own
+   Modal (1000) and toast (9000+) layers — see node_modules/mikro-ui/dist/index.css. */
+.agent-bubble {
+  /* `position: fixed` also serves as the positioning context for the
+     absolutely-positioned .agent-bubble-badge below. */
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 1px solid #e4e4e4;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  z-index: 600;
+  transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s;
+}
+.agent-bubble:hover  { box-shadow: 0 6px 22px rgba(0, 0, 0, 0.16); transform: translateY(-1px); }
+.agent-bubble:active { transform: translateY(0); }
+.agent-bubble:focus-visible { outline: 2px solid #2f6fed; outline-offset: 2px; }
+.agent-bubble--open  { border-color: #ccc; }
+
+/* Eyes reuse the landing page's `oval-blink` keyframes (globals.css ~2699)
+   scaled down — same motion, miniature size. Only these two elements get
+   `will-change`, never the bubble itself. */
+.agent-bubble-eye {
+  width: 8px;
+  height: 14px;
+  background: #111;
+  border-radius: 99px;
+  transform-origin: center center;
+  will-change: transform;
+}
+.agent-bubble-eye--l { animation: oval-blink 5s ease-in-out infinite; }
+.agent-bubble-eye--r { animation: oval-blink 5s ease-in-out 0.3s infinite; }
+
+/* Paused whenever the panel is open (contract: .agent-bubble--open) or the
+   tab is hidden (toggled from AgentBubble's visibilitychange listener). */
+.agent-bubble--paused .agent-bubble-eye { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-bubble-eye { animation: none; }
+}
+
+/* "Agent is working" indicator dot */
+.agent-bubble-badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #2f6fed;
+  border: 2px solid #fff;
+  will-change: transform;
+  animation: agent-badge-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes agent-badge-pulse {
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  50%      { transform: scale(1.3);  opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-bubble-badge { animation: none; }
+}
+
+/* ─── AI agent: chat panel ───────────────────────────────────────────────── */
+
+.agent-panel {
+  position: fixed;
+  right: 20px;
+  bottom: 84px;
+  width: 360px;
+  max-width: calc(100vw - 40px);
+  height: 480px;
+  max-height: calc(100vh - 104px);
+  background: #fff;
+  border: 1px solid #e4e4e4;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 600;
+  transform-origin: bottom right;
+  animation: agent-panel-in 160ms ease-out;
+}
+
+@keyframes agent-panel-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-panel { animation: none; }
+}
+
+.agent-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 8px 10px 14px;
+  border-bottom: 1px solid #e8e8e8;
+  flex-shrink: 0;
+}
+
+.agent-panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111;
+  flex-shrink: 0;
+}
+
+.agent-panel-context {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #999;
+  background: #f0f0f0;
+  border-radius: 20px;
+  padding: 2px 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+}
+
+.agent-panel-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  border-radius: 5px;
+  padding: 0;
+  transition: background 0.1s, color 0.1s;
+}
+.agent-panel-icon:hover { background: #f5f5f5; color: #111; }
+
+.agent-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.agent-panel-empty {
+  font-size: 12.5px;
+  color: #bbb;
+  text-align: center;
+  padding: 28px 16px;
+  line-height: 1.5;
+}
+
+.agent-panel-error {
+  align-self: stretch;
+  font-size: 12.5px;
+  color: #e0433d;
+  background: #fdf0ef;
+  border: 1px solid #f5d5d2;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.agent-panel-footer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid #e8e8e8;
+  flex-shrink: 0;
+}
+.agent-panel-input {
+  flex: 1;
+  resize: none;
+  border: 1px solid #e4e4e4;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.1s;
+  max-height: 120px;
+}
+.agent-panel-input:focus { border-color: #2f6fed; }
+.agent-panel-input:disabled { color: #bbb; background: #fafafa; }
+
+.agent-panel-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+  transform: rotate(-90deg);
+  transition: background 0.1s, opacity 0.1s;
+}
+.agent-panel-send:hover:not(:disabled) { background: #333; }
+.agent-panel-send:disabled { opacity: 0.35; cursor: default; }
+
+/* Messages */
+.agent-msg {
+  max-width: 86%;
+  padding: 8px 11px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.agent-msg--user {
+  align-self: flex-end;
+  background: #111;
+  color: #fff;
+  border-bottom-right-radius: 3px;
+}
+.agent-msg--assistant {
+  align-self: flex-start;
+  background: #f5f5f5;
+  color: #222;
+  border-bottom-left-radius: 3px;
+}
+
+/* Streaming indicator: three <i> dots (markup owned by AgentMessage.tsx),
+   staggered opacity+transform pulse — no layout-affecting properties. */
+.agent-msg-typing {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 3px;
+  height: 14px;
+  padding: 0 2px;
+}
+.agent-msg-typing i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #bbb;
+  font-style: normal;
+  animation: agent-typing-pulse 1.1s ease-in-out infinite;
+}
+.agent-msg-typing i:nth-child(2) { animation-delay: 0.15s; }
+.agent-msg-typing i:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes agent-typing-pulse {
+  0%, 100% { opacity: 0.3; transform: translateY(0); }
+  50%      { opacity: 1;   transform: translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agent-msg-typing i { animation: none; opacity: 0.6; }
+}
+
+/* Tool call card */
+.agent-tool {
+  align-self: flex-start;
+  max-width: 92%;
+  width: 100%;
+  border: 1px solid #e8e8e8;
+  border-left: 3px solid #ccc;
+  border-radius: 8px;
+  background: #fafafa;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  color: #444;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.agent-tool--pending { border-left-color: #f59e0b; }
+.agent-tool--done    { border-left-color: #22c55e; }
+.agent-tool--error   { border-left-color: #e0433d; background: #fdf6f5; }
+
+.agent-tool-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  /* Имя инструмента и статус переносятся на две строки, а не ужимают друг друга:
+     на карточке подтверждения обрезанное имя — это ровно то, по чему принимают решение. */
+  flex-wrap: wrap;
+}
+
+.agent-tool-name {
+  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Cascadia Code', monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #333;
+  flex: none;
+  white-space: nowrap;
+}
+
+.agent-tool-status {
+  font-size: 10.5px;
+  color: #999;
+  flex-shrink: 0;
+}
+.agent-tool--pending .agent-tool-status { color: #b45309; }
+.agent-tool--done    .agent-tool-status { color: #22c55e; }
+.agent-tool--error   .agent-tool-status { color: #e0433d; }
+
+.agent-tool-args {
+  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Cascadia Code', monospace;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: #555;
+  background: #f0f0f0;
+  border-radius: 4px;
+  padding: 6px 8px;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.agent-tool-warn {
+  font-size: 11.5px;
+  color: #b45309;
+  line-height: 1.4;
+}
+
+.agent-tool-result {
+  font-size: 12px;
+  color: #555;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.agent-tool-actions { display: flex; align-items: center; gap: 6px; }

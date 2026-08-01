@@ -5,6 +5,7 @@ import { Provider as UrqlProvider } from 'urql';
 import { gqlClient } from '@/shared/api/client';
 import { WorkspaceStoreProvider }   from './WorkspaceStoreProvider';
 import { SpaceStoreProvider }       from './SpaceStoreProvider';
+import { AgentStoreProvider }       from './AgentStoreProvider';
 import { ModulesStoreProvider }     from './ModulesStoreProvider';
 import { InterviewStoreProvider }   from './InterviewStoreProvider';
 import { ExperienceStoreProvider }  from './ExperienceStoreProvider';
@@ -18,22 +19,24 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     <UrqlProvider value={gqlClient}>
       <WorkspaceStoreProvider>
         <SpaceStoreProvider>
-          <ModulesStoreProvider>
-            <InterviewStoreProvider>
-              <ExperienceStoreProvider>
-                <ApplicationStoreProvider>
-                  <ProblemStoreProvider>
-                    <UserPacksStoreProvider>
-                      <ProfileStoreProvider>
-                        {children}
-                        <ToastProvider />
-                      </ProfileStoreProvider>
-                    </UserPacksStoreProvider>
-                  </ProblemStoreProvider>
-                </ApplicationStoreProvider>
-              </ExperienceStoreProvider>
-            </InterviewStoreProvider>
-          </ModulesStoreProvider>
+          <AgentStoreProvider>
+            <ModulesStoreProvider>
+              <InterviewStoreProvider>
+                <ExperienceStoreProvider>
+                  <ApplicationStoreProvider>
+                    <ProblemStoreProvider>
+                      <UserPacksStoreProvider>
+                        <ProfileStoreProvider>
+                          {children}
+                          <ToastProvider />
+                        </ProfileStoreProvider>
+                      </UserPacksStoreProvider>
+                    </ProblemStoreProvider>
+                  </ApplicationStoreProvider>
+                </ExperienceStoreProvider>
+              </InterviewStoreProvider>
+            </ModulesStoreProvider>
+          </AgentStoreProvider>
         </SpaceStoreProvider>
       </WorkspaceStoreProvider>
     </UrqlProvider>

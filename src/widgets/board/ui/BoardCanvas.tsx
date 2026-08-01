@@ -1,6 +1,8 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
+import { useRegisterTools } from '@/app/providers/AgentStoreProvider';
+import { createBoardTools } from '@/features/ai-agent';
 import { distToSegment, nodesInFrame, toC, type BEdge, type XY } from '@/entities/board';
 import { useBoardStore } from '../model/useBoardStore';
 import { useBoardGeometry, viewportCursor } from '../model/useBoardGeometry';
@@ -32,6 +34,10 @@ export function BoardCanvas() {
   useBoardWheel(store, vpRef, tracker);
   useEdgePan(store, vpRef, tracker);
   const spacePan = useBoardHotkeys(store, tracker);
+
+  // Инструменты Доски живут ровно столько, сколько смонтирован холст: они читают состояние
+  // через `store.stateRef`, который вне этого компонента перестаёт обновляться.
+  useRegisterTools('board', useMemo(() => createBoardTools(store), [store]));
 
   const geom = useBoardGeometry(state);
 

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { AppProviders } from '@/app/providers/AppProviders';
+import { AgentWidget } from '@/features/ai-agent';
 import { Nav } from '@/shared/ui/Nav';
 import './globals.css';
 import 'mikro-ui/tokens';
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppProviders>
           <Nav />
           {children}
+          <AgentWidget />
         </AppProviders>
       </body>
     </html>
