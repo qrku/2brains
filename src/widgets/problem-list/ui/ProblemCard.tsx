@@ -6,6 +6,7 @@ import { useProblemStore } from '@/app/providers/ProblemStoreProvider';
 import { ProblemModal } from '@/features/manage-problems';
 import { PATTERN_MAP, STATUS_LABELS, type Problem } from '@/entities/problem';
 import { Icon } from '@/shared/ui/Icon';
+import { safeUrl } from '@/shared/lib/safeUrl';
 
 const STATUS_ICONS: Record<string, string> = {
   todo:   '○',
@@ -53,7 +54,7 @@ export function ProblemCard({ problem }: Props) {
           <div className="problem-top">
             {problem.url ? (
               <a
-                href={problem.url}
+                href={safeUrl(problem.url)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="problem-title problem-link"

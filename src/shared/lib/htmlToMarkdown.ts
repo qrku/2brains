@@ -26,24 +26,59 @@ function codeText(code: Element): string {
   return out.replace(/ /g, ' ').replace(/\n$/, '');
 }
 
+function inlineNode(n: Node): string {
+  if (n.nodeType === Node.TEXT_NODE) return (n.textContent ?? '').replace(/ /g, ' ');
+  if (n.nodeType !== Node.ELEMENT_NODE) return '';
+  const e = n as Element;
+  const t = e.tagName.toLowerCase();
+  const inner = textContent(e);
+  if (t === 'strong' || t === 'b')  return `**${inner}**`;
+  if (t === 'em'     || t === 'i')  return `*${inner}*`;
+  if (t === 'del'    || t === 's')  return `~~${inner}~~`;
+  if (t === 'mark')                 return `==${inner}==`;
+  if (t === 'a')   return `[${inner}](${e.getAttribute('href') ?? ''})`;
+  if (t === 'img') return `![${e.getAttribute('alt') ?? ''}](${e.getAttribute('src') ?? ''})`;
+  if (t === 'br')  return '\n';
+  if (t === 'input') return '';        // checkbox in task list
+  if (t === 'code' && e.parentElement?.tagName.toLowerCase() !== 'pre') return `\`${inner}\``;
+  return inner;
+}
+
 function textContent(el: Element): string {
-  return Array.from(el.childNodes).map((n): string => {
-    if (n.nodeType === Node.TEXT_NODE) return (n.textContent ?? '').replace(/ /g, ' ');
-    if (n.nodeType !== Node.ELEMENT_NODE) return '';
-    const e = n as Element;
-    const t = e.tagName.toLowerCase();
-    const inner = textContent(e);
-    if (t === 'strong' || t === 'b')  return `**${inner}**`;
-    if (t === 'em'     || t === 'i')  return `*${inner}*`;
-    if (t === 'del'    || t === 's')  return `~~${inner}~~`;
-    if (t === 'mark')                 return `==${inner}==`;
-    if (t === 'a')   return `[${inner}](${e.getAttribute('href') ?? ''})`;
-    if (t === 'img') return `![${e.getAttribute('alt') ?? ''}](${e.getAttribute('src') ?? ''})`;
-    if (t === 'br')  return '\n';
-    if (t === 'input') return '';        // checkbox in task list
-    if (t === 'code' && e.parentElement?.tagName.toLowerCase() !== 'pre') return `\`${inner}\``;
-    return inner;
-  }).join('');
+  return Array.from(el.childNodes).map(inlineNode).join('');
+}
+
+const isListElement = (n: Node): boolean =>
+  n.nodeType === Node.ELEMENT_NODE && ['ul', 'ol'].includes((n as Element).tagName.toLowerCase());
+
+/**
+ * A list rendered back to markdown with its nesting intact.
+ *
+ * `textContent(li)` flattened a nested <ul> into the item's own text, dropping the markers:
+ * `- a\n  - b` came back as `- ab`. Visual mode runs the whole document through
+ * htmlToMarkdown on every keystroke, so that silently destroyed the structure on disk.
+ * Each item is therefore built from its own children only, and nested lists recurse
+ * with an accumulated indent.
+ */
+function listToMd(el: Element, ordered: boolean, indent: string): string {
+  const items = Array.from(el.querySelectorAll(':scope > li')).map((li, i) => {
+    const cb = li.querySelector(':scope > input[type="checkbox"]') as HTMLInputElement | null;
+    const own = Array.from(li.childNodes).filter((n) => !isListElement(n)).map(inlineNode).join('').trim();
+
+    const marker = ordered ? `${i + 1}. ` : '- ';
+    const task = cb ? `[${cb.checked ? 'x' : ' '}] ` : '';
+    const lines = [`${indent}${marker}${task}${own}`];
+
+    for (const child of Array.from(li.children)) {
+      const tag = child.tagName.toLowerCase();
+      if (tag === 'ul' || tag === 'ol') {
+        lines.push(listToMd(child, tag === 'ol', `${indent}  `).replace(/\n+$/, ''));
+      }
+    }
+    return lines.join('\n');
+  });
+
+  return `${items.join('\n')}\n\n`;
 }
 
 function nodeToMd(node: Node): string {
@@ -88,20 +123,12 @@ function nodeToMd(node: Node): string {
 
   // Unordered list
   if (cls.includes('md-ul') || (tag === 'ul' && !cls.includes('md-ol'))) {
-    const items = Array.from(el.querySelectorAll(':scope > li')).map((li) => {
-      const cb   = li.querySelector('input[type="checkbox"]') as HTMLInputElement | null;
-      const text = textContent(li as Element).trim();
-      return cb ? `- [${cb.checked ? 'x' : ' '}] ${text}` : `- ${text}`;
-    });
-    return items.join('\n') + '\n\n';
+    return listToMd(el, false, '');
   }
 
   // Ordered list
   if (cls.includes('md-ol') || tag === 'ol') {
-    const items = Array.from(el.querySelectorAll(':scope > li')).map((li, i) =>
-      `${i + 1}. ${textContent(li as Element).trim()}`
-    );
-    return items.join('\n') + '\n\n';
+    return listToMd(el, true, '');
   }
 
   // Details / summary

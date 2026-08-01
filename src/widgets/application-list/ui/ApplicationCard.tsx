@@ -5,6 +5,7 @@ import { useApplicationStore } from '@/app/providers/ApplicationStoreProvider';
 import { ApplicationModal } from '@/features/manage-applications';
 import { STATUS_LABELS, type Application } from '@/entities/application';
 import { Icon } from '@/shared/ui/Icon';
+import { safeUrl } from '@/shared/lib/safeUrl';
 
 interface Props {
   application: Application;
@@ -35,7 +36,7 @@ export function ApplicationCard({ application: app }: Props) {
 
           {app.url && (
             <a
-              href={app.url}
+              href={safeUrl(app.url)}
               target="_blank"
               rel="noopener noreferrer"
               className="app-url"

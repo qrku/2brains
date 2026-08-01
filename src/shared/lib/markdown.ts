@@ -1,7 +1,10 @@
+import { safeUrl } from './safeUrl';
+
 /* ─── Helpers ──────────────────────────────────────────────────────────────── */
 
 function esc(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function slug(s: string): string {
@@ -19,15 +22,15 @@ export function parseInline(raw: string): string {
   });
 
   // 2. Escape HTML in non-code parts
-  s = s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+  s = s.replace(/[&<>"']/g, (c) => esc(c));
 
   // 3. Images (must come before links)
   s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:[^)]*?)?\)/g, (_, alt, src) =>
-    `<img src="${src}" alt="${esc(alt)}" class="md-img" loading="lazy">`);
+    `<img src="${safeUrl(src, '')}" alt="${esc(alt)}" class="md-img" loading="lazy">`);
 
   // 4. Links  [text](url) and [text](url "title")
   s = s.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g, (_, text, href) =>
-    `<a href="${href}" target="_blank" rel="noopener noreferrer" class="md-link">${text}</a>`);
+    `<a href="${safeUrl(href)}" target="_blank" rel="noopener noreferrer" class="md-link">${text}</a>`);
 
   // 5. Bold + italic
   s = s.replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>');
@@ -232,10 +235,13 @@ export function parseMarkdown(raw: string): string {
     // ── Blockquote ──────────────────────────────────────────────────────────
     if (line.startsWith('>')) {
       const bq: string[] = [];
-      while (i < lines.length && (lines[i].startsWith('>') || lines[i].trim() === '')) {
-        if (lines[i].startsWith('> '))      bq.push(lines[i].slice(2));
-        else if (lines[i].trimStart() === '>') bq.push('');
-        else if (lines[i].trim() === '' && bq.length) bq.push('');
+      while (i < lines.length) {
+        const l = lines[i];
+        if (l.startsWith('> '))               bq.push(l.slice(2));
+        else if (l.trimStart() === '>')       bq.push('');
+        // `>foo`, `>>nested` — marker without a space, still part of the quote
+        else if (l.startsWith('>'))           bq.push(l.slice(1));
+        else if (l.trim() === '' && bq.length) bq.push('');
         else break;
         i++;
       }

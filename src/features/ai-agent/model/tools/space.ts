@@ -15,7 +15,7 @@ import type { Dispatch } from 'react';
 import type { SpaceAction, SpaceNode, SpaceState } from '@/entities/space';
 import { spaceDeleteContent, spaceReadContent, spaceSaveContent } from '@/app/providers/SpaceStoreProvider';
 import { uid } from '@/shared/lib/uid';
-import type { McpTool } from '@/shared/lib/mcp/types';
+import type { McpTool, McpToolResult } from '@/shared/lib/mcp/types';
 import { fail, ok } from '@/shared/lib/mcp/types';
 
 /** Содержимое файла больше этого не отдаём модели целиком — только обрезанный кусок с пометкой. */
@@ -137,6 +137,18 @@ function optStrArg(args: Record<string, unknown>, key: string): string | undefin
   return typeof v === 'string' ? v : undefined;
 }
 
+/**
+ * Обязательный строковый аргумент. В отличие от `strArg` не подменяет пропуск
+ * пустой строкой: для перезаписи файла пропущенный `content` — это стирание данных,
+ * а не запись пустоты. Реестр валидирует `required` по схеме до вызова `run`,
+ * это второй рубеж на случай вызова инструмента напрямую.
+ */
+function reqStrArg(args: Record<string, unknown>, key: string): { ok: true; value: string } | { ok: false; error: McpToolResult } {
+  const v = args[key];
+  if (typeof v !== 'string') return { ok: false, error: fail(`Аргумент «${key}» обязателен и должен быть строкой.`) };
+  return { ok: true, value: v };
+}
+
 // ---------------------------------------------------------------------------
 // Фабрика инструментов
 // ---------------------------------------------------------------------------
@@ -243,7 +255,9 @@ export function createSpaceTools(
       destructive: true,
       run: (args) => {
         const path = strArg(args, 'path');
-        const content = strArg(args, 'content');
+        const c = reqStrArg(args, 'content');
+        if (!c.ok) return c.error;
+        const content = c.value;
         const r = resolvePath(state.nodes, path);
         if (!r.ok) return fail(r.error);
         if (r.node.type !== 'file') return fail(`«${path}» — папка, а не файл.`);
@@ -266,7 +280,9 @@ export function createSpaceTools(
       },
       run: (args) => {
         const path = strArg(args, 'path');
-        const addition = strArg(args, 'content');
+        const a = reqStrArg(args, 'content');
+        if (!a.ok) return a.error;
+        const addition = a.value;
         const r = resolvePath(state.nodes, path);
         if (!r.ok) return fail(r.error);
         if (r.node.type !== 'file') return fail(`«${path}» — папка, а не файл.`);

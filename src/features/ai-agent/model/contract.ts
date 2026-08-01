@@ -7,6 +7,7 @@
  */
 
 import type { JsonSchema, McpTool } from '@/shared/lib/mcp/types';
+import type { AgentContext } from './systemPrompt';
 
 export interface ToolCall {
   id: string;
@@ -34,8 +35,11 @@ export interface ToolSpec {
 }
 
 export interface AgentChatRequest {
+  /** История без системного сообщения: его добавляет сервер. */
   messages: ChatMessage[];
   tools: ToolSpec[];
+  /** Где открыт чат — по этому контексту роут собирает системный промпт. */
+  context: AgentContext;
 }
 
 /** События SSE-стрима из роута. Одно событие — одна строка `data: {...}`. */

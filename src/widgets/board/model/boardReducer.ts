@@ -119,7 +119,10 @@ function onDragMove(state: BoardState, pos: PointerPos): BoardState {
       const { ddx, ddy, alignX, alignY } = computeResizeSnap(d.origin, d.edge, dx, dy, statics, SNAP_PX / t.scale);
 
       const nodes = mapNode(state.nodes, d.id, (n) => resizeNode(n, d.origin, d.edge, dx + ddx, dy + ddy, t.scale));
-      const node = nodes.find((n) => n.id === d.id)!;
+      const node = nodes.find((n) => n.id === d.id);
+      // Ноду могли удалить прямо во время ресайза (Delete с зажатым углом) — тогда
+      // следующий mousemove не должен ронять доску чтением полей у undefined.
+      if (!node) return state;
       const box: Rect = { x1: node.x, y1: node.y, x2: node.x + node.w, y2: node.y + node.h };
       return { ...state, guides: resizeGuides(box, statics, alignX, alignY), nodes };
     }

@@ -8,13 +8,20 @@ import type { BoardStore } from './useBoardStore';
  * Scrolls the board when the cursor lingers near a viewport edge, so a node can be dragged
  * beyond the visible area. Runs off rAF rather than mousemove — panning must continue while
  * the cursor is held still.
+ *
+ * Only ever active during a drag: edge-panning on a bare hover would scroll the board out from
+ * under a cursor that just happened to rest near the edge. The rAF loop is started and stopped
+ * with the drag as well, so an idle board does no per-frame work at all.
  */
 export function useEdgePan(
-  { dispatch, stateRef }: BoardStore,
+  { state, dispatch, stateRef }: BoardStore,
   vpRef: RefObject<HTMLDivElement | null>,
   tracker: PointerTracker,
 ) {
+  const dragging = state.drag.type !== 'none';
+
   useEffect(() => {
+    if (!dragging) return;
     let raf = 0;
 
     const loop = () => {
@@ -23,6 +30,7 @@ export function useEdgePan(
       const { edgePan, edgePanThreshold: thr, edgePanSpeed: speed } = stateRef.current.settings;
       const vp = vpRef.current;
       if (!edgePan || !vp || !tracker.inViewport.current || tracker.onUi.current) return;
+      if (stateRef.current.drag.type === 'none') return;
 
       const { width, height } = vp.getBoundingClientRect();
       const { x, y } = tracker.pos.current;
@@ -38,5 +46,5 @@ export function useEdgePan(
 
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [dispatch, stateRef, vpRef, tracker]);
+  }, [dragging, dispatch, stateRef, vpRef, tracker]);
 }

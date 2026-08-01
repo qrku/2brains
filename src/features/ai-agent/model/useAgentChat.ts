@@ -131,8 +131,8 @@ async function streamOneCompletion(
   signal: AbortSignal,
 ): Promise<StreamOutcome> {
   const tools = registry.listTools().map(toToolSpec);
-  const system: ChatMessage = { role: 'system', content: buildSystemPrompt(ctx, registry.listTools()) };
-  const body: AgentChatRequest = { messages: [system, ...history], tools };
+  // Системное сообщение сюда не кладём: его собирает роут по `context`.
+  const body: AgentChatRequest = { messages: history, tools, context: ctx };
 
   let response: Response;
   try {
@@ -371,6 +371,10 @@ export function useAgentChat(): UseAgentChat {
       const message: ChatMessage = { role: 'user', content: trimmed };
       historyRef.current = [...historyRef.current, message];
       dispatch({ type: 'user_message', message });
+      // Лимит итераций ограничивает одну реплику, а не всю сессию: без сброса
+      // счётчик копится и обычный девятый вопрос подряд упирается в потолок.
+      // `respond()` его намеренно не трогает — подтверждение продолжает ту же реплику.
+      iterRef.current = 0;
       void loop();
     },
     [state.status, loop],

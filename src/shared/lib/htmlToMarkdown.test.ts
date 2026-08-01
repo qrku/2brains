@@ -38,3 +38,27 @@ describe('htmlToMarkdown — code blocks', () => {
     expect(htmlToMarkdown(html)).toBe('just text');
   });
 });
+
+describe('nested lists', () => {
+  const roundTrip = (md: string) => htmlToMarkdown(parseMarkdown(md));
+
+  it('keeps nested unordered items instead of merging them into the parent', () => {
+    expect(roundTrip('- a\n  - b\n  - c')).toBe('- a\n  - b\n  - c');
+  });
+
+  it('keeps two levels of nesting', () => {
+    expect(roundTrip('- a\n  - b\n    - c')).toBe('- a\n  - b\n    - c');
+  });
+
+  it('keeps a nested ordered list under an unordered item', () => {
+    expect(roundTrip('- a\n  1. one\n  2. two')).toBe('- a\n  1. one\n  2. two');
+  });
+
+  it('keeps task-list markers', () => {
+    expect(roundTrip('- [x] done\n- [ ] todo')).toBe('- [x] done\n- [ ] todo');
+  });
+
+  it('leaves a flat list untouched', () => {
+    expect(roundTrip('- a\n- b')).toBe('- a\n- b');
+  });
+});

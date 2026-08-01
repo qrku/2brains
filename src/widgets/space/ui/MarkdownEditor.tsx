@@ -135,6 +135,8 @@ export function MarkdownEditor() {
   const [previewWidth, setPreviewWidth] = useState(DEFAULT_PREVIEW_WIDTH);
 
   const saveTimer     = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Содержимое, ожидающее записи по таймеру автосейва — досохраняется при размонтировании. */
+  const pendingContent = useRef<string | null>(null);
   const currentFileId = useRef<string | null>(null);
   // The workspace the currently-loaded file belongs to — kept separate from
   // wsState.currentId so a flush-on-switch always writes back to the right workspace.
@@ -147,6 +149,13 @@ export function MarkdownEditor() {
 
   // Increments every time a different file is opened — used to trigger visual refresh
   const [fileKey, setFileKey] = useState(0);
+
+  // Дерево, каким оно было на последнем рендере: flush'ам нужно проверить, что файл
+  // ещё существует, а они срабатывают из эффектов, где замыкание уже устарело бы.
+  const nodesRef = useRef(nodes);
+  nodesRef.current = nodes;
+  /** Файл удалили — писать его содержимое обратно нельзя, ключ создастся заново. */
+  const fileStillExists = useCallback((id: string) => nodesRef.current.some((n) => n.id === id), []);
 
   const openNode = openFileId ? nodes.find((n) => n.id === openFileId) : null;
 
@@ -170,13 +179,16 @@ export function MarkdownEditor() {
 
     // Flush pending save for the previous file — write it back to the workspace it belongs to
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    if (currentFileId.current) {
+    if (currentFileId.current && fileStillExists(currentFileId.current)) {
       // In visual mode the source of truth is the div's innerHTML, not React state
       const toSave = (modeRef.current === 'visual' && visualRef.current)
         ? htmlToMarkdown(visualRef.current.innerHTML)
         : content;
       spaceSaveContent(currentFileId.current, toSave, currentFileWsId.current);
     }
+    // Отложенная запись уже выполнена (или относилась к другому файлу) — иначе
+    // flush при размонтировании положил бы содержимое прошлого файла в новый.
+    pendingContent.current = null;
 
     currentFileId.current = openFileId;
     currentFileWsId.current = wsState.currentId;
@@ -203,9 +215,25 @@ export function MarkdownEditor() {
   const persist = useCallback((val: string) => {
     setSaved(false);
     if (saveTimer.current) clearTimeout(saveTimer.current);
+    pendingContent.current = val;
     saveTimer.current = setTimeout(() => {
-      if (currentFileId.current) { spaceSaveContent(currentFileId.current, val, currentFileWsId.current); setSaved(true); }
+      const id = currentFileId.current;
+      // Файл мог быть удалён за время дебаунса — тогда запись создала бы ключ заново.
+      if (id && fileStillExists(id)) { spaceSaveContent(id, val, currentFileWsId.current); setSaved(true); }
+      pendingContent.current = null;
     }, 600);
+  }, [fileStillExists]);
+
+  /* ── Flush on unmount ──────────────────────────────────────────────────
+   * Таймер автосейва живёт 600 мс; без досохранения уход со страницы (или
+   * размонтирование редактора) просто терял последние правки вместе с таймером. */
+  useEffect(() => () => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    const pending = pendingContent.current;
+    const id = currentFileId.current;
+    if (pending !== null && id && fileStillExists(id)) {
+      spaceSaveContent(id, pending, currentFileWsId.current);
+    }
   }, []);
 
   /* ── Mode switch ───────────────────────────────────────────────────── */

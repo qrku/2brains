@@ -89,6 +89,8 @@ export function PageEditor({ pageId }: { pageId: string }) {
   const [editing, setEditing] = useState(false);
   const [picker,  setPicker]  = useState<number | null>(null); // insert after this index
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Правка, ожидающая записи: нужна, чтобы досохранить её при размонтировании. */
+  const pendingRef = useRef<{ page: CustomPage; wsId: string } | null>(null);
 
   useEffect(() => {
     if (!wsState.hydrated) return;
@@ -98,8 +100,25 @@ export function PageEditor({ pageId }: { pageId: string }) {
   useEffect(() => {
     if (!page) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => savePage(page, wsState.currentId), 400);
+    const pending = { page, wsId: wsState.currentId };
+    pendingRef.current = pending;
+    saveTimer.current = setTimeout(() => {
+      savePage(pending.page, pending.wsId);
+      pendingRef.current = null;
+    }, 400);
+    // Cleanup обязан снимать таймер независимо от guard'а выше: без него правка,
+    // сделанная за 400 мс до смены воркспейса, записывалась под новый workspaceId.
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
   }, [page, wsState.currentId]);
+
+  // Досохранение при уходе со страницы: cleanup выше только снимает таймер,
+  // и без этого последние ≤400 мс правок терялись бы при размонтировании.
+  useEffect(() => () => {
+    const pending = pendingRef.current;
+    if (pending) savePage(pending.page, pending.wsId);
+  }, []);
 
   if (!page) return <div className="ctor-empty">Страница не найдена</div>;
 

@@ -20,7 +20,8 @@ export function AgentMessage({ view, onConfirm, onReject }: Props) {
 
   return (
     <div className="agent-msg agent-msg--assistant">
-      {/* parseMarkdown экранирует HTML (см. esc в shared/lib/markdown) — тот же рендерер,
+      {/* parseMarkdown экранирует HTML (esc) и фильтрует схемы ссылок (safeUrl) —
+          текст здесь приходит от модели, то есть недоверенный. Тот же рендерер,
           что и у заметок Пространства, так что ответы выглядят так же, как файлы. */}
       {!empty && <div dangerouslySetInnerHTML={{ __html: parseMarkdown(view.text) }} />}
 

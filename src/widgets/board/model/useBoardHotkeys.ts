@@ -20,7 +20,7 @@ export function useBoardHotkeys({ dispatch, stateRef }: BoardStore, tracker: Poi
       const el = e.target as HTMLElement | null;
       if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
 
-      const { editing, tool } = stateRef.current;
+      const { editing, tool, drag } = stateRef.current;
 
       if (e.key === ' ' && !editing) {
         e.preventDefault();
@@ -29,7 +29,9 @@ export function useBoardHotkeys({ dispatch, stateRef }: BoardStore, tracker: Poi
       if (editing) return;
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        dispatch({ type: 'DELETE_SELECTION' });
+        // Во время перетаскивания удалять нечего: drag держит ссылку на ноду,
+        // и её исчезновение посреди жеста ломает следующий mousemove.
+        if (drag.type === 'none') dispatch({ type: 'DELETE_SELECTION' });
         return;
       }
 

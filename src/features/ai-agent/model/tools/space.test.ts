@@ -129,6 +129,36 @@ describe('space tools', () => {
     expect(text(r)).toContain('собес');
   });
 
+  it('refuses to write a file when content is missing instead of wiping it', async () => {
+    const h = makeHarness();
+    await h.call('space_create_file', { path: 'заметки.md', content: 'важное' });
+    const fileNode = h.getState().nodes[0];
+
+    const r = await h.call('space_write_file', { path: 'заметки.md' });
+    expect(r.isError).toBe(true);
+    expect(spaceReadContent(fileNode.id, WS)).toBe('важное');
+  });
+
+  it('refuses to append when content is missing', async () => {
+    const h = makeHarness();
+    await h.call('space_create_file', { path: 'заметки.md', content: 'важное' });
+    const fileNode = h.getState().nodes[0];
+
+    const r = await h.call('space_append_file', { path: 'заметки.md' });
+    expect(r.isError).toBe(true);
+    expect(spaceReadContent(fileNode.id, WS)).toBe('важное');
+  });
+
+  it('writes an empty string when it is passed explicitly', async () => {
+    const h = makeHarness();
+    await h.call('space_create_file', { path: 'заметки.md', content: 'важное' });
+    const fileNode = h.getState().nodes[0];
+
+    const r = await h.call('space_write_file', { path: 'заметки.md', content: '' });
+    expect(r.isError).toBeFalsy();
+    expect(spaceReadContent(fileNode.id, WS)).toBe('');
+  });
+
   it('flags only write and delete as destructive', () => {
     const h = makeHarness();
     const names = createSpaceTools(h.getState(), h.dispatch, WS)

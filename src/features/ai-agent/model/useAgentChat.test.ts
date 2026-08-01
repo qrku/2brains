@@ -248,3 +248,19 @@ test('лимит итераций останавливает зацикливш�
   await waitFor(() => expect(result.current.status).toBe('error'), { timeout: 5000 });
   expect(fetchMock).toHaveBeenCalledTimes(8);
 });
+
+test('счётчик итераций сбрасывается на каждую реплику пользователя', async () => {
+  // Девять обычных сообщений подряд, без единого вызова инструмента: раньше
+  // кумулятивный счётчик упирался в лимит на девятом и убивал чат до «Очистить».
+  scriptFetch(Array.from({ length: 9 }, () => [{ type: 'done' }] as AgentStreamEvent[]));
+
+  const { result } = renderHook(() => useAgentChat());
+
+  for (let i = 0; i < 9; i++) {
+    act(() => result.current.send(`вопрос ${i}`));
+    await waitFor(() => expect(result.current.status).toBe('idle'));
+  }
+
+  expect(result.current.status).toBe('idle');
+  expect(result.current.errorText).toBeUndefined();
+});
