@@ -1,5 +1,12 @@
 # Everything below is also enforced in CI — running it here just makes the failure
 # arrive seconds after `git push` instead of minutes later on a red pipeline.
+#
+# Ordered cheapest first: typecheck catches most breakage in ~2s, so there is no reason
+# to spend 17s on a build before knowing the types are sound.
 npm run typecheck
 npm run lint:fsd
 npm test -- --silent --passWithNoTests
+
+# Slowest check, kept last. Note it writes to .next/ — if `npm run dev` is running, this
+# replaces the dev server's build output and the running server will want a restart.
+npm run build
