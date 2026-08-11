@@ -1,5 +1,6 @@
 export type {
-  BNode, BEdge, BoardDoc, BoardSettings, NodeKind, NodeShape, Rect, ResizeEdge, Side, T, TextAlign, XY,
+  BNode, BEdge, BoardDoc, BoardMeta, BoardSettings, NodeKind, NodeShape, Rect, ResizeEdge, Side, T,
+  TextAlign, XY,
 } from './model/types';
 
 export type { Guide, ResizeSnapResult, SnapResult } from './lib/snapping';
@@ -21,5 +22,7 @@ export { roundedPath, smoothPath } from './lib/path';
 export { drawNodePoints, mkDrawNode, mkNode } from './lib/factory';
 
 export {
-  loadBoard, loadBoardSettings, loadBoardView, saveBoard, saveBoardSettings, saveBoardView,
+  DEFAULT_BOARD_ID, DEFAULT_BOARD_NAME, countBoards, defaultBoardMeta, deleteBoardData, loadBoard,
+  loadBoardList, loadBoardSettings, loadBoardView, loadCurrentBoardId, saveBoard, saveBoardList,
+  saveBoardSettings, saveBoardView, saveCurrentBoardId,
 } from './api/storage';

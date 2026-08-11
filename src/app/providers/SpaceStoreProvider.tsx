@@ -75,6 +75,15 @@ export function useSpaceStore() {
   return ctx;
 }
 
+/** Nodes of any workspace, including ones not currently loaded into the store. */
+export const spaceReadNodes = (workspaceId: string): SpaceNode[] => {
+  try {
+    return JSON.parse(localStorage.getItem(wsKey(NODES_KEY, workspaceId)) ?? '[]') as SpaceNode[];
+  } catch {
+    return [];
+  }
+};
+
 // Content helpers — read/write directly to avoid putting large strings in React state.
 // Callers must pass the current workspace id (from useWorkspaceStore) so content stays isolated per workspace.
 export const spaceReadContent = (id: string, workspaceId: string): string => {

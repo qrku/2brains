@@ -1,6 +1,6 @@
 'use client';
 
-import { ProfileCard, ProfileStats, ActivePacks } from '@/widgets/profile';
+import { ProfileCard, ProfileStats } from '@/widgets/profile';
 
 export default function ProfilePage() {
   return (
@@ -8,7 +8,6 @@ export default function ProfilePage() {
       <div className="container">
         <ProfileCard />
         <ProfileStats />
-        <ActivePacks />
       </div>
     </main>
   );

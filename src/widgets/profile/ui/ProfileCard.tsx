@@ -4,14 +4,11 @@ import { useState } from 'react';
 import { Button } from 'mikro-ui';
 import { useProfileStore } from '@/app/providers/ProfileStoreProvider';
 import { EditProfileModal } from '@/features/edit-profile';
-import { LEVEL_LABELS } from '@/entities/profile';
 
 export function ProfileCard() {
   const { state } = useProfileStore();
   const [editing, setEditing] = useState(false);
   const { profile } = state;
-
-  const isEmpty = !profile.nickname && !profile.role && !profile.stack.length;
 
   return (
     <>
@@ -19,29 +16,14 @@ export function ProfileCard() {
         <div className="profile-avatar">{profile.avatar || '🦊'}</div>
 
         <div className="profile-info">
-          {isEmpty ? (
-            <>
-              <div className="profile-name profile-name--empty">Заполни профиль</div>
-              <div className="profile-role">Расскажи о своём стеке и уровне</div>
-            </>
+          {profile.nickname ? (
+            <div className="profile-name">{profile.nickname}</div>
           ) : (
-            <>
-              <div className="profile-name">{profile.nickname || 'Без имени'}</div>
-              <div className="profile-role">
-                {profile.level && (
-                  <span className="level-badge">{LEVEL_LABELS[profile.level]}</span>
-                )}
-                {profile.role}
-              </div>
-              {profile.stack.length > 0 && (
-                <div className="profile-stack">
-                  {profile.stack.map((tag) => (
-                    <span key={tag} className="profile-stack-tag">{tag}</span>
-                  ))}
-                </div>
-              )}
-            </>
+            <div className="profile-name profile-name--empty">Без имени</div>
           )}
+          <div className="profile-hint">
+            {profile.nickname ? 'Твой профиль' : 'Выбери аватар и укажи никнейм'}
+          </div>
         </div>
 
         <div className="profile-actions">

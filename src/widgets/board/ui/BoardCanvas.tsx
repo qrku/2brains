@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useRegisterTools } from '@/app/providers/AgentStoreProvider';
 import { createBoardTools } from '@/features/ai-agent';
 import { distToSegment, nodesInFrame, toC, type BEdge, type XY } from '@/entities/board';
+import { useBoards } from '../model/useBoards';
 import { useBoardStore } from '../model/useBoardStore';
 import { useBoardGeometry, viewportCursor } from '../model/useBoardGeometry';
 import { useBoardHotkeys } from '../model/useBoardHotkeys';
@@ -17,6 +18,7 @@ import { BoardEdges } from './BoardEdges';
 import { BoardHint } from './BoardHint';
 import { BoardNode, type NodeHandlers } from './BoardNode';
 import { BoardSettingsModal } from './BoardSettingsModal';
+import { BoardSwitcher } from './BoardSwitcher';
 import { BoardToolbar } from './BoardToolbar';
 import { FrameWheel } from './FrameWheel';
 import { NoteAside, type NoteRef } from './NoteAside';
@@ -26,7 +28,8 @@ import { EdgeActionBar, MultiSelectBar, NodePropertyBar } from './PropertyBars';
 export function BoardCanvas() {
   const vpRef = useRef<HTMLDivElement>(null);
 
-  const store = useBoardStore();
+  const boards = useBoards();
+  const store = useBoardStore(boards.current?.id ?? null);
   const { state, dispatch, stateRef } = store;
   const tracker = usePointerTracker(vpRef);
 
@@ -305,6 +308,8 @@ export function BoardCanvas() {
         {geom.multiAnchor && (
           <MultiSelectBar at={geom.multiAnchor} count={selected.length} onDelete={deleteSelection} />
         )}
+
+        <BoardSwitcher boards={boards} uiProps={tracker.uiProps} />
 
         <BoardToolbar
           tool={tool}

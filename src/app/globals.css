@@ -534,59 +534,17 @@ main        { padding: 32px 24px 80px; }
 
 .profile-name         { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; margin-bottom: 5px; }
 .profile-name--empty  { color: #bbb; font-weight: 400; }
-.profile-role         { font-size: 13px; color: #999; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.profile-hint         { font-size: 13px; color: #999; }
 
-.level-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 7px;
-  font-size: 10px;
-  font-weight: 700;
-  background: #111;
-  color: #fff;
-  border-radius: 2px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.profile-stack     { display: flex; flex-wrap: wrap; gap: 4px; }
-.profile-stack-tag {
-  font-size: 11px;
-  padding: 3px 8px;
-  background: #f5f5f5;
-  color: #555;
-  border-radius: 2px;
-  font-weight: 500;
-}
-
-/* Active packs section */
-.section-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-.section-label { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
-
-.active-packs { margin-bottom: 32px; }
-.active-pack-list { border-top: 1px solid #e8e8e8; }
-.active-pack-row {
+/* Profile stats — totals across all workspaces */
+.profile-stats {
   display: grid;
-  grid-template-columns: 160px 1fr 36px;
-  align-items: center;
-  gap: 14px;
-  padding: 11px 0;
-  border-bottom: 1px solid #f2f2f2;
-  text-decoration: none;
-  transition: background-color 80ms;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: #e8e8e8;
+  margin-bottom: 20px;
 }
-.active-pack-row:last-child { border-bottom: none; }
-.active-pack-row:hover .active-pack-name { color: #555; }
-.active-pack-name    { font-size: 13px; font-weight: 500; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 80ms; }
-.active-pack-bar-wrap { }
-.active-pack-bar     { height: 2px; background: #e8e8e8; }
-.active-pack-bar-fill { height: 100%; background: #111; transition: width 0.4s ease; }
-.active-pack-pct     { font-size: 12px; color: #999; text-align: right; }
+@media (max-width: 480px) { .profile-stats { grid-template-columns: repeat(2, 1fr); } }
 
 /* Profile edit modal — avatar grid */
 .avatar-grid {
@@ -610,77 +568,6 @@ main        { padding: 32px 24px 80px; }
 }
 .avatar-opt:hover  { border-color: #bbb; }
 .avatar-opt.active { border-color: #111; background: #fff; }
-
-/* Stack tag input in modal */
-.stack-input-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  padding: 6px 8px;
-  border: 1px solid #e8e8e8;
-  border-radius: 3px;
-  min-height: 38px;
-  cursor: text;
-  transition: border-color 80ms;
-}
-.stack-input-wrap:focus-within { border-color: #111; }
-
-.stack-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 7px;
-  background: #111;
-  color: #fff;
-  font-size: 11px;
-  border-radius: 2px;
-  font-weight: 500;
-}
-.stack-chip-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.6);
-  cursor: pointer;
-  font-size: 10px;
-  padding: 0;
-  line-height: 1;
-  font-family: inherit;
-}
-.stack-chip-remove:hover { color: #fff; }
-
-.stack-text-input {
-  border: none;
-  outline: none;
-  font-size: 13px;
-  font-family: inherit;
-  color: #111;
-  background: transparent;
-  min-width: 120px;
-  flex: 1;
-}
-.stack-text-input::placeholder { color: #bbb; }
-
-.stack-suggestions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 8px;
-}
-.stack-suggestion {
-  font-size: 11px;
-  padding: 3px 8px;
-  border: 1px solid #e8e8e8;
-  background: #fff;
-  color: #999;
-  border-radius: 2px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: border-color 80ms, color 80ms;
-}
-.stack-suggestion:hover { border-color: #111; color: #111; }
 
 /* ─── Pack grid (knowledge page) ─────────────────────────────────────────── */
 
@@ -1518,6 +1405,87 @@ main        { padding: 32px 24px 80px; }
   box-shadow: 0 1px 3px rgba(0,0,0,.2);
 }
 .bsm-toggle input:checked ~ .bsm-track .bsm-thumb { transform: translateX(16px); }
+
+/* Board switcher — top-left pill with the board list */
+.board-switch {
+  position: absolute;
+  left: 16px; top: 16px;
+  z-index: 100;
+}
+.board-switch-trigger {
+  display: flex; align-items: center; gap: 8px;
+  max-width: 240px;
+  background: #fff;
+  border: 1px solid #e4e4e4;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12px; font-weight: 500; color: #333;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0,0,0,.09);
+  transition: background 0.1s;
+}
+.board-switch-trigger:hover  { background: #f7f7f7; }
+.board-switch-trigger.active { background: #f3f3f3; }
+.board-switch-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.board-switch-menu {
+  position: absolute;
+  left: 0; top: calc(100% + 6px);
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid #e4e4e4;
+  border-radius: 10px;
+  padding: 5px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.12);
+}
+.board-switch-item {
+  display: flex; align-items: center; gap: 2px;
+  border-radius: 7px;
+  padding-right: 4px;
+}
+.board-switch-item:hover        { background: #f5f5f5; }
+.board-switch-item.active       { background: #f0f0f0; }
+.board-switch-pick {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  background: none; border: none;
+  padding: 7px 8px;
+  font-size: 12px; color: #333; font-family: inherit;
+  cursor: pointer;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.board-switch-item.active .board-switch-pick { font-weight: 600; color: #111; }
+.board-switch-act {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  background: none; border: none; border-radius: 5px;
+  color: #bbb;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.board-switch-act:hover { background: #e8e8e8; color: #333; }
+.board-switch-input {
+  flex: 1;
+  min-width: 0;
+  margin: 3px 4px;
+  padding: 4px 6px;
+  font-size: 12px; font-family: inherit; color: #111;
+  border: 1px solid #111;
+  border-radius: 5px;
+  outline: none;
+}
+.board-switch-divider { height: 1px; background: #eee; margin: 5px 0; }
+.board-switch-add {
+  display: flex; align-items: center; gap: 6px;
+  width: 100%;
+  background: none; border: none; border-radius: 7px;
+  padding: 7px 8px;
+  font-size: 12px; color: #999; font-family: inherit;
+  cursor: pointer;
+}
+.board-switch-add:hover { background: #f5f5f5; color: #111; }
 
 /* Left tool panel */
 .board-panel {

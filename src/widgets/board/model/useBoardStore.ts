@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useReducer, useRef, type Dispatch, type RefObject } from 'react';
+import { useCallback, useEffect, useReducer, useRef, type Dispatch, type RefObject } from 'react';
 import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
 import {
   loadBoard, loadBoardSettings, loadBoardView, saveBoard, saveBoardSettings, saveBoardView,
@@ -23,51 +23,79 @@ export interface BoardStore {
   stateRef: RefObject<BoardState>;
 }
 
-export function useBoardStore(): BoardStore {
+/** Loads and persists one board; pass `null` while the board list is still hydrating. */
+export function useBoardStore(boardId: string | null): BoardStore {
   const { state: wsState } = useWorkspaceStore();
   const [state, dispatch] = useReducer(boardReducer, initialBoardState);
 
   const stateRef = useRef(state);
   useEffect(() => { stateRef.current = state; });
 
-  // The workspace whose data is currently loaded into state — debounced saves always flush to
-  // this, not to wsState.currentId, so a mid-debounce workspace switch can't leak one
-  // workspace's edits into another's storage key.
-  const boardWsId = useRef(wsState.currentId);
+  // Which workspace and board the state in hand belongs to. Debounced saves always flush to this,
+  // not to the current selection, so switching mid-debounce can't leak one board's edits into
+  // another's storage key.
+  const target  = useRef<{ wsId: string; boardId: string | null }>({ wsId: wsState.currentId, boardId });
   const docTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const viewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  /** Writes the committed doc out now and cancels the pending debounce. */
+  const flush = useCallback(() => {
+    if (docTimer.current)  { clearTimeout(docTimer.current);  docTimer.current = null; }
+    if (viewTimer.current) { clearTimeout(viewTimer.current); viewTimer.current = null; }
+
+    const s = stateRef.current;
+    const { wsId, boardId: id } = target.current;
+    // Before the first LOAD the state is the empty initial one — writing it would erase a board.
+    if (!s.ready || !id) return;
+    saveBoard({ nodes: s.nodes, edges: s.edges }, wsId, id);
+    saveBoardView(s.view, wsId, id);
+  }, []);
+
   useEffect(() => {
-    if (!wsState.hydrated) return;
-    const id = wsState.currentId;
-    const doc = loadBoard(id);
-    boardWsId.current = id;
+    if (!wsState.hydrated || !boardId) return;
+
+    // Leaving the previous board: its last half-second of edits is still only in memory.
+    flush();
+
+    const wsId = wsState.currentId;
+    const doc = loadBoard(wsId, boardId);
+    target.current = { wsId, boardId };
     dispatch({
       type: 'LOAD',
       nodes: doc.nodes,
       edges: doc.edges,
-      settings: loadBoardSettings(id),
-      view: loadBoardView(id),
+      settings: loadBoardSettings(wsId, boardId),
+      view: loadBoardView(wsId, boardId),
     });
-  }, [wsState.hydrated, wsState.currentId]);
+  }, [wsState.hydrated, wsState.currentId, boardId, flush]);
+
+  // Unmounting (navigating off the board) must not drop pending edits either.
+  useEffect(() => flush, [flush]);
 
   const { ready, nodes, edges, view, settings } = state;
 
   useEffect(() => {
     if (!ready) return;
     if (docTimer.current) clearTimeout(docTimer.current);
-    docTimer.current = setTimeout(() => saveBoard({ nodes, edges }, boardWsId.current), DOC_SAVE_MS);
+    docTimer.current = setTimeout(() => {
+      const { wsId, boardId: id } = target.current;
+      if (id) saveBoard({ nodes, edges }, wsId, id);
+    }, DOC_SAVE_MS);
   }, [nodes, edges, ready]);
 
   useEffect(() => {
     if (!ready) return;
     if (viewTimer.current) clearTimeout(viewTimer.current);
-    viewTimer.current = setTimeout(() => saveBoardView(view, boardWsId.current), VIEW_SAVE_MS);
+    viewTimer.current = setTimeout(() => {
+      const { wsId, boardId: id } = target.current;
+      if (id) saveBoardView(view, wsId, id);
+    }, VIEW_SAVE_MS);
   }, [view, ready]);
 
   useEffect(() => {
     if (!ready) return;
-    saveBoardSettings(settings, boardWsId.current);
+    const { wsId, boardId: id } = target.current;
+    if (id) saveBoardSettings(settings, wsId, id);
   }, [settings, ready]);
 
   return { state, dispatch, stateRef };

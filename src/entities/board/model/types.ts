@@ -37,6 +37,13 @@ export interface BoardDoc {
   edges: BEdge[];
 }
 
+/** A board in the workspace's board list — the document itself is stored separately, by id. */
+export interface BoardMeta {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
 export interface BoardSettings {
   edgePan: boolean;
   edgePanThreshold: number;

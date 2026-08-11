@@ -1,3 +1,4 @@
 export { ProfileCard }  from './ui/ProfileCard';
 export { ProfileStats } from './ui/ProfileStats';
-export { ActivePacks }  from './ui/ActivePacks';
+export { useProfileStats } from './model/useProfileStats';
+export type { ProfileStatsData } from './model/useProfileStats';
