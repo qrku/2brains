@@ -12,7 +12,14 @@
  */
 
 import type { Dispatch } from 'react';
-import { type SpaceAction, type SpaceNode, type SpaceState, spaceDeleteContent, spaceReadContent, spaceSaveContent } from '@/entities/space';
+import {
+  type SpaceAction,
+  type SpaceNode,
+  type SpaceState,
+  spaceDeleteContent,
+  spaceReadContent,
+  spaceSaveContent,
+} from '@/entities/space';
 import { uid } from '@/shared/lib/uid';
 import { type McpTool, type McpToolResult, fail, ok } from '@/shared/lib/mcp/types';
 
@@ -108,7 +115,9 @@ function buildTreeText(nodes: SpaceNode[]): string {
   const walk = (parentId: string | null, depth: number) => {
     const children = nodes
       .filter((n) => n.parentId === parentId)
-      .sort((a, b) => (a.type !== b.type ? (a.type === 'folder' ? -1 : 1) : a.name.localeCompare(b.name, 'ru')));
+      .sort((a, b) =>
+        a.type !== b.type ? (a.type === 'folder' ? -1 : 1) : a.name.localeCompare(b.name, 'ru'),
+      );
     for (const n of children) {
       const indent = '  '.repeat(depth);
       const label = n.type === 'folder' ? `${n.name}/` : n.name;
@@ -141,9 +150,13 @@ function optStrArg(args: Record<string, unknown>, key: string): string | undefin
  * а не запись пустоты. Реестр валидирует `required` по схеме до вызова `run`,
  * это второй рубеж на случай вызова инструмента напрямую.
  */
-function reqStrArg(args: Record<string, unknown>, key: string): { ok: true; value: string } | { ok: false; error: McpToolResult } {
+function reqStrArg(
+  args: Record<string, unknown>,
+  key: string,
+): { ok: true; value: string } | { ok: false; error: McpToolResult } {
   const v = args[key];
-  if (typeof v !== 'string') return { ok: false, error: fail(`Аргумент «${key}» обязателен и должен быть строкой.`) };
+  if (typeof v !== 'string')
+    return { ok: false, error: fail(`Аргумент «${key}» обязателен и должен быть строкой.`) };
   return { ok: true, value: v };
 }
 
@@ -174,7 +187,9 @@ export function createSpaceTools(
       description: 'Читает содержимое файла по пути.',
       inputSchema: {
         type: 'object',
-        properties: { path: { type: 'string', description: 'Путь к файлу, например Проекты/заметки.md' } },
+        properties: {
+          path: { type: 'string', description: 'Путь к файлу, например Проекты/заметки.md' },
+        },
         required: ['path'],
       },
       run: (args) => {
@@ -217,7 +232,9 @@ export function createSpaceTools(
           const parentPath = parentSegments.join('/');
           const r = resolvePath(state.nodes, parentPath);
           if (!r.ok) {
-            return fail(`Папка «${parentPath}» не найдена. Сначала создай её инструментом space_create_folder.`);
+            return fail(
+              `Папка «${parentPath}» не найдена. Сначала создай её инструментом space_create_folder.`,
+            );
           }
           if (r.node.type !== 'folder') return fail(`«${parentPath}» — не папка.`);
           parentId = r.node.id;
@@ -227,10 +244,18 @@ export function createSpaceTools(
         const finalName = name.endsWith('.md') ? name : `${name}.md`;
         const exists = state.nodes.some((n) => n.parentId === parentId && n.name === finalName);
         if (exists) {
-          return fail(`Файл «${finalName}» уже существует по этому пути. Для перезаписи используй space_write_file.`);
+          return fail(
+            `Файл «${finalName}» уже существует по этому пути. Для перезаписи используй space_write_file.`,
+          );
         }
 
-        const node: SpaceNode = { id: uid(), name: finalName, type: 'file', parentId, createdAt: new Date().toISOString() };
+        const node: SpaceNode = {
+          id: uid(),
+          name: finalName,
+          type: 'file',
+          parentId,
+          createdAt: new Date().toISOString(),
+        };
         dispatch({ type: 'ADD_NODE', node });
         if (content !== undefined) spaceSaveContent(node.id, content, workspaceId);
 
@@ -297,7 +322,9 @@ export function createSpaceTools(
       description: 'Создаёт новую папку.',
       inputSchema: {
         type: 'object',
-        properties: { path: { type: 'string', description: 'Путь новой папки, например Проекты/Идеи' } },
+        properties: {
+          path: { type: 'string', description: 'Путь новой папки, например Проекты/Идеи' },
+        },
         required: ['path'],
       },
       run: (args) => {
@@ -310,7 +337,9 @@ export function createSpaceTools(
           const parentPath = parentSegments.join('/');
           const r = resolvePath(state.nodes, parentPath);
           if (!r.ok) {
-            return fail(`Папка «${parentPath}» не найдена. Сначала создай её инструментом space_create_folder.`);
+            return fail(
+              `Папка «${parentPath}» не найдена. Сначала создай её инструментом space_create_folder.`,
+            );
           }
           if (r.node.type !== 'folder') return fail(`«${parentPath}» — не папка.`);
           parentId = r.node.id;
@@ -319,7 +348,13 @@ export function createSpaceTools(
         const exists = state.nodes.some((n) => n.parentId === parentId && n.name === name);
         if (exists) return fail(`«${name}» уже существует по этому пути.`);
 
-        const node: SpaceNode = { id: uid(), name, type: 'folder', parentId, createdAt: new Date().toISOString() };
+        const node: SpaceNode = {
+          id: uid(),
+          name,
+          type: 'folder',
+          parentId,
+          createdAt: new Date().toISOString(),
+        };
         dispatch({ type: 'ADD_NODE', node });
 
         const fullPath = [...parentSegments, name].join('/');
@@ -345,7 +380,8 @@ export function createSpaceTools(
         const r = resolvePath(state.nodes, path);
         if (!r.ok) return fail(r.error);
 
-        const finalName = r.node.type === 'file' && !newNameRaw.endsWith('.md') ? `${newNameRaw}.md` : newNameRaw;
+        const finalName =
+          r.node.type === 'file' && !newNameRaw.endsWith('.md') ? `${newNameRaw}.md` : newNameRaw;
         const clash = state.nodes.some(
           (n) => n.id !== r.node.id && n.parentId === r.node.parentId && n.name === finalName,
         );
@@ -364,7 +400,10 @@ export function createSpaceTools(
         type: 'object',
         properties: {
           path: { type: 'string', description: 'Путь перемещаемого узла' },
-          to: { type: 'string', description: 'Путь папки назначения; пусто или "/" — корень Пространства' },
+          to: {
+            type: 'string',
+            description: 'Путь папки назначения; пусто или "/" — корень Пространства',
+          },
         },
         required: ['path', 'to'],
       },
@@ -400,7 +439,8 @@ export function createSpaceTools(
 
     {
       name: 'space_delete_node',
-      description: 'Удаляет файл или папку. При удалении папки безвозвратно удаляется всё её содержимое.',
+      description:
+        'Удаляет файл или папку. При удалении папки безвозвратно удаляется всё её содержимое.',
       inputSchema: {
         type: 'object',
         properties: { path: { type: 'string', description: 'Путь удаляемого узла' } },
@@ -433,7 +473,8 @@ export function createSpaceTools(
 
     {
       name: 'space_search',
-      description: 'Ищет подстроку в именах файлов/папок и в содержимом файлов, возвращает совпадения с контекстом.',
+      description:
+        'Ищет подстроку в именах файлов/папок и в содержимом файлов, возвращает совпадения с контекстом.',
       inputSchema: {
         type: 'object',
         properties: {

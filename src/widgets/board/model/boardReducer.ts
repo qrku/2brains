@@ -1,10 +1,33 @@
 import { uid } from '@/shared/lib/uid';
 import {
-  CONNECTOR_MAGNET, DEF_FRAME_H, DEF_FRAME_W, DEF_H, DEF_PEN_COLOR, DEF_PEN_WIDTH, DEF_SETTINGS,
-  DEF_VIEW, DEF_W, MIN_DRAW_PX, MIN_S, PEN_MAX_W, PEN_MIN_W, SNAP_PX,
-  boundsOf, clamp, computeResizeSnap, computeSnap, findConnectorMagnet, mkDrawNode, mkNode,
-  nodesInRect, resizeGuides, toC, zoomTo,
-  type BNode, type Rect, type XY,
+  CONNECTOR_MAGNET,
+  DEF_FRAME_H,
+  DEF_FRAME_W,
+  DEF_H,
+  DEF_PEN_COLOR,
+  DEF_PEN_WIDTH,
+  DEF_SETTINGS,
+  DEF_VIEW,
+  DEF_W,
+  MIN_DRAW_PX,
+  MIN_S,
+  PEN_MAX_W,
+  PEN_MIN_W,
+  SNAP_PX,
+  boundsOf,
+  clamp,
+  computeResizeSnap,
+  computeSnap,
+  findConnectorMagnet,
+  mkDrawNode,
+  mkNode,
+  nodesInRect,
+  resizeGuides,
+  toC,
+  zoomTo,
+  type BNode,
+  type Rect,
+  type XY,
 } from '@/entities/board';
 import type { BoardAction, BoardState, PointerPos } from './types';
 
@@ -12,14 +35,19 @@ import type { BoardAction, BoardState, PointerPos } from './types';
 const SELECT_THRESHOLD_PX = 4;
 /** Minimum on-screen spacing between captured pencil points. */
 const PENCIL_SAMPLE_PX = 2;
-const MIN_NODE_W = 40, MIN_NODE_H = 24;
-const FIT_PADDING = 80, FIT_MAX_SCALE = 1.5;
+const MIN_NODE_W = 40,
+  MIN_NODE_H = 24;
+const FIT_PADDING = 80,
+  FIT_MAX_SCALE = 1.5;
 
 export const initialBoardState: BoardState = {
   ready: false,
-  nodes: [], edges: [],
+  nodes: [],
+  edges: [],
   view: DEF_VIEW,
-  selected: [], selectedEdge: null, editing: null,
+  selected: [],
+  selectedEdge: null,
+  editing: null,
   drag: { type: 'none' },
   guides: [],
   tool: 'cursor',
@@ -33,34 +61,65 @@ const mapNode = (nodes: BNode[], id: string, fn: (n: BNode) => BNode): BNode[] =
   nodes.map((n) => (n.id === id ? fn(n) : n));
 
 /** Resize keeps circles square: diagonal handles average the two axes, edge handles drive both. */
-function resizeNode(n: BNode, o: { x: number; y: number; w: number; h: number }, edge: string, dx: number, dy: number, scale: number): BNode {
-  const minW = MIN_NODE_W / scale, minH = MIN_NODE_H / scale;
-  const hasN = edge.includes('n'), hasS = edge.includes('s');
-  const hasE = edge.includes('e'), hasW = edge.includes('w');
+function resizeNode(
+  n: BNode,
+  o: { x: number; y: number; w: number; h: number },
+  edge: string,
+  dx: number,
+  dy: number,
+  scale: number,
+): BNode {
+  const minW = MIN_NODE_W / scale,
+    minH = MIN_NODE_H / scale;
+  const hasN = edge.includes('n'),
+    hasS = edge.includes('s');
+  const hasE = edge.includes('e'),
+    hasW = edge.includes('w');
 
   if (n.shape === 'circle') {
     const dH = hasE ? dx : hasW ? -dx : 0;
     const dV = hasS ? dy : hasN ? -dy : 0;
     const delta = (hasE || hasW) && (hasN || hasS) ? (dH + dV) / 2 : dH || dV;
     const size = Math.max(minW, o.w + delta);
-    return { ...n, x: hasW ? o.x + (o.w - size) : o.x, y: hasN ? o.y + (o.h - size) : o.y, w: size, h: size };
+    return {
+      ...n,
+      x: hasW ? o.x + (o.w - size) : o.x,
+      y: hasN ? o.y + (o.h - size) : o.y,
+      w: size,
+      h: size,
+    };
   }
 
-  let x = o.x, y = o.y, w = o.w, h = o.h;
+  let x = o.x,
+    y = o.y,
+    w = o.w,
+    h = o.h;
   if (hasE) w = Math.max(minW, o.w + dx);
-  if (hasW) { const nw = Math.max(minW, o.w - dx); x = o.x + (o.w - nw); w = nw; }
+  if (hasW) {
+    const nw = Math.max(minW, o.w - dx);
+    x = o.x + (o.w - nw);
+    w = nw;
+  }
   if (hasS) h = Math.max(minH, o.h + dy);
-  if (hasN) { const nh = Math.max(minH, o.h - dy); y = o.y + (o.h - nh); h = nh; }
+  if (hasN) {
+    const nh = Math.max(minH, o.h - dy);
+    y = o.y + (o.h - nh);
+    h = nh;
+  }
   return { ...n, x, y, w, h };
 }
 
 function onDragMove(state: BoardState, pos: PointerPos): BoardState {
-  const d = state.drag, t = state.view;
+  const d = state.drag,
+    t = state.view;
   const { sx, sy, clientX, clientY } = pos;
 
   switch (d.type) {
     case 'pan':
-      return { ...state, view: { x: d.ox + (clientX - d.startX), y: d.oy + (clientY - d.startY), scale: t.scale } };
+      return {
+        ...state,
+        view: { x: d.ox + (clientX - d.startX), y: d.oy + (clientY - d.startY), scale: t.scale },
+      };
 
     case 'nodes': {
       const dx = (clientX - d.startX) / t.scale;
@@ -68,14 +127,20 @@ function onDragMove(state: BoardState, pos: PointerPos): BoardState {
 
       // Smart-align the moving group's bounding box against the nodes staying put. Draw strokes
       // make noisy targets, so they're left out.
-      let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+      let x1 = Infinity,
+        y1 = Infinity,
+        x2 = -Infinity,
+        y2 = -Infinity;
       const statics: BNode[] = [];
       for (const n of state.nodes) {
         const o = d.origins[n.id];
         if (o) {
-          const nx = o.x + dx, ny = o.y + dy;
-          x1 = Math.min(x1, nx); y1 = Math.min(y1, ny);
-          x2 = Math.max(x2, nx + n.w); y2 = Math.max(y2, ny + n.h);
+          const nx = o.x + dx,
+            ny = o.y + dy;
+          x1 = Math.min(x1, nx);
+          y1 = Math.min(y1, ny);
+          x2 = Math.max(x2, nx + n.w);
+          y2 = Math.max(y2, ny + n.h);
         } else if (n.kind !== 'draw') {
           statics.push(n);
         }
@@ -102,7 +167,8 @@ function onDragMove(state: BoardState, pos: PointerPos): BoardState {
 
     case 'select': {
       // Selection is resolved live here, so drag-end has nothing left to recompute.
-      const moved = Math.abs(sx - d.sx) > SELECT_THRESHOLD_PX || Math.abs(sy - d.sy) > SELECT_THRESHOLD_PX;
+      const moved =
+        Math.abs(sx - d.sx) > SELECT_THRESHOLD_PX || Math.abs(sy - d.sy) > SELECT_THRESHOLD_PX;
       const selected = moved
         ? nodesInRect(state.nodes, toC(d.sx, d.sy, t), toC(sx, sy, t)).map((n) => n.id)
         : [];
@@ -116,9 +182,18 @@ function onDragMove(state: BoardState, pos: PointerPos): BoardState {
       // Snap the dragged edge(s) against the nodes staying put — same smart-align as a move drag,
       // but only the sides the handle moves are matched. Draw strokes make noisy targets, so skip them.
       const statics = state.nodes.filter((n) => n.id !== d.id && n.kind !== 'draw');
-      const { ddx, ddy, alignX, alignY } = computeResizeSnap(d.origin, d.edge, dx, dy, statics, SNAP_PX / t.scale);
+      const { ddx, ddy, alignX, alignY } = computeResizeSnap(
+        d.origin,
+        d.edge,
+        dx,
+        dy,
+        statics,
+        SNAP_PX / t.scale,
+      );
 
-      const nodes = mapNode(state.nodes, d.id, (n) => resizeNode(n, d.origin, d.edge, dx + ddx, dy + ddy, t.scale));
+      const nodes = mapNode(state.nodes, d.id, (n) =>
+        resizeNode(n, d.origin, d.edge, dx + ddx, dy + ddy, t.scale),
+      );
       const node = nodes.find((n) => n.id === d.id);
       // Ноду могли удалить прямо во время ресайза (Delete с зажатым углом) — тогда
       // следующий mousemove не должен ронять доску чтением полей у undefined.
@@ -132,10 +207,16 @@ function onDragMove(state: BoardState, pos: PointerPos): BoardState {
       const dy = (clientY - d.startY) / t.scale;
       return {
         ...state,
-        edges: state.edges.map((ev) => ev.id !== d.edgeId ? ev : {
-          ...ev,
-          points: ev.points.map((p, i) => i === d.index ? { x: d.origin.x + dx, y: d.origin.y + dy } : p),
-        }),
+        edges: state.edges.map((ev) =>
+          ev.id !== d.edgeId
+            ? ev
+            : {
+                ...ev,
+                points: ev.points.map((p, i) =>
+                  i === d.index ? { x: d.origin.x + dx, y: d.origin.y + dy } : p,
+                ),
+              },
+        ),
       };
     }
 
@@ -153,7 +234,8 @@ function onDragMove(state: BoardState, pos: PointerPos): BoardState {
 }
 
 function onDragEnd(state: BoardState, pos: PointerPos): BoardState {
-  const d = state.drag, t = state.view;
+  const d = state.drag,
+    t = state.view;
   if (d.type === 'none') return state; // identity keeps React from re-rendering on a stray mouseup
 
   const { sx, sy } = pos;
@@ -163,20 +245,35 @@ function onDragEnd(state: BoardState, pos: PointerPos): BoardState {
     case 'edge': {
       const hit = findConnectorMagnet(toC(sx, sy, t), state.nodes, d.fromId, CONNECTOR_MAGNET);
       if (!hit) return done(state);
-      const dup = state.edges.some((ev) =>
-        ev.fromId === d.fromId && ev.toId === hit.node.id &&
-        ev.fromSide === d.fromSide && ev.toSide === hit.side);
+      const dup = state.edges.some(
+        (ev) =>
+          ev.fromId === d.fromId &&
+          ev.toId === hit.node.id &&
+          ev.fromSide === d.fromSide &&
+          ev.toSide === hit.side,
+      );
       if (dup) return done(state);
       return done({
         ...state,
-        edges: [...state.edges, { id: uid(), fromId: d.fromId, toId: hit.node.id, fromSide: d.fromSide, toSide: hit.side, points: [] }],
+        edges: [
+          ...state.edges,
+          {
+            id: uid(),
+            fromId: d.fromId,
+            toId: hit.node.id,
+            fromSide: d.fromSide,
+            toSide: hit.side,
+            points: [],
+          },
+        ],
       });
     }
 
     case 'draw': {
       const kind = state.tool === 'text' ? 'text' : state.tool === 'frame' ? 'frame' : 'box';
       const id = uid();
-      const dx = Math.abs(sx - d.sx), dy = Math.abs(sy - d.sy);
+      const dx = Math.abs(sx - d.sx),
+        dy = Math.abs(sy - d.sy);
 
       let x: number, y: number, w: number, h: number;
       if (dx < MIN_DRAW_PX && dy < MIN_DRAW_PX) {
@@ -184,11 +281,13 @@ function onDragEnd(state: BoardState, pos: PointerPos): BoardState {
         const c = toC(d.sx, d.sy, t);
         w = kind === 'frame' ? DEF_FRAME_W : DEF_W;
         h = kind === 'frame' ? DEF_FRAME_H : DEF_H;
-        x = c.x - w / 2; y = c.y - h / 2;
+        x = c.x - w / 2;
+        y = c.y - h / 2;
       } else {
         const c1 = toC(Math.min(d.sx, sx), Math.min(d.sy, sy), t);
         const c2 = toC(Math.max(d.sx, sx), Math.max(d.sy, sy), t);
-        x = c1.x; y = c1.y;
+        x = c1.x;
+        y = c1.y;
         w = Math.max(c2.x - c1.x, 60 / t.scale);
         h = Math.max(c2.y - c1.y, 28 / t.scale);
       }
@@ -226,7 +325,8 @@ function onPaste(state: BoardState, at: XY | null): BoardState {
   const center = { x: (b.x1 + b.x2) / 2, y: (b.y1 + b.y2) / 2 };
   // Land on the cursor when it's over the board, otherwise nudge off the original.
   const anchor = at ?? { x: center.x + 30, y: center.y + 30 };
-  const dx = anchor.x - center.x, dy = anchor.y - center.y;
+  const dx = anchor.x - center.x,
+    dy = anchor.y - center.y;
 
   const idMap = new Map<string, string>();
   const newNodes = clip.nodes.map((n) => {
@@ -262,9 +362,13 @@ export function boardReducer(state: BoardState, action: BoardAction): BoardState
       return {
         ...initialBoardState,
         ready: true,
-        nodes: action.nodes, edges: action.edges,
-        settings: action.settings, view: action.view,
-        penColor: state.penColor, penWidth: state.penWidth, tool: state.tool,
+        nodes: action.nodes,
+        edges: action.edges,
+        settings: action.settings,
+        view: action.view,
+        penColor: state.penColor,
+        penWidth: state.penWidth,
+        tool: state.tool,
         clipboard: state.clipboard,
       };
 
@@ -272,7 +376,10 @@ export function boardReducer(state: BoardState, action: BoardAction): BoardState
       return { ...state, view: action.view };
 
     case 'PAN_BY':
-      return { ...state, view: { ...state.view, x: state.view.x + action.dx, y: state.view.y + action.dy } };
+      return {
+        ...state,
+        view: { ...state.view, x: state.view.x + action.dx, y: state.view.y + action.dy },
+      };
 
     case 'ZOOM_AT':
       return { ...state, view: zoomTo(state.view, action.factor, action.mx, action.my) };
@@ -280,15 +387,17 @@ export function boardReducer(state: BoardState, action: BoardAction): BoardState
     case 'FIT_VIEW': {
       const b = boundsOf(state.nodes);
       if (!b) return { ...state, view: DEF_VIEW };
-      const w = b.x2 - b.x1 || 1, h = b.y2 - b.y1 || 1;
+      const w = b.x2 - b.x1 || 1,
+        h = b.y2 - b.y1 || 1;
       const scale = clamp(
         Math.min((action.width - FIT_PADDING * 2) / w, (action.height - FIT_PADDING * 2) / h),
-        MIN_S, FIT_MAX_SCALE,
+        MIN_S,
+        FIT_MAX_SCALE,
       );
       return {
         ...state,
         view: {
-          x: (action.width  - w * scale) / 2 - b.x1 * scale,
+          x: (action.width - w * scale) / 2 - b.x1 * scale,
           y: (action.height - h * scale) / 2 - b.y1 * scale,
           scale,
         },
@@ -299,15 +408,17 @@ export function boardReducer(state: BoardState, action: BoardAction): BoardState
       // Center the viewport on one node, fitting it with padding; never zooms past 1:1.
       const n = state.nodes.find((x) => x.id === action.id);
       if (!n) return state;
-      const w = n.w || 1, h = n.h || 1;
+      const w = n.w || 1,
+        h = n.h || 1;
       const scale = clamp(
         Math.min((action.width - FIT_PADDING * 2) / w, (action.height - FIT_PADDING * 2) / h),
-        MIN_S, 1,
+        MIN_S,
+        1,
       );
       return {
         ...state,
         view: {
-          x: (action.width  - w * scale) / 2 - n.x * scale,
+          x: (action.width - w * scale) / 2 - n.x * scale,
           y: (action.height - h * scale) / 2 - n.y * scale,
           scale,
         },
@@ -328,35 +439,60 @@ export function boardReducer(state: BoardState, action: BoardAction): BoardState
 
     case 'ADD_NODE': {
       const id = uid();
-      const node = mkNode(id, action.pos.x - DEF_W / 2, action.pos.y - DEF_H / 2, DEF_W, DEF_H, 'box');
+      const node = mkNode(
+        id,
+        action.pos.x - DEF_W / 2,
+        action.pos.y - DEF_H / 2,
+        DEF_W,
+        DEF_H,
+        'box',
+      );
       return { ...state, nodes: [...state.nodes, node], selected: [id], editing: id };
     }
 
     case 'SET_TEXT':
-      return { ...state, nodes: mapNode(state.nodes, action.id, (n) => ({ ...n, text: action.text })) };
+      return {
+        ...state,
+        nodes: mapNode(state.nodes, action.id, (n) => ({ ...n, text: action.text })),
+      };
 
     case 'FONT_SIZE':
-      return { ...state, nodes: mapNode(state.nodes, action.id, (n) => ({ ...n, fontSize: clamp(n.fontSize + action.delta, 8, 72) })) };
+      return {
+        ...state,
+        nodes: mapNode(state.nodes, action.id, (n) => ({
+          ...n,
+          fontSize: clamp(n.fontSize + action.delta, 8, 72),
+        })),
+      };
 
     case 'SET_SHAPE':
       return {
         ...state,
         nodes: mapNode(state.nodes, action.id, (n) => ({
-          ...n, shape: action.shape, h: action.shape === 'circle' ? n.w : n.h,
+          ...n,
+          shape: action.shape,
+          h: action.shape === 'circle' ? n.w : n.h,
         })),
       };
 
     case 'SET_ALIGN':
-      return { ...state, nodes: mapNode(state.nodes, action.id, (n) => ({ ...n, align: action.align })) };
+      return {
+        ...state,
+        nodes: mapNode(state.nodes, action.id, (n) => ({ ...n, align: action.align })),
+      };
 
     case 'STROKE_COLOR':
-      return { ...state, nodes: mapNode(state.nodes, action.id, (n) => ({ ...n, color: action.color })) };
+      return {
+        ...state,
+        nodes: mapNode(state.nodes, action.id, (n) => ({ ...n, color: action.color })),
+      };
 
     case 'STROKE_WIDTH':
       return {
         ...state,
         nodes: mapNode(state.nodes, action.id, (n) => ({
-          ...n, strokeW: clamp((n.strokeW ?? DEF_PEN_WIDTH) + action.delta, PEN_MIN_W, PEN_MAX_W),
+          ...n,
+          strokeW: clamp((n.strokeW ?? DEF_PEN_WIDTH) + action.delta, PEN_MIN_W, PEN_MAX_W),
         })),
       };
 
@@ -369,24 +505,41 @@ export function boardReducer(state: BoardState, action: BoardAction): BoardState
     case 'ADD_EDGE_BEND':
       return {
         ...state,
-        edges: state.edges.map((ev) => ev.id !== action.edgeId ? ev : {
-          ...ev,
-          points: [...ev.points.slice(0, action.index), action.pt, ...ev.points.slice(action.index)],
-        }),
+        edges: state.edges.map((ev) =>
+          ev.id !== action.edgeId
+            ? ev
+            : {
+                ...ev,
+                points: [
+                  ...ev.points.slice(0, action.index),
+                  action.pt,
+                  ...ev.points.slice(action.index),
+                ],
+              },
+        ),
       };
 
     case 'DELETE_EDGE_POINT':
       return {
         ...state,
-        edges: state.edges.map((ev) => ev.id !== action.edgeId ? ev : {
-          ...ev, points: ev.points.filter((_, i) => i !== action.index),
-        }),
+        edges: state.edges.map((ev) =>
+          ev.id !== action.edgeId
+            ? ev
+            : {
+                ...ev,
+                points: ev.points.filter((_, i) => i !== action.index),
+              },
+        ),
       };
 
     case 'DELETE_SELECTION': {
       // A selected arrow wins over selected nodes — matches what the toolbar shows.
       if (state.selectedEdge) {
-        return { ...state, edges: state.edges.filter((ev) => ev.id !== state.selectedEdge), selectedEdge: null };
+        return {
+          ...state,
+          edges: state.edges.filter((ev) => ev.id !== state.selectedEdge),
+          selectedEdge: null,
+        };
       }
       if (!state.selected.length) return state;
       const ids = new Set(state.selected);
@@ -406,7 +559,9 @@ export function boardReducer(state: BoardState, action: BoardAction): BoardState
         clipboard: {
           nodes: state.nodes.filter((n) => ids.has(n.id)).map((n) => ({ ...n })),
           // Only edges wholly inside the selection — a dangling half-edge can't be pasted.
-          edges: state.edges.filter((ev) => ids.has(ev.fromId) && ids.has(ev.toId)).map((ev) => ({ ...ev })),
+          edges: state.edges
+            .filter((ev) => ids.has(ev.fromId) && ids.has(ev.toId))
+            .map((ev) => ({ ...ev })),
         },
       };
     }

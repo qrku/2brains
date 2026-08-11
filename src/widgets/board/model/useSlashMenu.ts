@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { useSpaceStore } from '@/entities/space';
 
-export interface SpaceFile { id: string; name: string; }
+export interface SpaceFile {
+  id: string;
+  name: string;
+}
 
 /** How a reference to a Space file is stored inside a node's plain-text body. */
 export const spaceRefNotation = (f: SpaceFile) => `[[space:${f.id}|${f.name}]]`;
@@ -25,7 +28,8 @@ function caretAnchor(range: Range, editor: HTMLElement | null): { x: number; y: 
 
 export interface SlashMenu {
   open: boolean;
-  x: number; y: number;
+  x: number;
+  y: number;
   query: string;
   activeIndex: number;
   files: SpaceFile[];
@@ -65,7 +69,10 @@ export function useSlashMenu(
   );
 
   useEffect(() => {
-    if (!enabled) { setAnchor(null); setQuery(''); }
+    if (!enabled) {
+      setAnchor(null);
+      setQuery('');
+    }
   }, [enabled]);
 
   const close = useCallback(() => {
@@ -74,79 +81,89 @@ export function useSlashMenu(
     editorRef.current?.focus();
   }, [editorRef]);
 
-  const insert = useCallback((f: SpaceFile) => {
-    const el = editorRef.current;
-    if (!el) return;
+  const insert = useCallback(
+    (f: SpaceFile) => {
+      const el = editorRef.current;
+      if (!el) return;
 
-    el.focus();
-    // The caret was lost when the menu took focus — put it back where "/" was typed.
-    const sel = window.getSelection();
-    if (savedRange.current && sel) {
-      sel.removeAllRanges();
-      sel.addRange(savedRange.current);
-    }
-    // execCommand is deprecated but is the only insertion that keeps the editor's native undo stack.
-    document.execCommand('insertText', false, spaceRefNotation(f));
-    onTextInput(el.textContent ?? '');
-
-    setAnchor(null);
-    setQuery('');
-    savedRange.current = null;
-  }, [editorRef, onTextInput]);
-
-  const handleKeyDown = useCallback((e: React.KeyboardEvent): boolean => {
-    if (!enabled) return false;
-
-    if (e.key === '/') {
+      el.focus();
+      // The caret was lost when the menu took focus — put it back where "/" was typed.
       const sel = window.getSelection();
-      if (!sel?.rangeCount) return false;
-      e.preventDefault();
+      if (savedRange.current && sel) {
+        sel.removeAllRanges();
+        sel.addRange(savedRange.current);
+      }
+      // execCommand is deprecated but is the only insertion that keeps the editor's native undo stack.
+      document.execCommand('insertText', false, spaceRefNotation(f));
+      onTextInput(el.textContent ?? '');
 
-      const range = sel.getRangeAt(0);
-      savedRange.current = range.cloneRange();
-      setAnchor(caretAnchor(range, editorRef.current));
+      setAnchor(null);
       setQuery('');
-      setActiveIndex(0);
-      return true;
-    }
+      savedRange.current = null;
+    },
+    [editorRef, onTextInput],
+  );
 
-    if (!anchor) return false;
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent): boolean => {
+      if (!enabled) return false;
 
-    switch (e.key) {
-      case 'Escape':
-        e.preventDefault(); close(); return true;
-
-      case 'ArrowDown':
+      if (e.key === '/') {
+        const sel = window.getSelection();
+        if (!sel?.rangeCount) return false;
         e.preventDefault();
-        setActiveIndex((i) => Math.min(i + 1, Math.max(0, files.length - 1)));
-        return true;
 
-      case 'ArrowUp':
-        e.preventDefault();
-        setActiveIndex((i) => Math.max(0, i - 1));
+        const range = sel.getRangeAt(0);
+        savedRange.current = range.cloneRange();
+        setAnchor(caretAnchor(range, editorRef.current));
+        setQuery('');
+        setActiveIndex(0);
         return true;
+      }
 
-      case 'Enter':
-        e.preventDefault();
-        if (files[activeIndex]) insert(files[activeIndex]);
-        return true;
+      if (!anchor) return false;
 
-      case 'Backspace':
-        e.preventDefault();
-        if (query) { setQuery((q) => q.slice(0, -1)); setActiveIndex(0); }
-        else close();
-        return true;
-
-      default:
-        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      switch (e.key) {
+        case 'Escape':
           e.preventDefault();
-          setQuery((q) => q + e.key);
-          setActiveIndex(0);
+          close();
           return true;
-        }
-        return false;
-    }
-  }, [enabled, editorRef, anchor, files, activeIndex, query, insert, close]);
+
+        case 'ArrowDown':
+          e.preventDefault();
+          setActiveIndex((i) => Math.min(i + 1, Math.max(0, files.length - 1)));
+          return true;
+
+        case 'ArrowUp':
+          e.preventDefault();
+          setActiveIndex((i) => Math.max(0, i - 1));
+          return true;
+
+        case 'Enter':
+          e.preventDefault();
+          if (files[activeIndex]) insert(files[activeIndex]);
+          return true;
+
+        case 'Backspace':
+          e.preventDefault();
+          if (query) {
+            setQuery((q) => q.slice(0, -1));
+            setActiveIndex(0);
+          } else close();
+          return true;
+
+        default:
+          if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault();
+            setQuery((q) => q + e.key);
+            setActiveIndex(0);
+            return true;
+          }
+          return false;
+      }
+    },
+    [enabled, editorRef, anchor, files, activeIndex, query, insert, close],
+  );
 
   return {
     open: !!anchor,

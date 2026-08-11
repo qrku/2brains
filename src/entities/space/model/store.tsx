@@ -7,7 +7,12 @@ import { spaceReadMeta, spaceReadNodes, spaceSaveMeta, spaceSaveNodes } from '..
 function reducer(state: SpaceState, action: SpaceAction): SpaceState {
   switch (action.type) {
     case 'HYDRATE':
-      return { hydrated: true, nodes: action.nodes, expanded: action.expanded, openFileId: action.openFileId };
+      return {
+        hydrated: true,
+        nodes: action.nodes,
+        expanded: action.expanded,
+        openFileId: action.openFileId,
+      };
 
     case 'ADD_NODE':
       return { ...state, nodes: [...state.nodes, action.node] };
@@ -15,7 +20,12 @@ function reducer(state: SpaceState, action: SpaceAction): SpaceState {
     case 'MOVE_NODE': {
       // Reparent; a no-op guard keeps a stray self-drop from making a node its own parent.
       if (action.id === action.parentId) return state;
-      return { ...state, nodes: state.nodes.map((n) => n.id === action.id ? { ...n, parentId: action.parentId } : n) };
+      return {
+        ...state,
+        nodes: state.nodes.map((n) =>
+          n.id === action.id ? { ...n, parentId: action.parentId } : n,
+        ),
+      };
     }
 
     case 'DELETE_NODE': {
@@ -24,14 +34,22 @@ function reducer(state: SpaceState, action: SpaceAction): SpaceState {
     }
 
     case 'RENAME_NODE':
-      return { ...state, nodes: state.nodes.map((n) => n.id === action.id ? { ...n, name: action.name } : n) };
+      return {
+        ...state,
+        nodes: state.nodes.map((n) => (n.id === action.id ? { ...n, name: action.name } : n)),
+      };
 
     case 'OPEN_FILE':
       return { ...state, openFileId: action.id };
 
     case 'TOGGLE_FOLDER': {
       const on = state.expanded.includes(action.id);
-      return { ...state, expanded: on ? state.expanded.filter((x) => x !== action.id) : [...state.expanded, action.id] };
+      return {
+        ...state,
+        expanded: on
+          ? state.expanded.filter((x) => x !== action.id)
+          : [...state.expanded, action.id],
+      };
     }
 
     default:
@@ -39,7 +57,9 @@ function reducer(state: SpaceState, action: SpaceAction): SpaceState {
   }
 }
 
-const Ctx = createContext<{ state: SpaceState; dispatch: React.Dispatch<SpaceAction> } | null>(null);
+const Ctx = createContext<{ state: SpaceState; dispatch: React.Dispatch<SpaceAction> } | null>(
+  null,
+);
 
 interface Props {
   /** Null until the workspace store hydrates; nothing is read or written while it is. */
@@ -48,7 +68,12 @@ interface Props {
 }
 
 export function SpaceStoreProvider({ workspaceId, children }: Props) {
-  const [state, dispatch] = useReducer(reducer, { hydrated: false, nodes: [], openFileId: null, expanded: [] });
+  const [state, dispatch] = useReducer(reducer, {
+    hydrated: false,
+    nodes: [],
+    openFileId: null,
+    expanded: [],
+  });
 
   useEffect(() => {
     if (!workspaceId) return;

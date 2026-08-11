@@ -1,22 +1,4 @@
-import { LandingClient } from "./_components/LandingClient";
-
-const FEATURES = [
-  {
-    icon: "📝",
-    title: "Пространство",
-    desc: "Markdown-редактор с деревом файлов. Пиши в визуальном или текстовом режиме — всё сохраняется автоматически.",
-  },
-  {
-    icon: "🗂️",
-    title: "Доска",
-    desc: "Бесконечный холст в стиле Miro. Размещай текст и блоки, соединяй стрелками, масштабируй жестами.",
-  },
-  {
-    icon: "🧩",
-    title: "Модули",
-    desc: "Трекеры задач, опыта и откликов. Подключай только то, что нужно — лишнего в интерфейсе не будет.",
-  },
-];
+import { LandingClient } from './_components/LandingClient';
 
 export default function LandingPage() {
   return (
@@ -40,9 +22,7 @@ export default function LandingPage() {
         <LandingClient />
       </main>
 
-      <footer className="land-footer">
-        © 2brain · {new Date().getFullYear()}
-      </footer>
+      <footer className="land-footer">© 2brain · {new Date().getFullYear()}</footer>
     </div>
   );
 }

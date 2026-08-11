@@ -6,8 +6,8 @@ import { Icon } from '@/shared/ui/Icon';
 import type { PointerTracker } from '../model/usePointerTracker';
 
 const ITEM_H = 38;
-const SLOTS  = 5;                          // visible rows: the centre plus two on each side
-const PAD    = ITEM_H * ((SLOTS - 1) / 2); // spacer so the first/last frame can reach the centre
+const SLOTS = 5; // visible rows: the centre plus two on each side
+const PAD = ITEM_H * ((SLOTS - 1) / 2); // spacer so the first/last frame can reach the centre
 const VIEW_H = ITEM_H * SLOTS;
 
 interface Props {
@@ -23,10 +23,10 @@ interface Props {
  * distance. Scrolling only spins the wheel; the board jumps only when a frame is clicked.
  */
 export function FrameWheel({ frames, activeId, onFocus, uiProps }: Props) {
-  const [query, setQuery]         = useState('');
+  const [query, setQuery] = useState('');
   const [scrollTop, setScrollTop] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const raf       = useRef<number | null>(null);
+  const raf = useRef<number | null>(null);
 
   const q = query.trim().toLowerCase();
   const shown = useMemo(
@@ -43,13 +43,20 @@ export function FrameWheel({ frames, activeId, onFocus, uiProps }: Props) {
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const i = Math.max(0, shown.findIndex((f) => f.id === activeId));
+    const i = Math.max(
+      0,
+      shown.findIndex((f) => f.id === activeId),
+    );
     el.scrollTop = i * ITEM_H;
     setScrollTop(i * ITEM_H);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shown, activeId]);
 
-  useEffect(() => () => { if (raf.current) cancelAnimationFrame(raf.current); }, []);
+  useEffect(
+    () => () => {
+      if (raf.current) cancelAnimationFrame(raf.current);
+    },
+    [],
+  );
 
   // Scrolling only spins the wheel (updates the focus falloff) — it never moves the board.
   const onScroll = () => {
@@ -76,18 +83,25 @@ export function FrameWheel({ frames, activeId, onFocus, uiProps }: Props) {
           placeholder="Фреймы"
           spellCheck={false}
           onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Escape') setQuery(''); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setQuery('');
+          }}
         />
       </div>
 
       <div className="board-wheel-viewport" style={{ height: VIEW_H }}>
-        <div ref={scrollRef} className="board-wheel-scroll" style={{ height: VIEW_H }} onScroll={onScroll}>
+        <div
+          ref={scrollRef}
+          className="board-wheel-scroll"
+          style={{ height: VIEW_H }}
+          onScroll={onScroll}
+        >
           <div style={{ height: PAD, flexShrink: 0 }} />
           {shown.length === 0 && <div className="board-wheel-empty">Ничего не найдено</div>}
           {shown.map((f, i) => {
             const d = Math.abs(i - center);
-            const opacity = Math.max(0.08, 1 - d * 0.35);   // centre 1 · ±1 ≈0.65 · ±2 ≈0.30
-            const scale   = Math.max(0.72, 1 - d * 0.09);
+            const opacity = Math.max(0.08, 1 - d * 0.35); // centre 1 · ±1 ≈0.65 · ±2 ≈0.30
+            const scale = Math.max(0.72, 1 - d * 0.09);
             return (
               <button
                 key={f.id}

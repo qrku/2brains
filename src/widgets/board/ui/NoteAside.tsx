@@ -6,7 +6,10 @@ import { useWorkspaceStore } from '@/entities/workspace';
 import { parseMarkdown } from '@/shared/lib/markdown';
 import { Icon } from '@/shared/ui/Icon';
 
-export interface NoteRef { id: string; name: string; }
+export interface NoteRef {
+  id: string;
+  name: string;
+}
 
 const EMPTY_HTML = '<p style="color:#ccc">Файл пустой</p>';
 
@@ -16,7 +19,10 @@ export function NoteAside({ note, onClose }: { note: NoteRef | null; onClose: ()
   const [html, setHtml] = useState('');
 
   useEffect(() => {
-    if (!note) { setHtml(''); return; }
+    if (!note) {
+      setHtml('');
+      return;
+    }
     const md = spaceReadContent(note.id, wsState.currentId);
     setHtml(md ? parseMarkdown(md) : EMPTY_HTML);
   }, [note, wsState.currentId]);
@@ -36,11 +42,17 @@ export function NoteAside({ note, onClose }: { note: NoteRef | null; onClose: ()
         <span className="ba-title">{note?.name ?? ''}</span>
         <div className="ba-actions">
           {note && (
-            <a className="ba-open-link" href={`/space?file=${note.id}`} title="Открыть в Пространстве">
+            <a
+              className="ba-open-link"
+              href={`/space?file=${note.id}`}
+              title="Открыть в Пространстве"
+            >
               <Icon name="external-link" size={14} />
             </a>
           )}
-          <button className="ba-close" onClick={onClose}><Icon name="close" size={13} /></button>
+          <button className="ba-close" onClick={onClose}>
+            <Icon name="close" size={13} />
+          </button>
         </div>
       </div>
       <div

@@ -2,11 +2,11 @@ import { wsKey } from '@/shared/lib/workspace';
 import type { BEdge, BNode, BoardDoc, BoardMeta, BoardSettings, T } from '../model/types';
 import { DEF_H, DEF_SETTINGS, DEF_VIEW, DEF_W } from '../model/constants';
 
-const DOC_KEY      = 'board_data_v1';
+const DOC_KEY = 'board_data_v1';
 const SETTINGS_KEY = 'board_settings_v1';
-const VIEW_KEY     = 'board_view_v1';
-const LIST_KEY     = 'board_list_v1';
-const CURRENT_KEY  = 'board_current_v1';
+const VIEW_KEY = 'board_view_v1';
+const LIST_KEY = 'board_list_v1';
+const CURRENT_KEY = 'board_current_v1';
 
 /** Every workspace starts with this one board; boards created later get generated ids. */
 export const DEFAULT_BOARD_ID = 'main';
@@ -45,9 +45,9 @@ function write(key: string, value: unknown): void {
   }
 }
 
-const docKey      = (ws: string, board: string) => wsKey(boardKey(DOC_KEY, board), ws);
+const docKey = (ws: string, board: string) => wsKey(boardKey(DOC_KEY, board), ws);
 const settingsKey = (ws: string, board: string) => wsKey(boardKey(SETTINGS_KEY, board), ws);
-const viewKey     = (ws: string, board: string) => wsKey(boardKey(VIEW_KEY, board), ws);
+const viewKey = (ws: string, board: string) => wsKey(boardKey(VIEW_KEY, board), ws);
 
 /* ── Board list ─────────────────────────────────────────────────────────── */
 
@@ -110,10 +110,18 @@ export function loadBoard(workspaceId: string, boardId: string): BoardDoc {
   const raw = read<StoredDoc | null>(docKey(workspaceId, boardId), null);
   if (!raw) return { nodes: [], edges: [] };
   return {
-    nodes: (raw.nodes ?? []).map((n) => ({
-      kind: 'box', fontSize: 13, shape: 'rect', w: DEF_W, h: DEF_H, ...n,
-    } as BNode)),
-    edges: (raw.edges ?? []).map((e) => ({ points: [], ...e } as BEdge)),
+    nodes: (raw.nodes ?? []).map(
+      (n) =>
+        ({
+          kind: 'box',
+          fontSize: 13,
+          shape: 'rect',
+          w: DEF_W,
+          h: DEF_H,
+          ...n,
+        }) as BNode,
+    ),
+    edges: (raw.edges ?? []).map((e) => ({ points: [], ...e }) as BEdge),
   };
 }
 
@@ -122,10 +130,17 @@ export function saveBoard(doc: BoardDoc, workspaceId: string, boardId: string): 
 }
 
 export function loadBoardSettings(workspaceId: string, boardId: string): BoardSettings {
-  return { ...DEF_SETTINGS, ...read<Partial<BoardSettings>>(settingsKey(workspaceId, boardId), {}) };
+  return {
+    ...DEF_SETTINGS,
+    ...read<Partial<BoardSettings>>(settingsKey(workspaceId, boardId), {}),
+  };
 }
 
-export function saveBoardSettings(settings: BoardSettings, workspaceId: string, boardId: string): void {
+export function saveBoardSettings(
+  settings: BoardSettings,
+  workspaceId: string,
+  boardId: string,
+): void {
   write(settingsKey(workspaceId, boardId), settings);
 }
 

@@ -19,9 +19,9 @@ export interface PointerTracker {
 }
 
 export function usePointerTracker(vpRef: RefObject<HTMLDivElement | null>): PointerTracker {
-  const pos        = useRef<XY>({ x: -1, y: -1 });
+  const pos = useRef<XY>({ x: -1, y: -1 });
   const inViewport = useRef(false);
-  const onUi       = useRef(false);
+  const onUi = useRef(false);
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
@@ -32,16 +32,29 @@ export function usePointerTracker(vpRef: RefObject<HTMLDivElement | null>): Poin
     return () => window.removeEventListener('mousemove', onMove);
   }, [vpRef]);
 
-  return useMemo(() => ({
-    pos, inViewport, onUi,
-    viewportProps: {
-      onMouseEnter: () => { inViewport.current = true; },
-      onMouseLeave: () => { inViewport.current = false; },
-    },
-    uiProps: {
-      onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
-      onMouseEnter: () => { onUi.current = true; },
-      onMouseLeave: () => { onUi.current = false; },
-    },
-  }), []);
+  return useMemo(
+    () => ({
+      pos,
+      inViewport,
+      onUi,
+      viewportProps: {
+        onMouseEnter: () => {
+          inViewport.current = true;
+        },
+        onMouseLeave: () => {
+          inViewport.current = false;
+        },
+      },
+      uiProps: {
+        onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
+        onMouseEnter: () => {
+          onUi.current = true;
+        },
+        onMouseLeave: () => {
+          onUi.current = false;
+        },
+      },
+    }),
+    [],
+  );
 }

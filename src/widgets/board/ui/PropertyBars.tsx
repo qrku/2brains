@@ -1,4 +1,11 @@
-import { DEF_PEN_COLOR, DEF_PEN_WIDTH, type BNode, type NodeShape, type TextAlign, type XY } from '@/entities/board';
+import {
+  DEF_PEN_COLOR,
+  DEF_PEN_WIDTH,
+  type BNode,
+  type NodeShape,
+  type TextAlign,
+  type XY,
+} from '@/entities/board';
 import { Icon } from '@/shared/ui/Icon';
 import { ALIGNS, SHAPES } from './config';
 import { StrokeControls } from './StrokeControls';
@@ -8,10 +15,25 @@ function AlignGlyph({ align }: { align: TextAlign }) {
   // Each row is [x, width]; short rows shift with the alignment, full rows span the box.
   const rows: [number, number][] =
     align === 'center'
-      ? [[1, 12], [3, 8], [1, 12], [3, 8]]
+      ? [
+          [1, 12],
+          [3, 8],
+          [1, 12],
+          [3, 8],
+        ]
       : align === 'right'
-        ? [[2, 12], [6, 8], [2, 12], [6, 8]]
-        : [[2, 12], [2, 8], [2, 12], [2, 8]];
+        ? [
+            [2, 12],
+            [6, 8],
+            [2, 12],
+            [6, 8],
+          ]
+        : [
+            [2, 12],
+            [2, 8],
+            [2, 12],
+            [2, 8],
+          ];
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden>
       {rows.map(([x, w], i) => (
@@ -53,7 +75,16 @@ interface NodeBarProps {
   onDelete: () => void;
 }
 
-export function NodePropertyBar({ at, node, onFontSize, onShape, onAlign, onStrokeColor, onStrokeWidth, onDelete }: NodeBarProps) {
+export function NodePropertyBar({
+  at,
+  node,
+  onFontSize,
+  onShape,
+  onAlign,
+  onStrokeColor,
+  onStrokeWidth,
+  onDelete,
+}: NodeBarProps) {
   return (
     <Bar at={at}>
       {node.kind === 'draw' ? (
@@ -65,9 +96,13 @@ export function NodePropertyBar({ at, node, onFontSize, onShape, onAlign, onStro
         />
       ) : (
         <>
-          <button className="bp-btn" onClick={() => onFontSize(-2)} title="Уменьшить">A−</button>
+          <button className="bp-btn" onClick={() => onFontSize(-2)} title="Уменьшить">
+            A−
+          </button>
           <span className="bp-val">{node.fontSize}px</span>
-          <button className="bp-btn" onClick={() => onFontSize(+2)} title="Увеличить">A+</button>
+          <button className="bp-btn" onClick={() => onFontSize(+2)} title="Увеличить">
+            A+
+          </button>
 
           {node.kind !== 'frame' && (
             <>
@@ -108,7 +143,15 @@ export function NodePropertyBar({ at, node, onFontSize, onShape, onAlign, onStro
   );
 }
 
-export function MultiSelectBar({ at, count, onDelete }: { at: XY; count: number; onDelete: () => void }) {
+export function MultiSelectBar({
+  at,
+  count,
+  onDelete,
+}: {
+  at: XY;
+  count: number;
+  onDelete: () => void;
+}) {
   return (
     <Bar at={at}>
       <span className="bp-val">{count} выбрано</span>

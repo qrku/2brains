@@ -3,8 +3,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useWorkspaceStore } from '@/entities/workspace';
 import {
-  DEFAULT_BOARD_NAME, deleteBoardData, loadBoardList, loadCurrentBoardId, saveBoardList,
-  saveCurrentBoardId, type BoardMeta,
+  DEFAULT_BOARD_NAME,
+  deleteBoardData,
+  loadBoardList,
+  loadCurrentBoardId,
+  saveBoardList,
+  saveCurrentBoardId,
+  type BoardMeta,
 } from '@/entities/board';
 import { uid } from '@/shared/lib/uid';
 
@@ -55,44 +60,60 @@ export function useBoards(): BoardsStore {
   // Writes and id generation stay out of the setState updaters: those run twice under
   // StrictMode, which would mint two ids and persist a list the state never adopted.
 
-  const select = useCallback((id: string) => {
-    if (id === currentId || !boards.some((b) => b.id === id)) return;
-    saveCurrentBoardId(id, wsId);
-    setState((s) => ({ ...s, currentId: id }));
-  }, [boards, currentId, wsId]);
+  const select = useCallback(
+    (id: string) => {
+      if (id === currentId || !boards.some((b) => b.id === id)) return;
+      saveCurrentBoardId(id, wsId);
+      setState((s) => ({ ...s, currentId: id }));
+    },
+    [boards, currentId, wsId],
+  );
 
   const create = useCallback(() => {
-    const board: BoardMeta = { id: uid(), name: nextName(boards), createdAt: new Date().toISOString() };
+    const board: BoardMeta = {
+      id: uid(),
+      name: nextName(boards),
+      createdAt: new Date().toISOString(),
+    };
     const next = [...boards, board];
     saveBoardList(next, wsId);
     saveCurrentBoardId(board.id, wsId);
     setState((s) => ({ ...s, boards: next, currentId: board.id }));
   }, [boards, wsId]);
 
-  const rename = useCallback((id: string, name: string) => {
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    const next = boards.map((b) => (b.id === id ? { ...b, name: trimmed } : b));
-    saveBoardList(next, wsId);
-    setState((s) => ({ ...s, boards: next }));
-  }, [boards, wsId]);
+  const rename = useCallback(
+    (id: string, name: string) => {
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      const next = boards.map((b) => (b.id === id ? { ...b, name: trimmed } : b));
+      saveBoardList(next, wsId);
+      setState((s) => ({ ...s, boards: next }));
+    },
+    [boards, wsId],
+  );
 
-  const remove = useCallback((id: string) => {
-    // A workspace always keeps at least one board — there'd be nothing to draw on otherwise.
-    if (boards.length < 2 || !boards.some((b) => b.id === id)) return;
+  const remove = useCallback(
+    (id: string) => {
+      // A workspace always keeps at least one board — there'd be nothing to draw on otherwise.
+      if (boards.length < 2 || !boards.some((b) => b.id === id)) return;
 
-    const next = boards.filter((b) => b.id !== id);
-    const nextCurrent = currentId === id ? next[0].id : currentId;
-    saveBoardList(next, wsId);
-    if (nextCurrent !== currentId) saveCurrentBoardId(nextCurrent!, wsId);
-    deleteBoardData(wsId, id);
-    setState((s) => ({ ...s, boards: next, currentId: nextCurrent }));
-  }, [boards, currentId, wsId]);
+      const next = boards.filter((b) => b.id !== id);
+      const nextCurrent = currentId === id ? next[0].id : currentId;
+      saveBoardList(next, wsId);
+      if (nextCurrent !== currentId) saveCurrentBoardId(nextCurrent!, wsId);
+      deleteBoardData(wsId, id);
+      setState((s) => ({ ...s, boards: next, currentId: nextCurrent }));
+    },
+    [boards, currentId, wsId],
+  );
 
   return {
     hydrated: state.hydrated,
     boards: state.boards,
     current: boards.find((b) => b.id === currentId) ?? null,
-    select, create, rename, remove,
+    select,
+    create,
+    rename,
+    remove,
   };
 }

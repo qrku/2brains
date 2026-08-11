@@ -12,15 +12,16 @@ interface State {
   hydrated: boolean;
 }
 
-type Action =
-  | { type: 'HYDRATE'; profile: Profile }
-  | { type: 'UPDATE'; profile: Profile };
+type Action = { type: 'HYDRATE'; profile: Profile } | { type: 'UPDATE'; profile: Profile };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case 'HYDRATE': return { profile: action.profile, hydrated: true };
-    case 'UPDATE':  return { ...state, profile: action.profile };
-    default:        return state;
+    case 'HYDRATE':
+      return { profile: action.profile, hydrated: true };
+    case 'UPDATE':
+      return { ...state, profile: action.profile };
+    default:
+      return state;
   }
 }
 
@@ -32,7 +33,10 @@ export function ProfileStoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      dispatch({ type: 'HYDRATE', profile: raw ? { ...DEFAULT_PROFILE, ...JSON.parse(raw) } : DEFAULT_PROFILE });
+      dispatch({
+        type: 'HYDRATE',
+        profile: raw ? { ...DEFAULT_PROFILE, ...JSON.parse(raw) } : DEFAULT_PROFILE,
+      });
     } catch {
       dispatch({ type: 'HYDRATE', profile: DEFAULT_PROFILE });
     }

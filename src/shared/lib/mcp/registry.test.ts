@@ -66,7 +66,13 @@ describe('registry — валидация аргументов по inputSchema'
 
   it('ошибку из run по-прежнему возвращает как результат, а не бросает', async () => {
     const registry = createMcpRegistry();
-    registry.register('demo', [makeTool(jest.fn(() => { throw new Error('boom'); }))]);
+    registry.register('demo', [
+      makeTool(
+        jest.fn(() => {
+          throw new Error('boom');
+        }),
+      ),
+    ]);
 
     const r = await registry.callTool('demo_write', { path: 'a.md', content: 'x' });
     expect(r.isError).toBe(true);

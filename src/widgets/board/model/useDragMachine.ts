@@ -8,7 +8,10 @@ import type { BoardStore } from './useBoardStore';
  * Feeds window-level mouse movement into the reducer for the duration of a drag.
  * Listeners live on `window`, not the viewport, so a drag survives the cursor leaving the board.
  */
-export function useDragMachine({ dispatch, stateRef }: BoardStore, vpRef: RefObject<HTMLDivElement | null>) {
+export function useDragMachine(
+  { dispatch, stateRef }: BoardStore,
+  vpRef: RefObject<HTMLDivElement | null>,
+) {
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
       if (stateRef.current.drag.type === 'none') return;

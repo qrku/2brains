@@ -21,8 +21,8 @@ import { useAgentChat } from './useAgentChat';
 /* ─── Моки окружения хука ──────────────────────────────────────────────────── */
 
 let mockTools: McpTool[] = [];
-const mockCallTool = jest.fn(
-  async (name: string, _args: Record<string, unknown>) => ok(`выполнено: ${name}`),
+const mockCallTool = jest.fn(async (name: string, _args: Record<string, unknown>) =>
+  ok(`выполнено: ${name}`),
 );
 
 jest.mock('next/navigation', () => ({ usePathname: () => '/space' }));
@@ -38,7 +38,11 @@ jest.mock('./registry', () => ({
 jest.mock('@/entities/workspace', () => ({
   DEFAULT_WORKSPACE: { id: 'personal', name: 'Personal' },
   useWorkspaceStore: () => ({
-    state: { hydrated: true, currentId: 'personal', workspaces: [{ id: 'personal', name: 'Personal' }] },
+    state: {
+      hydrated: true,
+      currentId: 'personal',
+      workspaces: [{ id: 'personal', name: 'Personal' }],
+    },
   }),
 }));
 
@@ -106,11 +110,13 @@ beforeEach(() => {
 /* ─── Тесты ────────────────────────────────────────────────────────────────── */
 
 test('текст собирается из дельт, разрезанных по границам чанков', async () => {
-  scriptFetch([[
-    { type: 'text', delta: 'Привет, ' },
-    { type: 'text', delta: 'это длинный ответ модели.' },
-    { type: 'done' },
-  ]]);
+  scriptFetch([
+    [
+      { type: 'text', delta: 'Привет, ' },
+      { type: 'text', delta: 'это длинный ответ модели.' },
+      { type: 'done' },
+    ],
+  ]);
 
   const { result } = renderHook(() => useAgentChat());
   act(() => result.current.send('привет'));
@@ -119,7 +125,9 @@ test('текст собирается из дельт, разрезанных п
 
   const assistant = result.current.views.find((v) => v.role === 'assistant');
   expect(assistant).toBeDefined();
-  expect(assistant!.role === 'assistant' && assistant!.text).toBe('Привет, это длинный ответ модели.');
+  expect(assistant!.role === 'assistant' && assistant!.text).toBe(
+    'Привет, это длинный ответ модели.',
+  );
 });
 
 test('ассистентский месседж с tool_calls ложится в историю ПЕРЕД результатами инструментов', async () => {
@@ -186,7 +194,9 @@ test('отклонённое действие не выполняется, но 
   act(() => result.current.send('удали заметку'));
   await waitFor(() => expect(result.current.status).toBe('waiting-confirm'));
 
-  await act(async () => { result.current.reject(); });
+  await act(async () => {
+    result.current.reject();
+  });
   await waitFor(() => expect(result.current.status).toBe('idle'));
 
   // Вызов без ответа уронил бы следующий запрос, поэтому отказ обязан стать сообщением.
@@ -207,7 +217,9 @@ test('подтверждённое действие выполняется и ц
   act(() => result.current.send('удали заметку'));
   await waitFor(() => expect(result.current.status).toBe('waiting-confirm'));
 
-  await act(async () => { result.current.confirm(); });
+  await act(async () => {
+    result.current.confirm();
+  });
   await waitFor(() => expect(result.current.status).toBe('idle'));
 
   expect(mockCallTool).toHaveBeenCalledWith('space_delete_node', { a: 1 });
@@ -235,11 +247,16 @@ test('битый JSON в аргументах не роняет цикл', async
 test('лимит итераций останавливает зациклившуюся модель', async () => {
   mockTools = [tool('space_list_tree')];
   // Модель бесконечно просит один и тот же инструмент — сценарии не кончаются.
-  const fetchMock = jest.fn(async () => ({
-    ok: true,
-    status: 200,
-    body: sseBody([{ type: 'tool_calls', calls: [call(`c${Math.random()}`, 'space_list_tree')] }]),
-  }) as unknown as Response);
+  const fetchMock = jest.fn(
+    async () =>
+      ({
+        ok: true,
+        status: 200,
+        body: sseBody([
+          { type: 'tool_calls', calls: [call(`c${Math.random()}`, 'space_list_tree')] },
+        ]),
+      }) as unknown as Response,
+  );
   global.fetch = fetchMock as unknown as typeof fetch;
 
   const { result } = renderHook(() => useAgentChat());

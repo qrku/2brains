@@ -11,14 +11,18 @@ import type { BoardStore } from './useBoardStore';
  *
  * Returns whether Space is held — the viewport shows a grab cursor and treats LMB as a pan.
  */
-export function useBoardHotkeys({ dispatch, stateRef }: BoardStore, tracker: PointerTracker): boolean {
+export function useBoardHotkeys(
+  { dispatch, stateRef }: BoardStore,
+  tracker: PointerTracker,
+): boolean {
   const [spacePan, setSpacePan] = useState(false);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       // Never hijack keys meant for a focused field (frame search, settings inputs, node editor).
       const el = e.target as HTMLElement | null;
-      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable))
+        return;
 
       const { editing, tool, drag } = stateRef.current;
 

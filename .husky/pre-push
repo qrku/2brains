@@ -1,0 +1,5 @@
+# Everything below is also enforced in CI — running it here just makes the failure
+# arrive seconds after `git push` instead of minutes later on a red pipeline.
+npm run typecheck
+npm run lint:fsd
+npm test -- --silent --passWithNoTests

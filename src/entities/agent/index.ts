@@ -1,5 +1,9 @@
 export type {
-  AgentChatRequest, AgentStreamEvent, ChatMessage, ToolCall, ToolSpec,
+  AgentChatRequest,
+  AgentStreamEvent,
+  ChatMessage,
+  ToolCall,
+  ToolSpec,
 } from './model/contract';
 export { toToolSpec } from './model/contract';
 

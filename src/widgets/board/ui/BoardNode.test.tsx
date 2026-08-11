@@ -8,16 +8,28 @@ import { BoardNode, type NodeHandlers } from './BoardNode';
 jest.mock('../model/useSlashMenu', () => ({
   useSlashMenu: () => ({
     open: false,
-    x: 0, y: 0, query: '', activeIndex: 0, files: [],
-    insert: jest.fn(), close: jest.fn(),
+    x: 0,
+    y: 0,
+    query: '',
+    activeIndex: 0,
+    files: [],
+    insert: jest.fn(),
+    close: jest.fn(),
     handleKeyDown: () => false,
   }),
 }));
 
 function makeNode(overrides: Partial<BNode> = {}): BNode {
   return {
-    id: 'n1', x: 10, y: 20, w: 100, h: 60,
-    text: '', kind: 'box', fontSize: 13, shape: 'rect',
+    id: 'n1',
+    x: 10,
+    y: 20,
+    w: 100,
+    h: 60,
+    text: '',
+    kind: 'box',
+    fontSize: 13,
+    shape: 'rect',
     ...overrides,
   };
 }
@@ -50,7 +62,10 @@ describe('BoardNode render branches', () => {
   describe('kind === "draw"', () => {
     const drawNode = makeNode({
       kind: 'draw',
-      points: [{ x: 0, y: 0 }, { x: 1, y: 1 }],
+      points: [
+        { x: 0, y: 0 },
+        { x: 1, y: 1 },
+      ],
       color: '#f00',
       strokeW: 3,
     });
@@ -94,8 +109,12 @@ describe('BoardNode render branches', () => {
     it('adds "sel" only when selected', () => {
       const { container } = render(
         <BoardNode
-          node={makeNode()} selected soloSelected={false} editing={false}
-          dropSide={null} handlers={handlers}
+          node={makeNode()}
+          selected
+          soloSelected={false}
+          editing={false}
+          dropSide={null}
+          handlers={handlers}
         />,
       );
       expect(container.firstChild).toHaveClass('sel');
@@ -104,8 +123,12 @@ describe('BoardNode render branches', () => {
     it('adds "drop-target" when a dropSide is set', () => {
       const { container } = render(
         <BoardNode
-          node={makeNode()} selected={false} soloSelected={false} editing={false}
-          dropSide="n" handlers={handlers}
+          node={makeNode()}
+          selected={false}
+          soloSelected={false}
+          editing={false}
+          dropSide="n"
+          handlers={handlers}
         />,
       );
       expect(container.firstChild).toHaveClass('drop-target');

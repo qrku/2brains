@@ -7,7 +7,7 @@ import { isSafeUrl } from '@/shared/lib/safeUrl';
 /* ─── Маппинг enum'ов ───────────────────────────────────────────────────────
  * В схеме — UPPER_SNAKE (конвенция GraphQL), в данных фронта — kebab-case.
  * Держим данные в формате фронта и конвертируем на границе API. */
-const toEnum   = (v: string) => v.toUpperCase().replace(/-/g, '_');
+const toEnum = (v: string) => v.toUpperCase().replace(/-/g, '_');
 const fromEnum = (v: string) => v.toLowerCase().replace(/_/g, '-');
 
 function outProblem(p: DbProblem) {
@@ -50,9 +50,11 @@ function checkWorkspaceId(workspaceId: string): string {
 function inProblem(input: ProblemInput) {
   const title = input.title?.trim() ?? '';
   if (!title) badInput('title must not be empty');
-  if (title.length > MAX_TITLE_CHARS) badInput(`title must be at most ${MAX_TITLE_CHARS} characters`);
+  if (title.length > MAX_TITLE_CHARS)
+    badInput(`title must be at most ${MAX_TITLE_CHARS} characters`);
   if (input.url) {
-    if (input.url.length > MAX_URL_CHARS) badInput(`url must be at most ${MAX_URL_CHARS} characters`);
+    if (input.url.length > MAX_URL_CHARS)
+      badInput(`url must be at most ${MAX_URL_CHARS} characters`);
     // Ссылка потом рендерится как <a href>; схему проверяем на входе, а не только при выводе.
     if (!isSafeUrl(input.url)) badInput('url scheme is not allowed');
   }
@@ -175,8 +177,7 @@ const schema = createSchema({
           pubsub.subscribe(topic(checkWorkspaceId(workspaceId))),
         // pubsub отдаёт только id воркспейса — полезная нагрузка читается здесь,
         // чтобы каждый подписчик получил актуальный список.
-        resolve: (changedIn: string) =>
-          problemsOf(load(), changedIn).map(outProblem),
+        resolve: (changedIn: string) => problemsOf(load(), changedIn).map(outProblem),
       },
     },
   },

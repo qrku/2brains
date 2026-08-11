@@ -6,7 +6,12 @@ const pos = (x: number, y: number): PointerPos => ({ sx: x, sy: y, clientX: x, c
 
 function withNode(): { state: BoardState; id: string } {
   const node = mkNode('n1', 0, 0, 160, 90, 'box');
-  const state: BoardState = { ...initialBoardState, ready: true, nodes: [node], selected: [node.id] };
+  const state: BoardState = {
+    ...initialBoardState,
+    ready: true,
+    nodes: [node],
+    selected: [node.id],
+  };
   return { state, id: node.id };
 }
 

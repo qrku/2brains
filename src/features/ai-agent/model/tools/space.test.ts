@@ -1,5 +1,10 @@
 import { createSpaceTools } from './space';
-import { spaceReadContent, type SpaceAction, type SpaceNode, type SpaceState } from '@/entities/space';
+import {
+  spaceReadContent,
+  type SpaceAction,
+  type SpaceNode,
+  type SpaceState,
+} from '@/entities/space';
 
 const WS = 'test-ws';
 
@@ -13,9 +18,17 @@ function reducer(state: SpaceState, action: SpaceAction): SpaceState {
       return { ...state, nodes: state.nodes.filter((n) => !remove.has(n.id)) };
     }
     case 'RENAME_NODE':
-      return { ...state, nodes: state.nodes.map((n) => (n.id === action.id ? { ...n, name: action.name } : n)) };
+      return {
+        ...state,
+        nodes: state.nodes.map((n) => (n.id === action.id ? { ...n, name: action.name } : n)),
+      };
     case 'MOVE_NODE':
-      return { ...state, nodes: state.nodes.map((n) => (n.id === action.id ? { ...n, parentId: action.parentId } : n)) };
+      return {
+        ...state,
+        nodes: state.nodes.map((n) =>
+          n.id === action.id ? { ...n, parentId: action.parentId } : n,
+        ),
+      };
     default:
       return state;
   }
@@ -67,8 +80,20 @@ describe('space tools', () => {
 
   it('fails with a list of matches when a path segment is ambiguous', async () => {
     const h = makeHarness();
-    const dup1: SpaceNode = { id: 'a', name: 'Заметки', type: 'folder', parentId: null, createdAt: new Date().toISOString() };
-    const dup2: SpaceNode = { id: 'b', name: 'Заметки', type: 'folder', parentId: null, createdAt: new Date().toISOString() };
+    const dup1: SpaceNode = {
+      id: 'a',
+      name: 'Заметки',
+      type: 'folder',
+      parentId: null,
+      createdAt: new Date().toISOString(),
+    };
+    const dup2: SpaceNode = {
+      id: 'b',
+      name: 'Заметки',
+      type: 'folder',
+      parentId: null,
+      createdAt: new Date().toISOString(),
+    };
     h.dispatch({ type: 'ADD_NODE', node: dup1 });
     h.dispatch({ type: 'ADD_NODE', node: dup2 });
 

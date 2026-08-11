@@ -1,19 +1,43 @@
 import type {
-  BEdge, BNode, BoardDoc, BoardSettings, Guide, NodeShape, ResizeEdge, Side, T, TextAlign, XY,
+  BEdge,
+  BNode,
+  BoardDoc,
+  BoardSettings,
+  Guide,
+  NodeShape,
+  ResizeEdge,
+  Side,
+  T,
+  TextAlign,
+  XY,
 } from '@/entities/board';
 
 export type Tool = 'cursor' | 'hand' | 'box' | 'text' | 'frame' | 'pencil';
 
 export type Drag =
   | { type: 'none' }
-  | { type: 'pan';       startX: number; startY: number; ox: number; oy: number }
-  | { type: 'nodes';     ids: string[]; startX: number; startY: number; origins: Record<string, XY> }
-  | { type: 'select';    sx: number; sy: number; ex: number; ey: number }
-  | { type: 'edge';      fromId: string; fromSide: Side; toSX: number; toSY: number }
-  | { type: 'draw';      sx: number; sy: number; ex: number; ey: number }
-  | { type: 'pencil';    points: XY[] }
-  | { type: 'resize';    id: string; edge: ResizeEdge; startX: number; startY: number; origin: { x: number; y: number; w: number; h: number } }
-  | { type: 'edgePoint'; edgeId: string; index: number; startX: number; startY: number; origin: XY };
+  | { type: 'pan'; startX: number; startY: number; ox: number; oy: number }
+  | { type: 'nodes'; ids: string[]; startX: number; startY: number; origins: Record<string, XY> }
+  | { type: 'select'; sx: number; sy: number; ex: number; ey: number }
+  | { type: 'edge'; fromId: string; fromSide: Side; toSX: number; toSY: number }
+  | { type: 'draw'; sx: number; sy: number; ex: number; ey: number }
+  | { type: 'pencil'; points: XY[] }
+  | {
+      type: 'resize';
+      id: string;
+      edge: ResizeEdge;
+      startX: number;
+      startY: number;
+      origin: { x: number; y: number; w: number; h: number };
+    }
+  | {
+      type: 'edgePoint';
+      edgeId: string;
+      index: number;
+      startX: number;
+      startY: number;
+      origin: XY;
+    };
 
 export interface BoardState {
   ready: boolean;
@@ -38,8 +62,10 @@ export interface BoardState {
  * (what canvas maths wants), `client` is page-absolute (what drag deltas are anchored to).
  */
 export interface PointerPos {
-  sx: number; sy: number;
-  clientX: number; clientY: number;
+  sx: number;
+  sy: number;
+  clientX: number;
+  clientY: number;
 }
 
 export type BoardAction =

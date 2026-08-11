@@ -82,7 +82,10 @@ export function BoardSwitcher({ boards, uiProps }: Props) {
                 <>
                   <button
                     className="board-switch-pick"
-                    onClick={() => { boards.select(b.id); setOpen(false); }}
+                    onClick={() => {
+                      boards.select(b.id);
+                      setOpen(false);
+                    }}
                     onDoubleClick={() => startRename(b.id, b.name)}
                   >
                     {b.name}
@@ -112,7 +115,10 @@ export function BoardSwitcher({ boards, uiProps }: Props) {
 
           <button
             className="board-switch-add"
-            onClick={() => { boards.create(); setOpen(false); }}
+            onClick={() => {
+              boards.create();
+              setOpen(false);
+            }}
           >
             <Icon name="add" size={11} />
             Новая доска

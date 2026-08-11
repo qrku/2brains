@@ -18,7 +18,8 @@ import type { ChatMessage, ToolCall } from '@/entities/agent';
 
 export type AgentStatus = 'idle' | 'streaming' | 'waiting-confirm' | 'error';
 
-export type ToolCallStatus = 'queued' | 'running' | 'pending-confirm' | 'done' | 'error' | 'rejected';
+export type ToolCallStatus =
+  'queued' | 'running' | 'pending-confirm' | 'done' | 'error' | 'rejected';
 
 export interface ToolCallView {
   id: string;
@@ -217,7 +218,11 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
 
     case 'tool_result': {
       const callId = action.message.tool_call_id ?? '';
-      const status: ToolCallStatus = action.rejected ? 'rejected' : action.isError ? 'error' : 'done';
+      const status: ToolCallStatus = action.rejected
+        ? 'rejected'
+        : action.isError
+          ? 'error'
+          : 'done';
       return {
         ...state,
         history: [...state.history, action.message],

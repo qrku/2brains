@@ -19,7 +19,8 @@ describe('htmlToMarkdown — code blocks', () => {
   });
 
   it('rebuilds line breaks that contentEditable turned into per-line <div>s', () => {
-    const html = '<pre class="md-pre"><code><div>line 1</div><div>  line 2</div><div>line 3</div></code></pre>';
+    const html =
+      '<pre class="md-pre"><code><div>line 1</div><div>  line 2</div><div>line 3</div></code></pre>';
     expect(htmlToMarkdown(html)).toBe('```\nline 1\n  line 2\nline 3\n```');
   });
 

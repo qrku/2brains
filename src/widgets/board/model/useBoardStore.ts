@@ -3,12 +3,17 @@
 import { useCallback, useEffect, useReducer, useRef, type Dispatch, type RefObject } from 'react';
 import { useWorkspaceStore } from '@/entities/workspace';
 import {
-  loadBoard, loadBoardSettings, loadBoardView, saveBoard, saveBoardSettings, saveBoardView,
+  loadBoard,
+  loadBoardSettings,
+  loadBoardView,
+  saveBoard,
+  saveBoardSettings,
+  saveBoardView,
 } from '@/entities/board';
 import { boardReducer, initialBoardState } from './boardReducer';
 import type { BoardAction, BoardState } from './types';
 
-const DOC_SAVE_MS  = 500;
+const DOC_SAVE_MS = 500;
 const VIEW_SAVE_MS = 300;
 
 export interface BoardStore {
@@ -29,19 +34,30 @@ export function useBoardStore(boardId: string | null): BoardStore {
   const [state, dispatch] = useReducer(boardReducer, initialBoardState);
 
   const stateRef = useRef(state);
-  useEffect(() => { stateRef.current = state; });
+  useEffect(() => {
+    stateRef.current = state;
+  });
 
   // Which workspace and board the state in hand belongs to. Debounced saves always flush to this,
   // not to the current selection, so switching mid-debounce can't leak one board's edits into
   // another's storage key.
-  const target  = useRef<{ wsId: string; boardId: string | null }>({ wsId: wsState.currentId, boardId });
-  const docTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const target = useRef<{ wsId: string; boardId: string | null }>({
+    wsId: wsState.currentId,
+    boardId,
+  });
+  const docTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const viewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /** Writes the committed doc out now and cancels the pending debounce. */
   const flush = useCallback(() => {
-    if (docTimer.current)  { clearTimeout(docTimer.current);  docTimer.current = null; }
-    if (viewTimer.current) { clearTimeout(viewTimer.current); viewTimer.current = null; }
+    if (docTimer.current) {
+      clearTimeout(docTimer.current);
+      docTimer.current = null;
+    }
+    if (viewTimer.current) {
+      clearTimeout(viewTimer.current);
+      viewTimer.current = null;
+    }
 
     const s = stateRef.current;
     const { wsId, boardId: id } = target.current;

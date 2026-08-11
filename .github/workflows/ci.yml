@@ -1,0 +1,219 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# A new push to a PR makes the in-flight run obsolete — cancel it. Runs on main are
+# never cancelled: each commit there needs its own verdict.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+env:
+  NEXT_TELEMETRY_DISABLED: '1'
+  # Trims npm's progress rendering and funding/audit chatter from the logs.
+  NPM_CONFIG_FUND: 'false'
+  NPM_CONFIG_AUDIT: 'false'
+
+jobs:
+  lint:
+    name: Lint & format
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - name: ESLint
+        run: npm run lint
+      - name: Prettier
+        run: npm run format:check
+      - name: FSD layer boundaries
+        run: npm run lint:fsd
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - run: npm run typecheck
+
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - name: Jest
+        run: npm run test:ci
+      - name: Coverage summary
+        if: always()
+        run: node scripts/coverage-summary.mjs >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+
+      # Next's compiler cache cuts rebuild time substantially. Keyed on the lockfile plus
+      # the sources, with a lockfile-only prefix so an unrelated source change still
+      # restores a warm cache instead of starting cold.
+      - name: Restore Next.js build cache
+        uses: actions/cache@v6
+        with:
+          path: .next/cache
+          key: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*.{ts,tsx,css}') }}
+          restore-keys: |
+            next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+
+      - run: npm run build
+
+      # Handed to the e2e job so the app is built once, not twice. `.next/cache` is the
+      # compiler cache — it is large and useless to `next start`.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: next-build
+          path: |
+            .next
+            !.next/cache
+          retention-days: 1
+          include-hidden-files: true
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: build
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: next-build
+          path: .next
+
+      # Browsers are pinned to the Playwright version, so that is the whole cache key.
+      - name: Resolve Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: pw-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+      - name: Install system deps for cached Chromium
+        run: npx playwright install-deps chromium
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+
+      # CI=true makes playwright.config serve the production build instead of `next dev`.
+      - run: npm run test:e2e
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  docker:
+    name: Docker image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Build image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: prep-tracker:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # A image that builds but does not boot is a broken image. Start it and wait for
+      # the app to actually answer on the port it claims to expose.
+      - name: Smoke-test the container
+        run: |
+          docker run -d --name app -p 3000:3000 prep-tracker:ci
+          for _ in $(seq 1 30); do
+            if [ "$(curl -fsS -o /dev/null -w '%{http_code}' http://localhost:3000/ || true)" = "200" ]; then
+              echo "container answered with 200"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::container did not serve HTTP 200 within 60s"
+          docker logs app
+          exit 1
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+
+      # Blocking gate. Critical advisories in runtime dependencies stop the pipeline;
+      # high-and-below are reported below without failing, because some of them sit in
+      # transitive deps with no published fix and a red CI nobody can act on is noise.
+      - name: Fail on critical advisories (runtime deps)
+        run: npm audit --audit-level=critical --omit=dev
+
+      - name: Report remaining advisories
+        if: always()
+        run: |
+          {
+            echo '### npm audit'
+            echo
+            echo '```'
+            npm audit || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Single required status check for branch protection: it turns red if any job above
+  # failed or was skipped, so new jobs are covered without touching repo settings.
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, test, build, e2e, docker, audit]
+    if: always()
+    steps:
+      - name: Verify every job succeeded
+        # Passed through the environment rather than interpolated into the script, so the
+        # expression can never be parsed as shell.
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS"
+          if echo "$NEEDS" | grep -q '"result": *"\(failure\|cancelled\|skipped\)"'; then
+            echo "::error::at least one CI job did not succeed"
+            exit 1
+          fi

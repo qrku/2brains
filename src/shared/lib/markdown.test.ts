@@ -2,7 +2,9 @@ import { parseInline, parseMarkdown } from './markdown';
 
 describe('parseInline — схемы ссылок', () => {
   it('оставляет http/https/mailto как есть', () => {
-    expect(parseInline('[x](https://example.com/a?b=1)')).toContain('href="https://example.com/a?b=1"');
+    expect(parseInline('[x](https://example.com/a?b=1)')).toContain(
+      'href="https://example.com/a?b=1"',
+    );
     expect(parseInline('[x](mailto:a@b.co)')).toContain('href="mailto:a@b.co"');
   });
 

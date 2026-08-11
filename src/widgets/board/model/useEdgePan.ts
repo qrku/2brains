@@ -35,10 +35,11 @@ export function useEdgePan(
       const { width, height } = vp.getBoundingClientRect();
       const { x, y } = tracker.pos.current;
 
-      let dx = 0, dy = 0;
-      if (x >= 0 && x < thr)               dx =  speed * (1 - x / thr);
-      if (x <= width && x > width - thr)   dx = -speed * (1 - (width - x) / thr);
-      if (y >= 0 && y < thr)               dy =  speed * (1 - y / thr);
+      let dx = 0,
+        dy = 0;
+      if (x >= 0 && x < thr) dx = speed * (1 - x / thr);
+      if (x <= width && x > width - thr) dx = -speed * (1 - (width - x) / thr);
+      if (y >= 0 && y < thr) dy = speed * (1 - y / thr);
       if (y <= height && y > height - thr) dy = -speed * (1 - (height - y) / thr);
 
       if (dx || dy) dispatch({ type: 'PAN_BY', dx, dy });

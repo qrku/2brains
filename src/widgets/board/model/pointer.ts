@@ -7,7 +7,10 @@ export function viewportPoint(e: { clientX: number; clientY: number }, vp: HTMLE
   return { x: e.clientX - (r?.left ?? 0), y: e.clientY - (r?.top ?? 0) };
 }
 
-export function pointerPos(e: { clientX: number; clientY: number }, vp: HTMLElement | null): PointerPos {
+export function pointerPos(
+  e: { clientX: number; clientY: number },
+  vp: HTMLElement | null,
+): PointerPos {
   const { x, y } = viewportPoint(e, vp);
   return { sx: x, sy: y, clientX: e.clientX, clientY: e.clientY };
 }

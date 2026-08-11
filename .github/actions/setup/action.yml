@@ -1,0 +1,16 @@
+name: Setup
+description: Checks out nothing — sets up Node from .nvmrc and installs dependencies from the lockfile.
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v7
+      with:
+        # Single source of truth for the Node version, shared with the Dockerfile and local nvm.
+        node-version-file: .nvmrc
+        cache: npm
+
+    # `npm ci` over `npm install`: it fails loudly when package.json and the lockfile
+    # disagree, instead of silently resolving new versions on CI.
+    - run: npm ci
+      shell: bash

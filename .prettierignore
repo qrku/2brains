@@ -1,0 +1,19 @@
+node_modules
+.next
+out
+build
+coverage
+test-results
+playwright-report
+blob-report
+.swc
+*.tsbuildinfo
+package-lock.json
+next-env.d.ts
+
+# Untracked local notes — not part of the codebase.
+docs
+.claude
+
+# Generated from the icon set by scratchpad/gen-icons.mjs.
+src/shared/ui/Icon.tsx

@@ -9,9 +9,9 @@ import { Icon } from '@/shared/ui/Icon';
 /* ─── Types ─────────────────────────────────────────────────────────────── */
 interface CalEvent {
   id: string;
-  date: string;   // 'YYYY-MM-DD'
+  date: string; // 'YYYY-MM-DD'
   title: string;
-  time?: string;  // 'HH:MM'
+  time?: string; // 'HH:MM'
   color: string;
   note?: string;
 }
@@ -20,7 +20,20 @@ interface CalEvent {
 const STORAGE_KEY = 'calendar_events_v1';
 const EVENT_COLORS = ['#2f6fed', '#e0433d', '#1f9e5c', '#f0a020', '#8b5cf6', '#6b7280'];
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-const MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+const MONTHS = [
+  'Январь',
+  'Февраль',
+  'Март',
+  'Апрель',
+  'Май',
+  'Июнь',
+  'Июль',
+  'Август',
+  'Сентябрь',
+  'Октябрь',
+  'Ноябрь',
+  'Декабрь',
+];
 const MAX_VISIBLE_EVENTS = 3;
 
 /* ─── Date helpers ──────────────────────────────────────────────────────── */
@@ -30,11 +43,23 @@ function dateKey(d: Date): string {
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
-function isSameDay(a: Date, b: Date): boolean { return dateKey(a) === dateKey(b); }
-function startOfMonth(d: Date): Date { return new Date(d.getFullYear(), d.getMonth(), 1); }
-function addMonths(d: Date, delta: number): Date { return new Date(d.getFullYear(), d.getMonth() + delta, 1); }
-function addDays(d: Date, delta: number): Date { const nd = new Date(d); nd.setDate(nd.getDate() + delta); return nd; }
-function mondayIndex(d: Date): number { return (d.getDay() + 6) % 7; } // 0 = Monday
+function isSameDay(a: Date, b: Date): boolean {
+  return dateKey(a) === dateKey(b);
+}
+function startOfMonth(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+function addMonths(d: Date, delta: number): Date {
+  return new Date(d.getFullYear(), d.getMonth() + delta, 1);
+}
+function addDays(d: Date, delta: number): Date {
+  const nd = new Date(d);
+  nd.setDate(nd.getDate() + delta);
+  return nd;
+}
+function mondayIndex(d: Date): number {
+  return (d.getDay() + 6) % 7;
+} // 0 = Monday
 
 /** Fixed 6-week (42-cell) grid so the layout height stays stable across months. */
 function buildMonthGrid(monthStart: Date): Date[] {
@@ -47,19 +72,23 @@ function loadEvents(workspaceId: string): CalEvent[] {
   try {
     const raw = JSON.parse(localStorage.getItem(wsKey(STORAGE_KEY, workspaceId)) ?? 'null');
     return Array.isArray(raw) ? raw : [];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 function saveEvents(events: CalEvent[], workspaceId: string) {
-  try { localStorage.setItem(wsKey(STORAGE_KEY, workspaceId), JSON.stringify(events)); } catch {}
+  try {
+    localStorage.setItem(wsKey(STORAGE_KEY, workspaceId), JSON.stringify(events));
+  } catch {}
 }
 
 /* ─── CalendarView ──────────────────────────────────────────────────────── */
 export function CalendarView() {
   const { state: wsState } = useWorkspaceStore();
   const [events, setEvents] = useState<CalEvent[]>([]);
-  const [ready,  setReady]  = useState(false);
+  const [ready, setReady] = useState(false);
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
-  const [modal,  setModal]  = useState<{ date: Date; event: CalEvent | null } | null>(null);
+  const [modal, setModal] = useState<{ date: Date; event: CalEvent | null } | null>(null);
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // The workspace whose data is currently loaded into `events` — debounced saves
@@ -80,13 +109,14 @@ export function CalendarView() {
   }, [events, ready]);
 
   const today = useMemo(() => new Date(), []);
-  const grid  = useMemo(() => buildMonthGrid(cursor), [cursor]);
+  const grid = useMemo(() => buildMonthGrid(cursor), [cursor]);
 
   const eventsByDay = useMemo(() => {
     const map = new Map<string, CalEvent[]>();
     for (const ev of events) {
       const list = map.get(ev.date);
-      if (list) list.push(ev); else map.set(ev.date, [ev]);
+      if (list) list.push(ev);
+      else map.set(ev.date, [ev]);
     }
     for (const list of map.values()) {
       list.sort((a, b) => {
@@ -100,13 +130,22 @@ export function CalendarView() {
   }, [events]);
 
   const openCreate = (date: Date) => setModal({ date, event: null });
-  const openEdit   = (date: Date, ev: CalEvent) => setModal({ date, event: ev });
+  const openEdit = (date: Date, ev: CalEvent) => setModal({ date, event: ev });
   const closeModal = () => setModal(null);
 
-  const saveEvent = (data: { id?: string; date: string; title: string; time?: string; color: string; note?: string }) => {
-    setEvents((es) => data.id
-      ? es.map((e) => e.id === data.id ? { ...e, ...data, id: data.id! } : e)
-      : [...es, { ...data, id: uid() }]);
+  const saveEvent = (data: {
+    id?: string;
+    date: string;
+    title: string;
+    time?: string;
+    color: string;
+    note?: string;
+  }) => {
+    setEvents((es) =>
+      data.id
+        ? es.map((e) => (e.id === data.id ? { ...e, ...data, id: data.id! } : e))
+        : [...es, { ...data, id: uid() }],
+    );
     closeModal();
   };
   const deleteEvent = (id: string) => {
@@ -117,16 +156,36 @@ export function CalendarView() {
   return (
     <div className="cal-wrap">
       <div className="cal-header">
-        <div className="cal-title">{MONTHS[cursor.getMonth()]} {cursor.getFullYear()}</div>
+        <div className="cal-title">
+          {MONTHS[cursor.getMonth()]} {cursor.getFullYear()}
+        </div>
         <div className="cal-nav">
-          <button className="cal-nav-btn" onClick={() => setCursor((c) => addMonths(c, -1))} title="Предыдущий месяц"><Icon name="arrow-back-simple" size={13} /></button>
-          <button className="cal-today-btn" onClick={() => setCursor(startOfMonth(new Date()))}>Сегодня</button>
-          <button className="cal-nav-btn" onClick={() => setCursor((c) => addMonths(c, 1))} title="Следующий месяц"><Icon name="arrow-forward-simple" size={13} /></button>
+          <button
+            className="cal-nav-btn"
+            onClick={() => setCursor((c) => addMonths(c, -1))}
+            title="Предыдущий месяц"
+          >
+            <Icon name="arrow-back-simple" size={13} />
+          </button>
+          <button className="cal-today-btn" onClick={() => setCursor(startOfMonth(new Date()))}>
+            Сегодня
+          </button>
+          <button
+            className="cal-nav-btn"
+            onClick={() => setCursor((c) => addMonths(c, 1))}
+            title="Следующий месяц"
+          >
+            <Icon name="arrow-forward-simple" size={13} />
+          </button>
         </div>
       </div>
 
       <div className="cal-weekdays">
-        {WEEKDAYS.map((w) => <div key={w} className="cal-weekday">{w}</div>)}
+        {WEEKDAYS.map((w) => (
+          <div key={w} className="cal-weekday">
+            {w}
+          </div>
+        ))}
       </div>
 
       <div className="cal-grid">
@@ -143,7 +202,16 @@ export function CalendarView() {
             >
               <div className="cal-cell-head">
                 <span className="cal-cell-num">{day.getDate()}</span>
-                <button className="cal-cell-add" onClick={(e) => { e.stopPropagation(); openCreate(day); }} title="Добавить событие"><Icon name="add" size={11} /></button>
+                <button
+                  className="cal-cell-add"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openCreate(day);
+                  }}
+                  title="Добавить событие"
+                >
+                  <Icon name="add" size={11} />
+                </button>
               </div>
               <div className="cal-cell-events">
                 {dayEvents.slice(0, MAX_VISIBLE_EVENTS).map((ev) => (
@@ -151,7 +219,10 @@ export function CalendarView() {
                     key={ev.id}
                     className="cal-event"
                     style={{ background: `${ev.color}1f`, borderLeftColor: ev.color }}
-                    onClick={(e) => { e.stopPropagation(); openEdit(day, ev); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEdit(day, ev);
+                    }}
                   >
                     {ev.time && <span className="cal-event-time">{ev.time}</span>}
                     <span className="cal-event-title">{ev.title}</span>
@@ -183,19 +254,28 @@ export function CalendarView() {
 interface EventModalProps {
   date: Date;
   event: CalEvent | null;
-  onSave: (data: { id?: string; date: string; title: string; time?: string; color: string; note?: string }) => void;
+  onSave: (data: {
+    id?: string;
+    date: string;
+    title: string;
+    time?: string;
+    color: string;
+    note?: string;
+  }) => void;
   onDelete?: () => void;
   onClose: () => void;
 }
 
 function EventModal({ date, event, onSave, onDelete, onClose }: EventModalProps) {
   const [title, setTitle] = useState(event?.title ?? '');
-  const [time,  setTime]  = useState(event?.time ?? '');
+  const [time, setTime] = useState(event?.time ?? '');
   const [color, setColor] = useState(event?.color ?? EVENT_COLORS[0]);
-  const [note,  setNote]  = useState(event?.note ?? '');
+  const [note, setNote] = useState(event?.note ?? '');
   const titleRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { titleRef.current?.focus(); }, []);
+  useEffect(() => {
+    titleRef.current?.focus();
+  }, []);
 
   const handleSave = () => {
     if (!title.trim()) return;
@@ -216,11 +296,20 @@ function EventModal({ date, event, onSave, onDelete, onClose }: EventModalProps)
   };
 
   return (
-    <div className="cal-modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div
+      className="cal-modal-overlay"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className="cal-modal" onKeyDown={onKeyDown}>
         <div className="cal-modal-header">
-          <span className="cal-modal-date">{date.getDate()} {MONTHS[date.getMonth()]} {date.getFullYear()}</span>
-          <button className="cal-modal-close" onClick={onClose}><Icon name="close" size={13} /></button>
+          <span className="cal-modal-date">
+            {date.getDate()} {MONTHS[date.getMonth()]} {date.getFullYear()}
+          </span>
+          <button className="cal-modal-close" onClick={onClose}>
+            <Icon name="close" size={13} />
+          </button>
         </div>
 
         <input
@@ -232,7 +321,12 @@ function EventModal({ date, event, onSave, onDelete, onClose }: EventModalProps)
         />
 
         <div className="cal-modal-row">
-          <input type="time" className="cal-input" value={time} onChange={(e) => setTime(e.target.value)} />
+          <input
+            type="time"
+            className="cal-input"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+          />
           <div className="cal-colors">
             {EVENT_COLORS.map((c) => (
               <button
@@ -255,10 +349,18 @@ function EventModal({ date, event, onSave, onDelete, onClose }: EventModalProps)
         />
 
         <div className="cal-modal-actions">
-          {onDelete && <button className="cal-btn cal-btn-del" onClick={onDelete}>Удалить</button>}
+          {onDelete && (
+            <button className="cal-btn cal-btn-del" onClick={onDelete}>
+              Удалить
+            </button>
+          )}
           <div style={{ flex: 1 }} />
-          <button className="cal-btn" onClick={onClose}>Отмена</button>
-          <button className="cal-btn cal-btn-primary" onClick={handleSave} disabled={!title.trim()}>Сохранить</button>
+          <button className="cal-btn" onClick={onClose}>
+            Отмена
+          </button>
+          <button className="cal-btn cal-btn-primary" onClick={handleSave} disabled={!title.trim()}>
+            Сохранить
+          </button>
         </div>
       </div>
     </div>

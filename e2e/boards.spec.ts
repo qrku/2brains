@@ -12,6 +12,9 @@ async function addNode(page: Page, x: number, y: number) {
   await expect(page.locator('.board-node')).toHaveCount(before + 1);
   // Blur the block that opens in edit mode, then let the debounced save land.
   await page.keyboard.press('Escape');
+  // The 600 ms autosave debounce writes to localStorage and paints nothing, so there is no
+  // locator to await — a fixed wait past the debounce is the only signal available here.
+  // eslint-disable-next-line playwright/no-wait-for-timeout
   await page.waitForTimeout(700);
 }
 
@@ -50,7 +53,9 @@ test.describe('boards', () => {
     await expect(page.locator('.board-node')).toHaveCount(1);
 
     // Each board owns its own document key.
-    const keys = await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith('board_data_v1')));
+    const keys = await page.evaluate(() =>
+      Object.keys(localStorage).filter((k) => k.startsWith('board_data_v1')),
+    );
     expect(keys).toHaveLength(2);
   });
 

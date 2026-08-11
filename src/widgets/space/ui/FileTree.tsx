@@ -7,9 +7,17 @@ import { useWorkspaceStore } from '@/entities/workspace';
 import { uid } from '@/shared/lib/uid';
 import { Icon } from '@/shared/ui/Icon';
 
-interface FlatItem { node: SpaceNode; depth: number }
+interface FlatItem {
+  node: SpaceNode;
+  depth: number;
+}
 
-function buildFlat(nodes: SpaceNode[], parentId: string | null, depth: number, expanded: string[]): FlatItem[] {
+function buildFlat(
+  nodes: SpaceNode[],
+  parentId: string | null,
+  depth: number,
+  expanded: string[],
+): FlatItem[] {
   const children = nodes
     .filter((n) => n.parentId === parentId)
     .sort((a, b) => {
@@ -42,16 +50,16 @@ const EXPAND_HOLD_MS = 650;
 export function FileTree() {
   const { state, dispatch } = useSpaceStore();
   const { state: wsState } = useWorkspaceStore();
-  const [hoverId, setHoverId]     = useState<string | null>(null);
-  const [creating, setCreating]   = useState<CreateTarget | null>(null);
-  const [newName, setNewName]     = useState('');
-  const [renaming, setRenaming]   = useState<{ id: string; name: string } | null>(null);
+  const [hoverId, setHoverId] = useState<string | null>(null);
+  const [creating, setCreating] = useState<CreateTarget | null>(null);
+  const [newName, setNewName] = useState('');
+  const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
 
   // Drag-and-drop: `dragId` is the node being dragged, `dropId` the highlighted target
   // (a folder id, ROOT_DROP for the root, or null for none).
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropId, setDropId] = useState<string | null>(null);
-  const forbidden   = useRef<Set<string>>(new Set());              // dragged node + its subtree — illegal targets
+  const forbidden = useRef<Set<string>>(new Set()); // dragged node + its subtree — illegal targets
   const expandTimer = useRef<{ id: string; t: ReturnType<typeof setTimeout> } | null>(null);
 
   const flat = buildFlat(state.nodes, null, 0, state.expanded);
@@ -73,17 +81,26 @@ export function FileTree() {
   };
 
   const cancelExpand = () => {
-    if (expandTimer.current) { clearTimeout(expandTimer.current.t); expandTimer.current = null; }
+    if (expandTimer.current) {
+      clearTimeout(expandTimer.current.t);
+      expandTimer.current = null;
+    }
   };
 
   /** Spring a collapsed folder open after the cursor rests on it, so nested drops are reachable. */
   const scheduleExpand = (target: string | null) => {
-    if (target === null || state.expanded.includes(target)) { cancelExpand(); return; }
+    if (target === null || state.expanded.includes(target)) {
+      cancelExpand();
+      return;
+    }
     if (expandTimer.current?.id === target) return;
     cancelExpand();
     expandTimer.current = {
       id: target,
-      t: setTimeout(() => { dispatch({ type: 'TOGGLE_FOLDER', id: target }); expandTimer.current = null; }, EXPAND_HOLD_MS),
+      t: setTimeout(() => {
+        dispatch({ type: 'TOGGLE_FOLDER', id: target });
+        expandTimer.current = null;
+      }, EXPAND_HOLD_MS),
     };
   };
 
@@ -109,7 +126,12 @@ export function FileTree() {
   const onTreeDragOver = (e: React.DragEvent) => {
     if (!dragId) return;
     const target = targetFromEvent(e);
-    if (target === undefined) { e.dataTransfer.dropEffect = 'none'; setDropId(null); cancelExpand(); return; }
+    if (target === undefined) {
+      e.dataTransfer.dropEffect = 'none';
+      setDropId(null);
+      cancelExpand();
+      return;
+    }
     e.preventDefault(); // required to allow the drop
     e.dataTransfer.dropEffect = 'move';
     setDropId(target ?? ROOT_DROP);
@@ -118,18 +140,25 @@ export function FileTree() {
 
   const onTreeDragLeave = (e: React.DragEvent) => {
     // Only when the cursor actually leaves the tree, not when crossing between child rows.
-    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) { setDropId(null); cancelExpand(); }
+    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+      setDropId(null);
+      cancelExpand();
+    }
   };
 
   const onTreeDrop = (e: React.DragEvent) => {
-    if (!dragId) { endDrag(); return; }
+    if (!dragId) {
+      endDrag();
+      return;
+    }
     const target = targetFromEvent(e);
     if (target !== undefined) {
       e.preventDefault();
       const dragged = state.nodes.find((n) => n.id === dragId);
       if (dragged && dragged.parentId !== target) {
         dispatch({ type: 'MOVE_NODE', id: dragId, parentId: target });
-        if (target && !state.expanded.includes(target)) dispatch({ type: 'TOGGLE_FOLDER', id: target });
+        if (target && !state.expanded.includes(target))
+          dispatch({ type: 'TOGGLE_FOLDER', id: target });
       }
     }
     endDrag();
@@ -152,7 +181,8 @@ export function FileTree() {
     };
     dispatch({ type: 'ADD_NODE', node });
     if (node.type === 'file') dispatch({ type: 'OPEN_FILE', id: node.id });
-    if (node.type === 'folder' && node.parentId) dispatch({ type: 'TOGGLE_FOLDER', id: node.parentId });
+    if (node.type === 'folder' && node.parentId)
+      dispatch({ type: 'TOGGLE_FOLDER', id: node.parentId });
     setCreating(null);
   };
 
@@ -168,7 +198,9 @@ export function FileTree() {
     });
     dispatch({ type: 'DELETE_NODE', id: node.id, descendants });
     if (state.openFileId === node.id || descendants.includes(state.openFileId ?? '')) {
-      const remaining = state.nodes.find((n) => n.type === 'file' && n.id !== node.id && !descendants.includes(n.id));
+      const remaining = state.nodes.find(
+        (n) => n.type === 'file' && n.id !== node.id && !descendants.includes(n.id),
+      );
       if (remaining) dispatch({ type: 'OPEN_FILE', id: remaining.id });
     }
     toast.success(`Удалено`);
@@ -188,8 +220,20 @@ export function FileTree() {
       <div className="tree-header">
         <span className="tree-header-title">Пространство</span>
         <div className="tree-header-actions">
-          <button className="tree-act-btn" title="Новый файл" onClick={() => openCreate(null, 'file')}>+f</button>
-          <button className="tree-act-btn" title="Новая папка" onClick={() => openCreate(null, 'folder')}>+d</button>
+          <button
+            className="tree-act-btn"
+            title="Новый файл"
+            onClick={() => openCreate(null, 'file')}
+          >
+            +f
+          </button>
+          <button
+            className="tree-act-btn"
+            title="Новая папка"
+            onClick={() => openCreate(null, 'folder')}
+          >
+            +d
+          </button>
         </div>
       </div>
 
@@ -201,15 +245,13 @@ export function FileTree() {
         onDrop={onTreeDrop}
         onDragEnd={endDrag}
       >
-        {flat.length === 0 && (
-          <div className="tree-empty">Нажми +f чтобы создать файл</div>
-        )}
+        {flat.length === 0 && <div className="tree-empty">Нажми +f чтобы создать файл</div>}
 
         {flat.map(({ node, depth }) => {
-          const isOpen   = state.openFileId === node.id;
+          const isOpen = state.openFileId === node.id;
           const isExpand = state.expanded.includes(node.id);
-          const hover    = hoverId === node.id;
-          const isDrop   = node.type === 'folder' && dropId === node.id;
+          const hover = hoverId === node.id;
+          const isDrop = node.type === 'folder' && dropId === node.id;
           const isDragged = dragId === node.id;
 
           return (
@@ -228,19 +270,45 @@ export function FileTree() {
               onMouseLeave={() => setHoverId(null)}
             >
               <span className="tree-icon">
-                {node.type === 'folder'
-                  ? <Icon name="chevron-down" size={9} style={isExpand ? undefined : { transform: 'rotate(-90deg)' }} />
-                  : <Icon name="file" size={9} />}
+                {node.type === 'folder' ? (
+                  <Icon
+                    name="chevron-down"
+                    size={9}
+                    style={isExpand ? undefined : { transform: 'rotate(-90deg)' }}
+                  />
+                ) : (
+                  <Icon name="file" size={9} />
+                )}
               </span>
-              <span className="tree-name" title={node.name}>{node.name}</span>
+              <span className="tree-name" title={node.name}>
+                {node.name}
+              </span>
 
               {hover && (
                 <div className="tree-row-actions" onClick={(e) => e.stopPropagation()}>
                   {node.type === 'folder' && (
-                    <button className="tree-mini-btn" title="Файл внутри" onClick={() => openCreate(node.id, 'file')}><Icon name="add" size={10} /></button>
+                    <button
+                      className="tree-mini-btn"
+                      title="Файл внутри"
+                      onClick={() => openCreate(node.id, 'file')}
+                    >
+                      <Icon name="add" size={10} />
+                    </button>
                   )}
-                  <button className="tree-mini-btn" title="Переименовать" onClick={() => setRenaming({ id: node.id, name: node.name })}><Icon name="edit-01" size={10} /></button>
-                  <button className="tree-mini-btn danger" title="Удалить" onClick={() => handleDelete(node)}><Icon name="close" size={10} /></button>
+                  <button
+                    className="tree-mini-btn"
+                    title="Переименовать"
+                    onClick={() => setRenaming({ id: node.id, name: node.name })}
+                  >
+                    <Icon name="edit-01" size={10} />
+                  </button>
+                  <button
+                    className="tree-mini-btn danger"
+                    title="Удалить"
+                    onClick={() => handleDelete(node)}
+                  >
+                    <Icon name="close" size={10} />
+                  </button>
                 </div>
               )}
             </div>
@@ -264,18 +332,17 @@ export function FileTree() {
           autoFocus
         />
         <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', marginTop: 14 }}>
-          <button className="btn-link ghost" onClick={() => setCreating(null)}>Отмена</button>
-          <button className="btn-link" onClick={confirmCreate}>Создать</button>
+          <button className="btn-link ghost" onClick={() => setCreating(null)}>
+            Отмена
+          </button>
+          <button className="btn-link" onClick={confirmCreate}>
+            Создать
+          </button>
         </div>
       </Modal>
 
       {/* Rename modal */}
-      <Modal
-        open={!!renaming}
-        onClose={() => setRenaming(null)}
-        title="Переименовать"
-        size="sm"
-      >
+      <Modal open={!!renaming} onClose={() => setRenaming(null)} title="Переименовать" size="sm">
         <Input
           label="Новое название"
           value={renaming?.name ?? ''}
@@ -284,8 +351,12 @@ export function FileTree() {
           autoFocus
         />
         <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', marginTop: 14 }}>
-          <button className="btn-link ghost" onClick={() => setRenaming(null)}>Отмена</button>
-          <button className="btn-link" onClick={confirmRename}>Сохранить</button>
+          <button className="btn-link ghost" onClick={() => setRenaming(null)}>
+            Отмена
+          </button>
+          <button className="btn-link" onClick={confirmRename}>
+            Сохранить
+          </button>
         </div>
       </Modal>
     </div>

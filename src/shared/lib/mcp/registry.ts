@@ -9,12 +9,18 @@ import { fail } from './types';
 
 function typeMatches(schema: JsonSchema, v: unknown): boolean {
   switch (schema.type) {
-    case 'string':  return typeof v === 'string';
-    case 'number':  return typeof v === 'number' && Number.isFinite(v);
-    case 'integer': return typeof v === 'number' && Number.isInteger(v);
-    case 'boolean': return typeof v === 'boolean';
-    case 'array':   return Array.isArray(v);
-    case 'object':  return typeof v === 'object' && v !== null && !Array.isArray(v);
+    case 'string':
+      return typeof v === 'string';
+    case 'number':
+      return typeof v === 'number' && Number.isFinite(v);
+    case 'integer':
+      return typeof v === 'number' && Number.isInteger(v);
+    case 'boolean':
+      return typeof v === 'boolean';
+    case 'array':
+      return Array.isArray(v);
+    case 'object':
+      return typeof v === 'object' && v !== null && !Array.isArray(v);
   }
 }
 
@@ -68,14 +74,21 @@ export function createMcpRegistry(): McpRegistry {
     };
   };
 
-  const callTool = async (name: string, args: Record<string, unknown>): ReturnType<McpRegistry['callTool']> => {
+  const callTool = async (
+    name: string,
+    args: Record<string, unknown>,
+  ): ReturnType<McpRegistry['callTool']> => {
     const tool = listTools().find((t) => t.name === name);
     if (!tool) {
-      return fail(`Инструмент «${name}» сейчас недоступен: возможно, страница уже сменилась. Обнови список инструментов и попробуй снова.`);
+      return fail(
+        `Инструмент «${name}» сейчас недоступен: возможно, страница уже сменилась. Обнови список инструментов и попробуй снова.`,
+      );
     }
     const invalid = validateArgs(tool.inputSchema, args);
     if (invalid) {
-      return fail(`Инструмент «${name}» вызван неверно: ${invalid}. Исправь аргументы и вызови снова.`);
+      return fail(
+        `Инструмент «${name}» вызван неверно: ${invalid}. Исправь аргументы и вызови снова.`,
+      );
     }
     try {
       return await tool.run(args);

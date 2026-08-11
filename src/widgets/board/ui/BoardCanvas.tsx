@@ -40,7 +40,10 @@ export function BoardCanvas() {
 
   // Инструменты Доски живут ровно столько, сколько смонтирован холст: они читают состояние
   // через `store.stateRef`, который вне этого компонента перестаёт обновляться.
-  useRegisterTools('board', useMemo(() => createBoardTools(store), [store]));
+  useRegisterTools(
+    'board',
+    useMemo(() => createBoardTools(store), [store]),
+  );
 
   const geom = useBoardGeometry(state);
 
@@ -61,7 +64,8 @@ export function BoardCanvas() {
     () => nodes.filter((n) => n.kind === 'frame').sort((a, b) => a.y - b.y || a.x - b.x),
     [nodes],
   );
-  const activeFrameId = selected.length === 1 && frames.some((f) => f.id === selected[0]) ? selected[0] : null;
+  const activeFrameId =
+    selected.length === 1 && frames.some((f) => f.id === selected[0]) ? selected[0] : null;
 
   const focusFrame = (id: string) => {
     const vp = vpRef.current;
@@ -84,7 +88,10 @@ export function BoardCanvas() {
     // Middle button, Space+LMB, or the hand tool all mean "pan".
     if (e.button === 1 || (e.button === 0 && (spacePan || tool === 'hand'))) {
       e.preventDefault();
-      dispatch({ type: 'DRAG_START', drag: { type: 'pan', startX: e.clientX, startY: e.clientY, ox: view.x, oy: view.y } });
+      dispatch({
+        type: 'DRAG_START',
+        drag: { type: 'pan', startX: e.clientX, startY: e.clientY, ox: view.x, oy: view.y },
+      });
       return;
     }
     if (e.button !== 0) return;
@@ -116,73 +123,85 @@ export function BoardCanvas() {
   /* ── Nodes ────────────────────────────────────────────────────────── */
 
   // Stable for the component's lifetime — see NodeHandlers on why that matters.
-  const nodeHandlers = useMemo<NodeHandlers>(() => ({
-    onDown: (e, node) => {
-      if (e.button !== 0) return;
-      e.stopPropagation();
-      const { editing, selected, nodes } = stateRef.current;
+  const nodeHandlers = useMemo<NodeHandlers>(
+    () => ({
+      onDown: (e, node) => {
+        if (e.button !== 0) return;
+        e.stopPropagation();
+        const { editing, selected, nodes } = stateRef.current;
 
-      // Keep the contentEditable focused while dragging the node it belongs to.
-      if (editing === node.id) e.preventDefault();
-      dispatch({ type: 'SELECT_EDGE', id: null });
+        // Keep the contentEditable focused while dragging the node it belongs to.
+        if (editing === node.id) e.preventDefault();
+        dispatch({ type: 'SELECT_EDGE', id: null });
 
-      let ids: string[];
-      if (e.ctrlKey || e.metaKey) {
-        ids = selected.includes(node.id)
-          ? selected.filter((id) => id !== node.id)
-          : [...selected, node.id];
-        dispatch({ type: 'SELECT', ids });
-      } else if (selected.includes(node.id)) {
-        // Dragging one node of an existing multi-selection moves the whole group.
-        ids = selected;
-      } else {
-        ids = [node.id];
-        dispatch({ type: 'SELECT', ids });
-      }
-
-      // Dragging a frame carries its contents: fold every node currently inside a selected frame
-      // into the move set, so the frame behaves as one logical unit. Membership is purely spatial,
-      // so a block simply dropped inside a frame is picked up next time the frame moves.
-      const moving = new Set(ids);
-      for (const n of nodes) {
-        if (n.kind === 'frame' && ids.includes(n.id)) {
-          for (const m of nodesInFrame(nodes, n)) moving.add(m.id);
+        let ids: string[];
+        if (e.ctrlKey || e.metaKey) {
+          ids = selected.includes(node.id)
+            ? selected.filter((id) => id !== node.id)
+            : [...selected, node.id];
+          dispatch({ type: 'SELECT', ids });
+        } else if (selected.includes(node.id)) {
+          // Dragging one node of an existing multi-selection moves the whole group.
+          ids = selected;
+        } else {
+          ids = [node.id];
+          dispatch({ type: 'SELECT', ids });
         }
-      }
 
-      const origins: Record<string, XY> = {};
-      for (const n of nodes) {
-        if (moving.has(n.id)) origins[n.id] = { x: n.x, y: n.y };
-      }
-      dispatch({ type: 'DRAG_START', drag: { type: 'nodes', ids: [...moving], startX: e.clientX, startY: e.clientY, origins } });
-    },
+        // Dragging a frame carries its contents: fold every node currently inside a selected frame
+        // into the move set, so the frame behaves as one logical unit. Membership is purely spatial,
+        // so a block simply dropped inside a frame is picked up next time the frame moves.
+        const moving = new Set(ids);
+        for (const n of nodes) {
+          if (n.kind === 'frame' && ids.includes(n.id)) {
+            for (const m of nodesInFrame(nodes, n)) moving.add(m.id);
+          }
+        }
 
-    onEdit: (id) => dispatch({ type: 'EDIT', id }),
+        const origins: Record<string, XY> = {};
+        for (const n of nodes) {
+          if (moving.has(n.id)) origins[n.id] = { x: n.x, y: n.y };
+        }
+        dispatch({
+          type: 'DRAG_START',
+          drag: { type: 'nodes', ids: [...moving], startX: e.clientX, startY: e.clientY, origins },
+        });
+      },
 
-    onConnectorDown: (e, node, side) => {
-      dispatch({ type: 'SELECT_EDGE', id: null });
-      const { x, y } = viewportPoint(e, vpRef.current);
-      dispatch({ type: 'DRAG_START', drag: { type: 'edge', fromId: node.id, fromSide: side, toSX: x, toSY: y } });
-    },
+      onEdit: (id) => dispatch({ type: 'EDIT', id }),
 
-    onResizeDown: (e, node, edge) => {
-      if (e.button !== 0) return;
-      e.stopPropagation();
-      e.preventDefault();
-      dispatch({
-        type: 'DRAG_START',
-        drag: {
-          type: 'resize', id: node.id, edge,
-          startX: e.clientX, startY: e.clientY,
-          origin: { x: node.x, y: node.y, w: node.w, h: node.h },
-        },
-      });
-    },
+      onConnectorDown: (e, node, side) => {
+        dispatch({ type: 'SELECT_EDGE', id: null });
+        const { x, y } = viewportPoint(e, vpRef.current);
+        dispatch({
+          type: 'DRAG_START',
+          drag: { type: 'edge', fromId: node.id, fromSide: side, toSX: x, toSY: y },
+        });
+      },
 
-    onTextInput: (id, text) => dispatch({ type: 'SET_TEXT', id, text }),
-    onBlur: () => dispatch({ type: 'EDIT', id: null }),
-    onOpenNote: setNote,
-  }), [dispatch, stateRef]);
+      onResizeDown: (e, node, edge) => {
+        if (e.button !== 0) return;
+        e.stopPropagation();
+        e.preventDefault();
+        dispatch({
+          type: 'DRAG_START',
+          drag: {
+            type: 'resize',
+            id: node.id,
+            edge,
+            startX: e.clientX,
+            startY: e.clientY,
+            origin: { x: node.x, y: node.y, w: node.w, h: node.h },
+          },
+        });
+      },
+
+      onTextInput: (id, text) => dispatch({ type: 'SET_TEXT', id, text }),
+      onBlur: () => dispatch({ type: 'EDIT', id: null }),
+      onOpenNote: setNote,
+    }),
+    [dispatch, stateRef],
+  );
 
   /* ── Edges ────────────────────────────────────────────────────────── */
 
@@ -200,10 +219,14 @@ export function BoardCanvas() {
     const { x, y } = viewportPoint(e, vpRef.current);
     const pt = toC(x, y, stateRef.current.view);
 
-    let bestIdx = 0, bestDist = Infinity;
+    let bestIdx = 0,
+      bestDist = Infinity;
     for (let i = 0; i < verts.length - 1; i++) {
       const d = distToSegment(pt, verts[i], verts[i + 1]);
-      if (d < bestDist) { bestDist = d; bestIdx = i; }
+      if (d < bestDist) {
+        bestDist = d;
+        bestIdx = i;
+      }
     }
     dispatch({ type: 'ADD_EDGE_BEND', edgeId: edge.id, index: bestIdx, pt });
   };
@@ -212,7 +235,10 @@ export function BoardCanvas() {
     if (e.button !== 0) return;
     e.stopPropagation();
     e.preventDefault();
-    dispatch({ type: 'DRAG_START', drag: { type: 'edgePoint', edgeId, index, startX: e.clientX, startY: e.clientY, origin } });
+    dispatch({
+      type: 'DRAG_START',
+      drag: { type: 'edgePoint', edgeId, index, startX: e.clientX, startY: e.clientY, origin },
+    });
   };
 
   const onBendDelete = (e: React.MouseEvent, edgeId: string, index: number) => {
@@ -249,7 +275,10 @@ export function BoardCanvas() {
 
         <div
           className="board-canvas"
-          style={{ transform: `translate(${view.x}px,${view.y}px) scale(${view.scale})`, transformOrigin: '0 0' }}
+          style={{
+            transform: `translate(${view.x}px,${view.y}px) scale(${view.scale})`,
+            transformOrigin: '0 0',
+          }}
         >
           {renderNodes.map((node) => (
             <BoardNode
@@ -271,14 +300,24 @@ export function BoardCanvas() {
         {geom.drawPreview && (
           <div
             className="board-draw-preview"
-            style={{ left: geom.drawPreview.left, top: geom.drawPreview.top, width: geom.drawPreview.w, height: geom.drawPreview.h }}
+            style={{
+              left: geom.drawPreview.left,
+              top: geom.drawPreview.top,
+              width: geom.drawPreview.w,
+              height: geom.drawPreview.h,
+            }}
           />
         )}
 
         {geom.selectRect && (
           <div
             className="board-select-rect"
-            style={{ left: geom.selectRect.left, top: geom.selectRect.top, width: geom.selectRect.w, height: geom.selectRect.h }}
+            style={{
+              left: geom.selectRect.left,
+              top: geom.selectRect.top,
+              width: geom.selectRect.w,
+              height: geom.selectRect.h,
+            }}
           />
         )}
 
@@ -286,9 +325,11 @@ export function BoardCanvas() {
           <div
             key={i}
             className={`board-guide board-guide-${g.axis}`}
-            style={g.axis === 'x'
-              ? { left: g.x, top: g.y, height: g.length }
-              : { left: g.x, top: g.y, width: g.length }}
+            style={
+              g.axis === 'x'
+                ? { left: g.x, top: g.y, height: g.length }
+                : { left: g.x, top: g.y, width: g.length }
+            }
           />
         ))}
 
@@ -296,17 +337,27 @@ export function BoardCanvas() {
           <NodePropertyBar
             at={geom.propsAnchor}
             node={geom.selectedNode}
-            onFontSize={(delta) => dispatch({ type: 'FONT_SIZE', id: geom.selectedNode!.id, delta })}
+            onFontSize={(delta) =>
+              dispatch({ type: 'FONT_SIZE', id: geom.selectedNode!.id, delta })
+            }
             onShape={(shape) => dispatch({ type: 'SET_SHAPE', id: geom.selectedNode!.id, shape })}
             onAlign={(align) => dispatch({ type: 'SET_ALIGN', id: geom.selectedNode!.id, align })}
-            onStrokeColor={(color) => dispatch({ type: 'STROKE_COLOR', id: geom.selectedNode!.id, color })}
-            onStrokeWidth={(delta) => dispatch({ type: 'STROKE_WIDTH', id: geom.selectedNode!.id, delta })}
+            onStrokeColor={(color) =>
+              dispatch({ type: 'STROKE_COLOR', id: geom.selectedNode!.id, color })
+            }
+            onStrokeWidth={(delta) =>
+              dispatch({ type: 'STROKE_WIDTH', id: geom.selectedNode!.id, delta })
+            }
             onDelete={deleteSelection}
           />
         )}
 
         {geom.multiAnchor && (
-          <MultiSelectBar at={geom.multiAnchor} count={selected.length} onDelete={deleteSelection} />
+          <MultiSelectBar
+            at={geom.multiAnchor}
+            count={selected.length}
+            onDelete={deleteSelection}
+          />
         )}
 
         <BoardSwitcher boards={boards} uiProps={tracker.uiProps} />

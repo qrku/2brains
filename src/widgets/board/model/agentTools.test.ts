@@ -108,7 +108,11 @@ describe('createBoardTools', () => {
     await byName(tools, 'board_add_node').run({ x: 0, y: 0 });
     const before = store.stateRef.current.nodes[0];
 
-    const res = await byName(tools, 'board_resize_node').run({ id: before.id, width: -10, height: 40 });
+    const res = await byName(tools, 'board_resize_node').run({
+      id: before.id,
+      width: -10,
+      height: 40,
+    });
 
     expect(res.isError).toBe(true);
     const after = store.stateRef.current.nodes[0];
@@ -161,8 +165,28 @@ describe('createBoardTools', () => {
   it('board_list_nodes reports every node with its id and text', () => {
     const store = makeStore({
       nodes: [
-        { id: 'n1', x: 0, y: 0, w: 100, h: 50, text: 'first', kind: 'box', fontSize: 13, shape: 'rect' },
-        { id: 'n2', x: 200, y: 0, w: 100, h: 50, text: 'second', kind: 'box', fontSize: 13, shape: 'rect' },
+        {
+          id: 'n1',
+          x: 0,
+          y: 0,
+          w: 100,
+          h: 50,
+          text: 'first',
+          kind: 'box',
+          fontSize: 13,
+          shape: 'rect',
+        },
+        {
+          id: 'n2',
+          x: 200,
+          y: 0,
+          w: 100,
+          h: 50,
+          text: 'second',
+          kind: 'box',
+          fontSize: 13,
+          shape: 'rect',
+        },
       ],
     });
     const tools = createBoardTools(store);

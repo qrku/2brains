@@ -3,8 +3,13 @@
 import { memo, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  DEF_PEN_COLOR, DEF_PEN_WIDTH, drawNodePoints, smoothPath,
-  type BNode, type ResizeEdge, type Side,
+  DEF_PEN_COLOR,
+  DEF_PEN_WIDTH,
+  drawNodePoints,
+  smoothPath,
+  type BNode,
+  type ResizeEdge,
+  type Side,
 } from '@/entities/board';
 import { useSlashMenu } from '../model/useSlashMenu';
 import { NodeText } from './NodeText';
@@ -40,14 +45,19 @@ interface Props {
 }
 
 export const BoardNode = memo(function BoardNode({
-  node, selected, soloSelected, editing, dropSide, handlers,
+  node,
+  selected,
+  soloSelected,
+  editing,
+  dropSide,
+  handlers,
 }: Props) {
   const editorRef = useRef<HTMLDivElement>(null);
 
-  const isText   = node.kind === 'text';
-  const isDraw   = node.kind === 'draw';
-  const isFrame  = node.kind === 'frame';
-  const isBox    = node.kind === 'box';
+  const isText = node.kind === 'text';
+  const isDraw = node.kind === 'draw';
+  const isFrame = node.kind === 'frame';
+  const isBox = node.kind === 'box';
   const isCircle = isBox && node.shape === 'circle';
   const centered = isCircle || (isBox && node.shape === 'diamond');
 
@@ -76,16 +86,19 @@ export const BoardNode = memo(function BoardNode({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing]);
 
-  const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
-    // The board's own hotkeys (Delete, Esc, copy/paste) must not fire while typing.
-    e.stopPropagation();
-    if (slash.handleKeyDown(e)) return;
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      // The board's own hotkeys (Delete, Esc, copy/paste) must not fire while typing.
+      e.stopPropagation();
+      if (slash.handleKeyDown(e)) return;
 
-    if (e.key === 'Escape' || (e.key === 'Enter' && !e.shiftKey)) {
-      e.preventDefault();
-      e.currentTarget.blur();
-    }
-  }, [slash]);
+      if (e.key === 'Escape' || (e.key === 'Enter' && !e.shiftKey)) {
+        e.preventDefault();
+        e.currentTarget.blur();
+      }
+    },
+    [slash],
+  );
 
   const className = [
     'board-node',
@@ -95,7 +108,9 @@ export const BoardNode = memo(function BoardNode({
     `shape-${node.shape}`,
     selected && 'sel',
     dropSide && 'drop-target',
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div
@@ -117,7 +132,8 @@ export const BoardNode = memo(function BoardNode({
             fill="none"
             stroke={node.color ?? DEF_PEN_COLOR}
             strokeWidth={node.strokeW ?? DEF_PEN_WIDTH}
-            strokeLinecap="round" strokeLinejoin="round"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </svg>
       ) : isFrame ? (
@@ -151,45 +167,61 @@ export const BoardNode = memo(function BoardNode({
               suppressContentEditableWarning
               onMouseDown={(e) => e.stopPropagation()}
               onInput={(e) => onTextInput(e.currentTarget.textContent ?? '')}
-              onBlur={() => { if (!slash.open) handlers.onBlur(); }}
+              onBlur={() => {
+                if (!slash.open) handlers.onBlur();
+              }}
               onKeyDown={onKeyDown}
             />
           ) : (
             <div
               key="display"
               className="board-node-text"
-              style={{ fontSize: node.fontSize, lineHeight: 1.4, color: node.text ? '#111' : '#ccc', textAlign: node.align ?? 'left' }}
+              style={{
+                fontSize: node.fontSize,
+                lineHeight: 1.4,
+                color: node.text ? '#111' : '#ccc',
+                textAlign: node.align ?? 'left',
+              }}
             >
-              {node.text
-                ? <NodeText text={node.text} fontSize={node.fontSize} onOpenNote={handlers.onOpenNote} />
-                : 'Текст...'}
+              {node.text ? (
+                <NodeText
+                  text={node.text}
+                  fontSize={node.fontSize}
+                  onOpenNote={handlers.onOpenNote}
+                />
+              ) : (
+                'Текст...'
+              )}
             </div>
           )}
         </div>
       )}
 
-      {!isDraw && !isFrame && SIDES.map((side) => (
-        <div
-          key={side}
-          className={`board-handle bh-${side}${dropSide === side ? ' bh-target' : ''}`}
-          onMouseDown={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            handlers.onConnectorDown(e, node, side);
-          }}
-        />
-      ))}
+      {!isDraw &&
+        !isFrame &&
+        SIDES.map((side) => (
+          <div
+            key={side}
+            className={`board-handle bh-${side}${dropSide === side ? ' bh-target' : ''}`}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              handlers.onConnectorDown(e, node, side);
+            }}
+          />
+        ))}
 
       {soloSelected && (
         <>
           {/* Circles resize from the corners only — an edge handle can't express a square. */}
-          {!isCircle && RESIZE_EDGES.map((edge) => (
-            <div
-              key={`re-${edge}`}
-              className={`board-resize-edge re-${edge}`}
-              onMouseDown={(e) => handlers.onResizeDown(e, node, edge)}
-            />
-          ))}
+          {!isCircle &&
+            RESIZE_EDGES.map((edge) => (
+              <div
+                key={`re-${edge}`}
+                className={`board-resize-edge re-${edge}`}
+                onMouseDown={(e) => handlers.onResizeDown(e, node, edge)}
+              />
+            ))}
           {RESIZE_CORNERS.map((edge) => (
             <div
               key={`rc-${edge}`}

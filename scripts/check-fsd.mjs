@@ -66,7 +66,9 @@ for (const file of sourceFiles(SRC)) {
 
     const crossImport = rest[0] === '@x';
     if (layer === from.layer && slice !== from.slice && !crossImport) {
-      violations.push(`${at}\n    cross-slice on the same layer: ${from.slice} → ${slice} (${spec})`);
+      violations.push(
+        `${at}\n    cross-slice on the same layer: ${from.slice} → ${slice} (${spec})`,
+      );
       continue;
     }
 

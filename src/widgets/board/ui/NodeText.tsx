@@ -25,7 +25,10 @@ export function NodeText({ text, fontSize, onOpenNote }: Props) {
         key={`${id}-${m.index}`}
         className="board-ref-chip"
         style={{ fontSize: Math.max(fontSize - 2, 10) }}
-        onClick={(e) => { e.stopPropagation(); onOpenNote({ id, name }); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onOpenNote({ id, name });
+        }}
         onMouseDown={(e) => e.stopPropagation()}
       >
         <Icon name="file" size={11} /> {name}

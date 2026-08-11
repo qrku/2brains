@@ -3,7 +3,7 @@ import type { BNode, Rect } from '../model/types';
 /** A smart-alignment line shown while dragging: canvas-space, either vertical ('x') or horizontal ('y'). */
 export interface Guide {
   axis: 'x' | 'y';
-  pos: number;   // the line's coordinate on its axis (x for vertical, y for horizontal)
+  pos: number; // the line's coordinate on its axis (x for vertical, y for horizontal)
   start: number; // extent along the perpendicular axis
   end: number;
 }
@@ -18,14 +18,22 @@ export interface SnapResult {
 /** Two coordinates are "the same line" below this (canvas units) when merging guide spans. */
 const SNAP_EPS = 0.5;
 
-interface Best { delta: number; dist: number; }
+interface Best {
+  delta: number;
+  dist: number;
+}
 
 /** The three snap references of a box on one axis: near edge, centre, far edge. */
 function refs(lo: number, size: number): [number, number, number] {
   return [lo, lo + size / 2, lo + size];
 }
 
-function bestMatch(mv: number[], target: number[], threshold: number, prev: Best | null): Best | null {
+function bestMatch(
+  mv: number[],
+  target: number[],
+  threshold: number,
+  prev: Best | null,
+): Best | null {
   let best = prev;
   for (const m of mv) {
     for (const t of target) {
@@ -134,7 +142,12 @@ export function computeResizeSnap(
 }
 
 /** Guide lines for a resized box: driven off the box's actual (post-snap) bounds so circles line up too. */
-export function resizeGuides(box: Rect, statics: BNode[], alignX: boolean, alignY: boolean): Guide[] {
+export function resizeGuides(
+  box: Rect,
+  statics: BNode[],
+  alignX: boolean,
+  alignY: boolean,
+): Guide[] {
   const guides: Guide[] = [];
   if (alignX) collectGuides('x', refs(box.x1, box.x2 - box.x1), box.y1, box.y2, statics, guides);
   if (alignY) collectGuides('y', refs(box.y1, box.y2 - box.y1), box.x1, box.x2, statics, guides);

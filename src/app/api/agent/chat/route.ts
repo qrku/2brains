@@ -9,7 +9,11 @@
  */
 
 import type {
-  AgentContext, AgentStreamEvent, ChatMessage, ToolCall, ToolSpec,
+  AgentContext,
+  AgentStreamEvent,
+  ChatMessage,
+  ToolCall,
+  ToolSpec,
 } from '@/entities/agent';
 import { buildSystemPrompt } from '@/entities/agent';
 
@@ -113,7 +117,8 @@ function validateToolCalls(raw: unknown): ToolCall[] | null {
   for (const c of raw) {
     if (!isRecord(c) || !isRecord(c.function)) return null;
     const { id, function: fn } = c;
-    if (typeof id !== 'string' || typeof fn.name !== 'string' || typeof fn.arguments !== 'string') return null;
+    if (typeof id !== 'string' || typeof fn.name !== 'string' || typeof fn.arguments !== 'string')
+      return null;
     if (!TOOL_NAME_RE.test(fn.name)) return null;
     calls.push({ id, type: 'function', function: { name: fn.name, arguments: fn.arguments } });
   }
@@ -122,9 +127,10 @@ function validateToolCalls(raw: unknown): ToolCall[] | null {
 
 function validateContext(raw: unknown): AgentContext {
   const o = isRecord(raw) ? raw : {};
-  const page = typeof o.page === 'string' && ALLOWED_PAGES.has(o.page as AgentContext['page'])
-    ? (o.page as AgentContext['page'])
-    : 'other';
+  const page =
+    typeof o.page === 'string' && ALLOWED_PAGES.has(o.page as AgentContext['page'])
+      ? (o.page as AgentContext['page'])
+      : 'other';
   // Значения контекста подставляются в системный промпт, поэтому обрезаются по длине:
   // это не даёт превратить название воркспейса в отдельную инструкцию модели.
   return {
@@ -152,7 +158,8 @@ function validateBody(value: unknown): ValidBody {
     if (typeof role !== 'string' || !ALLOWED_ROLES.has(role as ChatMessage['role'])) {
       return { ok: false, error: `Недопустимая роль сообщения: ${String(role)}` };
     }
-    if (typeof content !== 'string') return { ok: false, error: 'Поле content должно быть строкой' };
+    if (typeof content !== 'string')
+      return { ok: false, error: 'Поле content должно быть строкой' };
 
     totalChars += content.length;
     if (totalChars > MAX_TOTAL_CHARS) {
@@ -197,7 +204,10 @@ function validateBody(value: unknown): ValidBody {
       type: 'function',
       function: {
         name: fn.name,
-        description: typeof fn.description === 'string' ? fn.description.slice(0, MAX_TOOL_DESCRIPTION_CHARS) : '',
+        description:
+          typeof fn.description === 'string'
+            ? fn.description.slice(0, MAX_TOOL_DESCRIPTION_CHARS)
+            : '',
         parameters: fn.parameters as unknown as ToolSpec['function']['parameters'],
       },
     });
@@ -411,7 +421,10 @@ export async function POST(request: Request): Promise<Response> {
         // отдавать их клиенту нельзя — он выполнит вызов с битым JSON аргументов.
         if (choice.finish_reason === 'length') {
           toolCallsAcc.clear();
-          send({ type: 'error', message: 'Ответ модели обрезан по лимиту длины. Попробуйте разбить задачу на шаги.' });
+          send({
+            type: 'error',
+            message: 'Ответ модели обрезан по лимиту длины. Попробуйте разбить задачу на шаги.',
+          });
           finish();
         }
       };

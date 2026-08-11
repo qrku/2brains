@@ -55,6 +55,5 @@ export function useRegisterTools(namespace: string, tools: McpTool[]): void {
       };
     });
     return registry.register(namespace, proxies);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `tools` intentionally excluded, see doc comment above
   }, [registry, namespace]);
 }

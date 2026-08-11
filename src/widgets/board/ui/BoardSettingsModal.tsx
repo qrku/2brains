@@ -13,12 +13,17 @@ export function BoardSettingsModal({ settings, onChange, onClose, uiProps }: Pro
   return (
     <div
       className="board-settings-overlay"
-      onMouseDown={(e) => { e.stopPropagation(); onClose(); }}
+      onMouseDown={(e) => {
+        e.stopPropagation();
+        onClose();
+      }}
     >
       <div className="board-settings-modal" {...uiProps}>
         <div className="bsm-header">
           <span className="bsm-title">Настройки доски</span>
-          <button className="bsm-close" onClick={onClose}><Icon name="close" size={13} /></button>
+          <button className="bsm-close" onClick={onClose}>
+            <Icon name="close" size={13} />
+          </button>
         </div>
 
         <div className="bsm-group">
@@ -30,7 +35,9 @@ export function BoardSettingsModal({ settings, onChange, onClose, uiProps }: Pro
                 checked={settings.edgePan}
                 onChange={(e) => onChange({ edgePan: e.target.checked })}
               />
-              <span className="bsm-track"><span className="bsm-thumb" /></span>
+              <span className="bsm-track">
+                <span className="bsm-thumb" />
+              </span>
             </label>
           </div>
 
@@ -40,8 +47,13 @@ export function BoardSettingsModal({ settings, onChange, onClose, uiProps }: Pro
               <span className="bsm-val">{settings.edgePanThreshold}px</span>
             </div>
             <input
-              type="range" className="bsm-slider" min={20} max={200} step={10}
-              value={settings.edgePanThreshold} disabled={!settings.edgePan}
+              type="range"
+              className="bsm-slider"
+              min={20}
+              max={200}
+              step={10}
+              value={settings.edgePanThreshold}
+              disabled={!settings.edgePan}
               onChange={(e) => onChange({ edgePanThreshold: +e.target.value })}
             />
 
@@ -50,8 +62,13 @@ export function BoardSettingsModal({ settings, onChange, onClose, uiProps }: Pro
               <span className="bsm-val">{settings.edgePanSpeed}</span>
             </div>
             <input
-              type="range" className="bsm-slider" min={1} max={20} step={1}
-              value={settings.edgePanSpeed} disabled={!settings.edgePan}
+              type="range"
+              className="bsm-slider"
+              min={1}
+              max={20}
+              step={1}
+              value={settings.edgePanSpeed}
+              disabled={!settings.edgePan}
               onChange={(e) => onChange({ edgePanSpeed: +e.target.value })}
             />
           </div>

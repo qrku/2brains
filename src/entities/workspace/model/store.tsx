@@ -50,10 +50,14 @@ export function WorkspaceStoreProvider({ children }: { children: ReactNode }) {
       const currentId =
         rawCurrent && workspaces.some((w) => w.id === rawCurrent)
           ? rawCurrent
-          : workspaces[0]?.id ?? DEFAULT_WORKSPACE.id;
+          : (workspaces[0]?.id ?? DEFAULT_WORKSPACE.id);
       dispatch({ type: 'HYDRATE', workspaces, currentId });
     } catch {
-      dispatch({ type: 'HYDRATE', workspaces: [DEFAULT_WORKSPACE], currentId: DEFAULT_WORKSPACE.id });
+      dispatch({
+        type: 'HYDRATE',
+        workspaces: [DEFAULT_WORKSPACE],
+        currentId: DEFAULT_WORKSPACE.id,
+      });
     }
   }, []);
 

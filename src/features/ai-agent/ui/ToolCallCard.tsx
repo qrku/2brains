@@ -4,21 +4,21 @@ import type { ToolCallView } from '../model/agentReducer';
 
 /** Статус вызова → модификатор карточки. Отклонённый показываем как ошибку: действие не состоялось. */
 const STATUS_MOD: Record<ToolCallView['status'], string> = {
-  queued:            '',
-  running:           '',
+  queued: '',
+  running: '',
   'pending-confirm': ' agent-tool--pending',
-  done:              ' agent-tool--done',
-  error:             ' agent-tool--error',
-  rejected:          ' agent-tool--error',
+  done: ' agent-tool--done',
+  error: ' agent-tool--error',
+  rejected: ' agent-tool--error',
 };
 
 const STATUS_LABEL: Record<ToolCallView['status'], string> = {
-  queued:            'в очереди',
-  running:           'выполняется…',
+  queued: 'в очереди',
+  running: 'выполняется…',
   'pending-confirm': 'нужно подтверждение',
-  done:              'готово',
-  error:             'ошибка',
-  rejected:          'отклонено',
+  done: 'готово',
+  error: 'ошибка',
+  rejected: 'отклонено',
 };
 
 /** Аргументы приходят JSON-строкой от модели — форматируем, но битую строку показываем как есть. */
@@ -50,19 +50,19 @@ export function ToolCallCard({ call, onConfirm, onReject }: Props) {
 
       {awaiting && (
         <>
-          <p className="agent-tool-warn">
-            Действие изменит или удалит существующие данные.
-          </p>
+          <p className="agent-tool-warn">Действие изменит или удалит существующие данные.</p>
           <div className="agent-tool-actions">
-            <button className="btn-link ghost" onClick={onReject}>Отклонить</button>
-            <button className="btn-link" onClick={onConfirm}>Применить</button>
+            <button className="btn-link ghost" onClick={onReject}>
+              Отклонить
+            </button>
+            <button className="btn-link" onClick={onConfirm}>
+              Применить
+            </button>
           </div>
         </>
       )}
 
-      {!awaiting && call.resultText && (
-        <div className="agent-tool-result">{call.resultText}</div>
-      )}
+      {!awaiting && call.resultText && <div className="agent-tool-result">{call.resultText}</div>}
     </div>
   );
 }

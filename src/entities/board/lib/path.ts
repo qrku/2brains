@@ -25,7 +25,9 @@ export function roundedPath(points: XY[], radius: number): string {
 
   let d = `M ${points[0].x} ${points[0].y}`;
   for (let i = 1; i < points.length - 1; i++) {
-    const prev = points[i - 1], cur = points[i], next = points[i + 1];
+    const prev = points[i - 1],
+      cur = points[i],
+      next = points[i + 1];
     const toPrev = { x: prev.x - cur.x, y: prev.y - cur.y };
     const toNext = { x: next.x - cur.x, y: next.y - cur.y };
     const lenPrev = Math.hypot(toPrev.x, toPrev.y) || 1;

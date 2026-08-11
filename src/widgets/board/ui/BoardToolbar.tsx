@@ -19,7 +19,9 @@ export function BoardToolbar({ tool, onSelect, uiProps }: Props) {
           onClick={() => onSelect(t.id)}
           title={t.label}
         >
-          <span className="board-panel-icon"><Icon name={t.icon} size={18} /></span>
+          <span className="board-panel-icon">
+            <Icon name={t.icon} size={18} />
+          </span>
           <span className="board-panel-label">{t.label}</span>
         </button>
       ))}

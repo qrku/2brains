@@ -18,13 +18,24 @@ interface Props {
   backHref?: string;
 }
 
-export function PrepTracker({ packId, sections, defaultDoneIds, title, description, backHref }: Props) {
+export function PrepTracker({
+  packId,
+  sections,
+  defaultDoneIds,
+  title,
+  description,
+  backHref,
+}: Props) {
   const { state: wsState } = useWorkspaceStore();
 
   return (
     <div className="container">
       {backHref && (
-        <Link href={backHref} className="btn-link ghost" style={{ marginBottom: 24, display: 'inline-flex' }}>
+        <Link
+          href={backHref}
+          className="btn-link ghost"
+          style={{ marginBottom: 24, display: 'inline-flex' }}
+        >
           <Icon name="arrow-back" size={12} /> Знания
         </Link>
       )}

@@ -34,7 +34,9 @@ export function AgentPanel({ open, onClose, chat }: Props) {
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [open, onClose]);
@@ -72,12 +74,7 @@ export function AgentPanel({ open, onClose, chat }: Props) {
         )}
 
         {chat.views.map((view) => (
-          <AgentMessage
-            key={view.id}
-            view={view}
-            onConfirm={chat.confirm}
-            onReject={chat.reject}
-          />
+          <AgentMessage key={view.id} view={view} onConfirm={chat.confirm} onReject={chat.reject} />
         ))}
 
         {chat.status === 'error' && chat.errorText && (
@@ -96,7 +93,10 @@ export function AgentPanel({ open, onClose, chat }: Props) {
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
             // Enter отправляет, Shift+Enter — перенос строки.
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              submit();
+            }
           }}
         />
         <button

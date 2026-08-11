@@ -26,10 +26,9 @@ function setup(opts: { enabled?: boolean; text?: string } = {}) {
   const editorRef = { current: editor } as RefObject<HTMLDivElement | null>;
   const onTextInput = jest.fn();
 
-  const view = renderHook(
-    ({ enabled }) => useSlashMenu(editorRef, onTextInput, enabled),
-    { initialProps: { enabled: opts.enabled ?? true } },
-  );
+  const view = renderHook(({ enabled }) => useSlashMenu(editorRef, onTextInput, enabled), {
+    initialProps: { enabled: opts.enabled ?? true },
+  });
 
   return { editor, editorRef, onTextInput, ...view };
 }
@@ -49,21 +48,33 @@ function press(result: { current: ReturnType<typeof useSlashMenu> }, key: string
   const e = {
     key,
     preventDefault: jest.fn(),
-    ctrlKey: false, metaKey: false, altKey: false,
+    ctrlKey: false,
+    metaKey: false,
+    altKey: false,
   } as unknown as React.KeyboardEvent;
 
   let handled = false;
-  act(() => { handled = result.current.handleKeyDown(e); });
+  act(() => {
+    handled = result.current.handleKeyDown(e);
+  });
   return { handled, preventDefault: e.preventDefault as jest.Mock };
 }
 
 // jsdom doesn't implement Range.getBoundingClientRect. A collapsed caret has no box
 // anyway, so return an all-zero rect — the hook then falls back to the editor's box.
 beforeAll(() => {
-  Range.prototype.getBoundingClientRect = () => ({
-    x: 0, y: 0, width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0,
-    toJSON: () => ({}),
-  }) as DOMRect;
+  Range.prototype.getBoundingClientRect = () =>
+    ({
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      toJSON: () => ({}),
+    }) as DOMRect;
 });
 
 afterEach(() => {
@@ -160,9 +171,7 @@ describe('useSlashMenu', () => {
       const { result, onTextInput } = open();
 
       press(result, 'Enter'); // active file is "Arrays"
-      expect(document.execCommand).toHaveBeenCalledWith(
-        'insertText', false, '[[space:f1|Arrays]]',
-      );
+      expect(document.execCommand).toHaveBeenCalledWith('insertText', false, '[[space:f1|Arrays]]');
       expect(onTextInput).toHaveBeenCalled();
       expect(result.current.open).toBe(false);
     });

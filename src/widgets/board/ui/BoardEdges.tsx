@@ -13,12 +13,14 @@ const HEAD_LEN = 13;
  * width and would stay the same size while everything else shrinks.
  */
 function arrowHead(verts: XY[], size: number): string {
-  const tip  = verts[verts.length - 1];
+  const tip = verts[verts.length - 1];
   const prev = verts[verts.length - 2] ?? tip;
-  const a    = Math.atan2(tip.y - prev.y, tip.x - prev.x);
-  const cos = Math.cos(a), sin = Math.sin(a);
+  const a = Math.atan2(tip.y - prev.y, tip.x - prev.x);
+  const cos = Math.cos(a),
+    sin = Math.sin(a);
   const half = size * 0.42;
-  const bx = tip.x - size * cos, by = tip.y - size * sin;
+  const bx = tip.x - size * cos,
+    by = tip.y - size * sin;
   return [
     `${tip.x},${tip.y}`,
     `${bx - half * sin},${by + half * cos}`,
@@ -40,8 +42,16 @@ interface Props {
 }
 
 export function BoardEdges({
-  arrows, selectedEdge, previewPath, pencilPath, penColor, penWidth, scale,
-  onEdgeDown, onBendDown, onBendDelete,
+  arrows,
+  selectedEdge,
+  previewPath,
+  pencilPath,
+  penColor,
+  penWidth,
+  scale,
+  onEdgeDown,
+  onBendDown,
+  onBendDelete,
 }: Props) {
   const headSize = HEAD_LEN * Math.min(Math.max(scale, 0.4), 1.5);
 
@@ -53,8 +63,12 @@ export function BoardEdges({
         return (
           <g key={id}>
             <path
-              d={d} stroke="transparent" strokeWidth={HIT_STROKE_W} fill="none"
-              strokeLinecap="round" strokeLinejoin="round"
+              d={d}
+              stroke="transparent"
+              strokeWidth={HIT_STROKE_W}
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
               style={{ pointerEvents: 'stroke', cursor: 'pointer' }}
               onMouseDown={(e) => onEdgeDown(e, edge, verts)}
             />
@@ -63,7 +77,8 @@ export function BoardEdges({
               stroke={color}
               strokeWidth={selected ? 2.5 : 1.75}
               fill="none"
-              strokeLinecap="round" strokeLinejoin="round"
+              strokeLinecap="round"
+              strokeLinejoin="round"
               style={{ pointerEvents: 'none', transition: 'stroke 0.15s, stroke-width 0.15s' }}
             />
             <polygon
@@ -72,34 +87,47 @@ export function BoardEdges({
               style={{ pointerEvents: 'none', transition: 'fill 0.15s' }}
             />
 
-            {selected && edge.points.map((p, i) => (
-              <circle
-                key={i}
-                // screenVerts[0] is the exit point, so bend i sits at i + 1.
-                cx={screenVerts[i + 1].x} cy={screenVerts[i + 1].y} r={5}
-                fill="#fff" stroke="#4a90e2" strokeWidth={2}
-                style={{ pointerEvents: 'all', cursor: 'grab' }}
-                onMouseDown={(e) => onBendDown(e, id, i, p)}
-                onDoubleClick={(e) => onBendDelete(e, id, i)}
-              />
-            ))}
+            {selected &&
+              edge.points.map((p, i) => (
+                <circle
+                  key={i}
+                  // screenVerts[0] is the exit point, so bend i sits at i + 1.
+                  cx={screenVerts[i + 1].x}
+                  cy={screenVerts[i + 1].y}
+                  r={5}
+                  fill="#fff"
+                  stroke="#4a90e2"
+                  strokeWidth={2}
+                  style={{ pointerEvents: 'all', cursor: 'grab' }}
+                  onMouseDown={(e) => onBendDown(e, id, i, p)}
+                  onDoubleClick={(e) => onBendDelete(e, id, i)}
+                />
+              ))}
           </g>
         );
       })}
 
       {previewPath && (
         <path
-          d={previewPath} fill="none"
-          stroke="#666" strokeWidth={1.5} strokeDasharray="5 4" opacity={0.7}
-          strokeLinecap="round" strokeLinejoin="round"
+          d={previewPath}
+          fill="none"
+          stroke="#666"
+          strokeWidth={1.5}
+          strokeDasharray="5 4"
+          opacity={0.7}
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       )}
 
       {pencilPath && (
         <path
-          d={pencilPath} fill="none"
-          stroke={penColor} strokeWidth={penWidth * scale}
-          strokeLinecap="round" strokeLinejoin="round"
+          d={pencilPath}
+          fill="none"
+          stroke={penColor}
+          strokeWidth={penWidth * scale}
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       )}
     </svg>

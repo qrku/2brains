@@ -20,7 +20,13 @@
 
 import type { BNode, NodeKind, NodeShape, Side, XY } from '@/entities/board';
 import {
-  CONNECTOR_STANDOFF, DEF_FRAME_H, DEF_FRAME_W, DEF_H, DEF_W, sidePoint, toS,
+  CONNECTOR_STANDOFF,
+  DEF_FRAME_H,
+  DEF_FRAME_W,
+  DEF_H,
+  DEF_W,
+  sidePoint,
+  toS,
 } from '@/entities/board';
 import { fail, ok, type McpTool, type McpToolResult } from '@/shared/lib/mcp/types';
 import type { BoardStore } from './useBoardStore';
@@ -62,10 +68,14 @@ async function flush(ticks = 5): Promise<void> {
 function postPoint(n: BNode, side: Side): XY {
   const p = sidePoint(n, side);
   switch (side) {
-    case 'n': return { x: p.x, y: p.y - CONNECTOR_STANDOFF };
-    case 's': return { x: p.x, y: p.y + CONNECTOR_STANDOFF };
-    case 'e': return { x: p.x + CONNECTOR_STANDOFF, y: p.y };
-    case 'w': return { x: p.x - CONNECTOR_STANDOFF, y: p.y };
+    case 'n':
+      return { x: p.x, y: p.y - CONNECTOR_STANDOFF };
+    case 's':
+      return { x: p.x, y: p.y + CONNECTOR_STANDOFF };
+    case 'e':
+      return { x: p.x + CONNECTOR_STANDOFF, y: p.y };
+    case 'w':
+      return { x: p.x - CONNECTOR_STANDOFF, y: p.y };
   }
 }
 
@@ -109,7 +119,8 @@ export function createBoardTools(store: BoardStore): McpTool[] {
 
       let limit = LIST_LIMIT;
       if (args.limit !== undefined) {
-        if (!isNum(args.limit) || args.limit <= 0) return fail('limit должен быть положительным числом.');
+        if (!isNum(args.limit) || args.limit <= 0)
+          return fail('limit должен быть положительным числом.');
         limit = Math.min(LIST_LIMIT, Math.floor(args.limit));
       }
 
@@ -136,9 +147,20 @@ export function createBoardTools(store: BoardStore): McpTool[] {
       properties: {
         x: { type: 'number', description: 'X левого верхнего угла в координатах холста.' },
         y: { type: 'number', description: 'Y левого верхнего угла в координатах холста.' },
-        text: { type: 'string', description: 'Текст внутри ноды. Можно опустить — по умолчанию пусто.' },
-        kind: { type: 'string', enum: [...KINDS], description: 'Вид ноды: box (по умолчанию) | text | frame.' },
-        shape: { type: 'string', enum: [...SHAPES], description: 'Форма рамки для kind="box": rect (по умолчанию) | diamond | circle.' },
+        text: {
+          type: 'string',
+          description: 'Текст внутри ноды. Можно опустить — по умолчанию пусто.',
+        },
+        kind: {
+          type: 'string',
+          enum: [...KINDS],
+          description: 'Вид ноды: box (по умолчанию) | text | frame.',
+        },
+        shape: {
+          type: 'string',
+          enum: [...SHAPES],
+          description: 'Форма рамки для kind="box": rect (по умолчанию) | diamond | circle.',
+        },
       },
       required: ['x', 'y'],
     },
@@ -160,7 +182,8 @@ export function createBoardTools(store: BoardStore): McpTool[] {
       const text = isStr(args.text) ? args.text : '';
       const w = kind === 'frame' ? DEF_FRAME_W : DEF_W;
       const h = kind === 'frame' ? DEF_FRAME_H : DEF_H;
-      const cx = args.x + w / 2, cy = args.y + h / 2;
+      const cx = args.x + w / 2,
+        cy = args.y + h / 2;
 
       const before = new Set(store.stateRef.current.nodes.map((n) => n.id));
 
@@ -177,11 +200,16 @@ export function createBoardTools(store: BoardStore): McpTool[] {
         // tool в 'cursor' по завершении. Если сейчас пользователь и так что-то тащит, drag-состояние
         // трогать не даём, чтобы не оборвать его собственное перетаскивание.
         if (store.stateRef.current.drag.type !== 'none') {
-          return fail('Сейчас на доске активен захват мышью (пользователь что-то тащит) — повтори попытку через момент.');
+          return fail(
+            'Сейчас на доске активен захват мышью (пользователь что-то тащит) — повтори попытку через момент.',
+          );
         }
         const s = toS(cx, cy, store.stateRef.current.view);
         store.dispatch({ type: 'SET_TOOL', tool: kind === 'text' ? 'text' : 'frame' });
-        store.dispatch({ type: 'DRAG_START', drag: { type: 'draw', sx: s.x, sy: s.y, ex: s.x, ey: s.y } });
+        store.dispatch({
+          type: 'DRAG_START',
+          drag: { type: 'draw', sx: s.x, sy: s.y, ex: s.x, ey: s.y },
+        });
         store.dispatch({ type: 'DRAG_END', pos: { sx: s.x, sy: s.y, clientX: s.x, clientY: s.y } });
       }
 
@@ -195,23 +223,32 @@ export function createBoardTools(store: BoardStore): McpTool[] {
         const added = store.stateRef.current.nodes.filter((n) => !before.has(n.id));
         return added.length ? added[added.length - 1].id : undefined;
       });
-      if (!id) return fail('Не удалось создать ноду: Доска не подтвердила изменение вовремя, попробуй ещё раз.');
+      if (!id)
+        return fail(
+          'Не удалось создать ноду: Доска не подтвердила изменение вовремя, попробуй ещё раз.',
+        );
 
       if (kind === 'box' && shape !== 'rect') store.dispatch({ type: 'SET_SHAPE', id, shape });
       if (text) store.dispatch({ type: 'SET_TEXT', id, text });
 
-      return ok(`Нода создана: id ${id}, kind ${kind}${kind === 'box' ? `/${shape}` : ''}, x:${fmt(args.x)} y:${fmt(args.y)} w:${w} h:${h}.`);
+      return ok(
+        `Нода создана: id ${id}, kind ${kind}${kind === 'box' ? `/${shape}` : ''}, x:${fmt(args.x)} y:${fmt(args.y)} w:${w} h:${h}.`,
+      );
     },
   };
 
   const setText: McpTool = {
     name: 'board_set_text',
-    description: 'Заменяет текст ноды целиком (не дописывает, а перезаписывает). Разрушающее действие — старый текст теряется без возможности отмены.',
+    description:
+      'Заменяет текст ноды целиком (не дописывает, а перезаписывает). Разрушающее действие — старый текст теряется без возможности отмены.',
     inputSchema: {
       type: 'object',
       properties: {
         id: { type: 'string', description: 'id ноды из board_list_nodes.' },
-        text: { type: 'string', description: 'Новый текст ноды (можно пустую строку, чтобы очистить).' },
+        text: {
+          type: 'string',
+          description: 'Новый текст ноды (можно пустую строку, чтобы очистить).',
+        },
       },
       required: ['id', 'text'],
     },
@@ -253,22 +290,33 @@ export function createBoardTools(store: BoardStore): McpTool[] {
       }
 
       const scale = store.stateRef.current.view.scale;
-      const dx = args.x - node.x, dy = args.y - node.y;
+      const dx = args.x - node.x,
+        dy = args.y - node.y;
       // DRAG_MOVE считает дельту как (clientX - startX) / scale, поэтому чтобы получить ровно
       // нужную канвас-дельту, экранную дельту берём уже умноженной на текущий scale. sx/sy для
       // ветки 'nodes' не используются вовсе — там значимы только clientX/clientY.
-      const clientX = dx * scale, clientY = dy * scale;
+      const clientX = dx * scale,
+        clientY = dy * scale;
 
       store.dispatch({
         type: 'DRAG_START',
-        drag: { type: 'nodes', ids: [args.id], startX: 0, startY: 0, origins: { [args.id]: { x: node.x, y: node.y } } },
+        drag: {
+          type: 'nodes',
+          ids: [args.id],
+          startX: 0,
+          startY: 0,
+          origins: { [args.id]: { x: node.x, y: node.y } },
+        },
       });
       store.dispatch({ type: 'DRAG_MOVE', pos: { sx: 0, sy: 0, clientX, clientY } });
       store.dispatch({ type: 'DRAG_END', pos: { sx: 0, sy: 0, clientX, clientY } });
 
       await flush();
       const moved = store.stateRef.current.nodes.find((n) => n.id === args.id);
-      if (!moved) return fail('Нода исчезла во время перемещения (возможно, её удалили) — проверь board_list_nodes.');
+      if (!moved)
+        return fail(
+          'Нода исчезла во время перемещения (возможно, её удалили) — проверь board_list_nodes.',
+        );
       return ok(`Нода ${args.id} перемещена на x:${fmt(moved.x)} y:${fmt(moved.y)}.`);
     },
   };
@@ -292,8 +340,10 @@ export function createBoardTools(store: BoardStore): McpTool[] {
     },
     async run(args): Promise<McpToolResult> {
       if (!isStr(args.id)) return fail('id обязателен и должен быть строкой.');
-      if (!isNum(args.width) || !isNum(args.height)) return fail('width и height обязательны и должны быть числами.');
-      if (args.width <= 0 || args.height <= 0) return fail('width и height должны быть положительными числами.');
+      if (!isNum(args.width) || !isNum(args.height))
+        return fail('width и height обязательны и должны быть числами.');
+      if (args.width <= 0 || args.height <= 0)
+        return fail('width и height должны быть положительными числами.');
       const node = findNode(args.id);
       if (!node) return fail(`Нода с id "${args.id}" не найдена. Проверь board_list_nodes.`);
       if (store.stateRef.current.drag.type !== 'none') {
@@ -301,19 +351,27 @@ export function createBoardTools(store: BoardStore): McpTool[] {
       }
 
       const scale = store.stateRef.current.view.scale;
-      const dx = args.width - node.w, dy = args.height - node.h;
-      const clientX = dx * scale, clientY = dy * scale;
+      const dx = args.width - node.w,
+        dy = args.height - node.h;
+      const clientX = dx * scale,
+        clientY = dy * scale;
       const origin = { x: node.x, y: node.y, w: node.w, h: node.h };
 
       // Всегда тянем угол 'se' (юго-восток): растим ноду вправо-вниз, левый верхний угол не
       // сдвигается — предсказуемое поведение для программного вызова.
-      store.dispatch({ type: 'DRAG_START', drag: { type: 'resize', id: args.id, edge: 'se', startX: 0, startY: 0, origin } });
+      store.dispatch({
+        type: 'DRAG_START',
+        drag: { type: 'resize', id: args.id, edge: 'se', startX: 0, startY: 0, origin },
+      });
       store.dispatch({ type: 'DRAG_MOVE', pos: { sx: 0, sy: 0, clientX, clientY } });
       store.dispatch({ type: 'DRAG_END', pos: { sx: 0, sy: 0, clientX, clientY } });
 
       await flush();
       const resized = store.stateRef.current.nodes.find((n) => n.id === args.id);
-      if (!resized) return fail('Нода исчезла во время изменения размера (возможно, её удалили) — проверь board_list_nodes.');
+      if (!resized)
+        return fail(
+          'Нода исчезла во время изменения размера (возможно, её удалили) — проверь board_list_nodes.',
+        );
       return ok(`Нода ${args.id} теперь w:${fmt(resized.w)} h:${fmt(resized.h)}.`);
     },
   };
@@ -330,19 +388,32 @@ export function createBoardTools(store: BoardStore): McpTool[] {
       properties: {
         fromId: { type: 'string', description: 'id ноды-источника стрелки.' },
         toId: { type: 'string', description: 'id ноды-получателя стрелки.' },
-        fromSide: { type: 'string', enum: [...SIDES], description: 'Сторона источника (n/s/e/w). Необязательно — по умолчанию подбирается автоматически.' },
-        toSide: { type: 'string', enum: [...SIDES], description: 'Сторона получателя (n/s/e/w). Необязательно — по умолчанию подбирается автоматически.' },
+        fromSide: {
+          type: 'string',
+          enum: [...SIDES],
+          description:
+            'Сторона источника (n/s/e/w). Необязательно — по умолчанию подбирается автоматически.',
+        },
+        toSide: {
+          type: 'string',
+          enum: [...SIDES],
+          description:
+            'Сторона получателя (n/s/e/w). Необязательно — по умолчанию подбирается автоматически.',
+        },
       },
       required: ['fromId', 'toId'],
     },
     async run(args): Promise<McpToolResult> {
-      if (!isStr(args.fromId) || !isStr(args.toId)) return fail('fromId и toId обязательны и должны быть строками.');
+      if (!isStr(args.fromId) || !isStr(args.toId))
+        return fail('fromId и toId обязательны и должны быть строками.');
       if (args.fromId === args.toId) return fail('Нельзя соединить ноду саму с собой.');
       const fromNode = findNode(args.fromId);
       const toNode = findNode(args.toId);
-      if (!fromNode) return fail(`Нода с id "${args.fromId}" не найдена. Проверь board_list_nodes.`);
+      if (!fromNode)
+        return fail(`Нода с id "${args.fromId}" не найдена. Проверь board_list_nodes.`);
       if (!toNode) return fail(`Нода с id "${args.toId}" не найдена. Проверь board_list_nodes.`);
-      if (toNode.kind === 'frame') return fail('Нельзя провести связь в ноду-frame — у фреймов нет точек подключения.');
+      if (toNode.kind === 'frame')
+        return fail('Нельзя провести связь в ноду-frame — у фреймов нет точек подключения.');
 
       let fromSide: Side, toSide: Side;
       if (args.fromSide !== undefined || args.toSide !== undefined) {
@@ -357,7 +428,8 @@ export function createBoardTools(store: BoardStore): McpTool[] {
       } else {
         const fc = { x: fromNode.x + fromNode.w / 2, y: fromNode.y + fromNode.h / 2 };
         const tc = { x: toNode.x + toNode.w / 2, y: toNode.y + toNode.h / 2 };
-        const dx = tc.x - fc.x, dy = tc.y - fc.y;
+        const dx = tc.x - fc.x,
+          dy = tc.y - fc.y;
         if (Math.abs(dx) >= Math.abs(dy)) {
           fromSide = dx >= 0 ? 'e' : 'w';
           toSide = dx >= 0 ? 'w' : 'e';
@@ -379,40 +451,59 @@ export function createBoardTools(store: BoardStore): McpTool[] {
       const screenPt = toS(target.x, target.y, store.stateRef.current.view);
       const before = new Set(store.stateRef.current.edges.map((e) => e.id));
 
-      store.dispatch({ type: 'DRAG_START', drag: { type: 'edge', fromId: args.fromId, fromSide, toSX: screenPt.x, toSY: screenPt.y } });
-      store.dispatch({ type: 'DRAG_END', pos: { sx: screenPt.x, sy: screenPt.y, clientX: screenPt.x, clientY: screenPt.y } });
+      store.dispatch({
+        type: 'DRAG_START',
+        drag: { type: 'edge', fromId: args.fromId, fromSide, toSX: screenPt.x, toSY: screenPt.y },
+      });
+      store.dispatch({
+        type: 'DRAG_END',
+        pos: { sx: screenPt.x, sy: screenPt.y, clientX: screenPt.x, clientY: screenPt.y },
+      });
 
-      const id = await waitFor(() => store.stateRef.current.edges.find((e) => !before.has(e.id))?.id);
+      const id = await waitFor(
+        () => store.stateRef.current.edges.find((e) => !before.has(e.id))?.id,
+      );
       if (!id) {
         return fail(
           `Не удалось создать связь между "${args.fromId}" и "${args.toId}" — либо такая связь уже ` +
-          'существует, либо точка подключения не найдена. Проверь board_list_nodes и попробуй другие стороны.',
+            'существует, либо точка подключения не найдена. Проверь board_list_nodes и попробуй другие стороны.',
         );
       }
-      return ok(`Связь создана: ${args.fromId} (${fromSide}) → ${args.toId} (${toSide}), id связи ${id}.`);
+      return ok(
+        `Связь создана: ${args.fromId} (${fromSide}) → ${args.toId} (${toSide}), id связи ${id}.`,
+      );
     },
   };
 
   const deleteNodes: McpTool = {
     name: 'board_delete_nodes',
-    description: 'Удаляет одну или несколько нод по id вместе со связями, которые к ним подходят. Разрушающее действие, отменить нельзя.',
+    description:
+      'Удаляет одну или несколько нод по id вместе со связями, которые к ним подходят. Разрушающее действие, отменить нельзя.',
     inputSchema: {
       type: 'object',
       properties: {
-        ids: { type: 'array', items: { type: 'string' }, description: 'Список id нод для удаления (см. board_list_nodes). Минимум один id.' },
+        ids: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Список id нод для удаления (см. board_list_nodes). Минимум один id.',
+        },
       },
       required: ['ids'],
     },
     destructive: true,
     async run(args): Promise<McpToolResult> {
-      if (!Array.isArray(args.ids) || args.ids.length === 0) return fail('ids обязателен и должен быть непустым массивом строк.');
+      if (!Array.isArray(args.ids) || args.ids.length === 0)
+        return fail('ids обязателен и должен быть непустым массивом строк.');
       const rawIds: unknown[] = args.ids;
       if (!rawIds.every(isStr)) return fail('ids должен быть массивом строк.');
       const ids = rawIds as string[];
 
       const existing = new Set(store.stateRef.current.nodes.map((n) => n.id));
       const missing = ids.filter((id) => !existing.has(id));
-      if (missing.length) return fail(`Ноды с такими id не найдены: ${missing.join(', ')}. Проверь board_list_nodes.`);
+      if (missing.length)
+        return fail(
+          `Ноды с такими id не найдены: ${missing.join(', ')}. Проверь board_list_nodes.`,
+        );
 
       // DELETE_SELECTION удаляет то, что сейчас выбрано в UI, а если выбрана связь — удалит её, а не
       // ноды (неочевидная деталь редьюсера: он отдаёт приоритет selectedEdge). Поэтому сначала явно
@@ -424,7 +515,10 @@ export function createBoardTools(store: BoardStore): McpTool[] {
 
       await flush();
       const stillThere = ids.filter((id) => store.stateRef.current.nodes.some((n) => n.id === id));
-      if (stillThere.length) return fail(`Не удалось удалить ноды: ${stillThere.join(', ')}. Возможно, доска изменилась во время выполнения — проверь board_list_nodes.`);
+      if (stillThere.length)
+        return fail(
+          `Не удалось удалить ноды: ${stillThere.join(', ')}. Возможно, доска изменилась во время выполнения — проверь board_list_nodes.`,
+        );
       return ok(`Удалено нод: ${ids.length} (${ids.join(', ')}).`);
     },
   };

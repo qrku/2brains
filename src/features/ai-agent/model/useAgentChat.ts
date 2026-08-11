@@ -20,8 +20,12 @@ import { useSpaceStore, type SpaceNode } from '@/entities/space';
 import { wsKey } from '@/shared/lib/workspace';
 import type { McpRegistry } from '@/shared/lib/mcp/types';
 import {
-  buildSystemPrompt, toToolSpec,
-  type AgentChatRequest, type AgentContext, type AgentStreamEvent, type ChatMessage, type ToolCall,
+  toToolSpec,
+  type AgentChatRequest,
+  type AgentContext,
+  type AgentStreamEvent,
+  type ChatMessage,
+  type ToolCall,
 } from '@/entities/agent';
 import {
   agentReducer,
@@ -112,7 +116,11 @@ async function executeCall(
 function rejectedResult(call: ToolCall): { message: ChatMessage; isError: boolean } {
   return {
     isError: true,
-    message: { role: 'tool', tool_call_id: call.id, content: 'Пользователь отклонил это действие.' },
+    message: {
+      role: 'tool',
+      tool_call_id: call.id,
+      content: 'Пользователь отклонил это действие.',
+    },
   };
 }
 
@@ -144,7 +152,10 @@ async function streamOneCompletion(
     });
   } catch (e) {
     if (signal.aborted) return { kind: 'aborted' };
-    return { kind: 'error', message: e instanceof Error ? e.message : 'Не удалось связаться с сервером.' };
+    return {
+      kind: 'error',
+      message: e instanceof Error ? e.message : 'Не удалось связаться с сервером.',
+    };
   }
 
   if (!response.ok || !response.body) {
@@ -258,7 +269,8 @@ export function useAgentChat(): UseAgentChat {
       : 'other';
 
   const workspace = wsState.workspaces.find((w) => w.id === wsState.currentId) ?? DEFAULT_WORKSPACE;
-  const openFilePath = page === 'space' ? buildOpenFilePath(spaceState.nodes, spaceState.openFileId) : undefined;
+  const openFilePath =
+    page === 'space' ? buildOpenFilePath(spaceState.nodes, spaceState.openFileId) : undefined;
 
   const ctx: AgentContext = useMemo(
     () => ({ page, workspaceName: workspace.name, openFilePath }),
@@ -290,7 +302,6 @@ export function useAgentChat(): UseAgentChat {
     }
     historyRef.current = history;
     dispatch({ type: 'hydrate', history });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- ключ полностью определяет содержимое, dispatch стабилен
   }, [storageKey]);
 
   // Персист истории — только после того как хидратация отработала, иначе затрём сохранённое пустым стартовым состоянием.
@@ -339,7 +350,11 @@ export function useAgentChat(): UseAgentChat {
       }
 
       // outcome.kind === 'tool_calls'
-      const assistantMessage: ChatMessage = { role: 'assistant', content: outcome.text, tool_calls: outcome.calls };
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: outcome.text,
+        tool_calls: outcome.calls,
+      };
       historyRef.current = [...historyRef.current, assistantMessage];
       dispatch({
         type: 'assistant_tool_calls',
@@ -347,7 +362,12 @@ export function useAgentChat(): UseAgentChat {
         toolCalls: initialToolViews(outcome.calls, registry),
       });
 
-      const { paused, remaining } = await processCalls(outcome.calls, registry, dispatch, historyRef);
+      const { paused, remaining } = await processCalls(
+        outcome.calls,
+        registry,
+        dispatch,
+        historyRef,
+      );
       if (paused) {
         pendingCallsRef.current = remaining;
         dispatch({ type: 'wait_confirm', callId: remaining[0].id });
@@ -387,7 +407,9 @@ export function useAgentChat(): UseAgentChat {
       const [call, ...rest] = pending;
       pendingCallsRef.current = null;
 
-      const { message, isError } = accept ? await executeCall(registry, call) : rejectedResult(call);
+      const { message, isError } = accept
+        ? await executeCall(registry, call)
+        : rejectedResult(call);
       historyRef.current = [...historyRef.current, message];
       dispatch({ type: 'tool_result', message, isError, rejected: !accept });
 

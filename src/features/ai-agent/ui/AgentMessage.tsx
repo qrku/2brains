@@ -27,7 +27,9 @@ export function AgentMessage({ view, onConfirm, onReject }: Props) {
 
       {view.streaming && empty && (
         <span className="agent-msg-typing" aria-label="Агент печатает">
-          <i /><i /><i />
+          <i />
+          <i />
+          <i />
         </span>
       )}
 

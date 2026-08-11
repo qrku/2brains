@@ -25,9 +25,13 @@ export function StrokeControls({ color, width, onColor, onWidth }: Props) {
         />
       ))}
       <div className="bp-sep" />
-      <button className="bp-btn" onClick={() => onWidth(-1)} title="Тоньше"><Icon name="remove" size={13} /></button>
+      <button className="bp-btn" onClick={() => onWidth(-1)} title="Тоньше">
+        <Icon name="remove" size={13} />
+      </button>
       <span className="bp-val">{width}px</span>
-      <button className="bp-btn" onClick={() => onWidth(+1)} title="Толще"><Icon name="add" size={13} /></button>
+      <button className="bp-btn" onClick={() => onWidth(+1)} title="Толще">
+        <Icon name="add" size={13} />
+      </button>
     </>
   );
 }

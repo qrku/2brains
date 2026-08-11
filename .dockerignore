@@ -1,9 +1,31 @@
+# Keeping the build context small also keeps the `COPY . .` layer from being invalidated
+# by changes that cannot affect the image (CI config, tests, reports).
 node_modules
 .next
 .git
+.github
+.husky
+.claude
+.vscode
+.idea
+
 .env
 .env.local
 .env.*.local
+
+coverage
+test-results
+playwright-report
+blob-report
+e2e
+playwright.config.ts
+jest.config.ts
+jest.setup.ts
+
 npm-debug.log*
+*.log
 *.tsbuildinfo
+.swc
+docs
 README.md
+.DS_Store

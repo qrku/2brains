@@ -6,7 +6,12 @@ function box(x: number, y: number, w = 100, h = 60): BNode {
   return { id: `${x},${y}`, x, y, w, h, text: '', kind: 'box', fontSize: 13, shape: 'rect' };
 }
 
-const rect = (x: number, y: number, w = 100, h = 60): Rect => ({ x1: x, y1: y, x2: x + w, y2: y + h });
+const rect = (x: number, y: number, w = 100, h = 60): Rect => ({
+  x1: x,
+  y1: y,
+  x2: x + w,
+  y2: y + h,
+});
 
 const THRESH = 6;
 
@@ -40,7 +45,10 @@ describe('computeSnap', () => {
     // Same height (60); align tops with a 2px pull — centre and bottom then coincide too.
     const r = computeSnap(rect(400, 102, 100, 60), [box(100, 100, 100, 60)], THRESH);
     expect(r.snapY).toBe(-2);
-    const horizontals = r.guides.filter((g) => g.axis === 'y').map((g) => g.pos).sort((a, b) => a - b);
+    const horizontals = r.guides
+      .filter((g) => g.axis === 'y')
+      .map((g) => g.pos)
+      .sort((a, b) => a - b);
     expect(horizontals).toEqual([100, 130, 160]);
   });
 

@@ -1,0 +1,9 @@
+# Commits listed here are skipped by `git blame`, so a whole-repo reformat does not
+# become the author of every line.
+#
+# Enable locally once:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# GitHub picks this file up automatically.
+
+# TODO: add the SHA of the "format codebase with Prettier" commit here once it exists.
