@@ -1,6 +1,6 @@
 'use client';
 
-import { usePrepStore, useStats } from '@/app/providers/PrepStoreProvider';
+import { usePrepStore, useStats } from '@/entities/section';
 import { getLevel } from '@/shared/config/levels';
 import { ProgressSummarySkeleton } from './ProgressSummarySkeleton';
 

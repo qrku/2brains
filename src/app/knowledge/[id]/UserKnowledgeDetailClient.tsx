@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useUserPacksStore } from '@/app/providers/UserPacksStoreProvider';
-import { PrepStoreProvider } from '@/app/providers/PrepStoreProvider';
+import { useUserPacksStore } from '@/entities/pack';
+import { PrepStoreProvider } from '@/entities/section';
+import { useWorkspaceStore } from '@/entities/workspace';
 import { ProgressSummary } from '@/widgets/progress-summary';
 import { SectionList } from '@/widgets/section-list';
 import { FilterBar } from '@/features/filter-sections';
@@ -15,6 +16,7 @@ interface Props {
 
 export function UserKnowledgeDetailClient({ id }: Props) {
   const { state } = useUserPacksStore();
+  const { state: wsState } = useWorkspaceStore();
 
   if (!state.hydrated) {
     return (
@@ -48,7 +50,12 @@ export function UserKnowledgeDetailClient({ id }: Props) {
         <h1>{pack.title}</h1>
         {pack.description && <p>{pack.description}</p>}
       </div>
-      <PrepStoreProvider packId={pack.id} defaultSections={[]} defaultDoneIds={[]}>
+      <PrepStoreProvider
+        packId={pack.id}
+        defaultSections={[]}
+        defaultDoneIds={[]}
+        workspaceId={wsState.hydrated ? wsState.currentId : null}
+      >
         <ProgressSummary />
         <div className="toolbar">
           <FilterBar />

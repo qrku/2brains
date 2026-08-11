@@ -6,3 +6,4 @@ export {
   PATTERNS,
   PATTERN_MAP,
 } from './model/types';
+export { ProblemStoreProvider, useProblemStore } from './model/store';

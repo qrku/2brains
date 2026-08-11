@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useSpaceStore, spaceReadContent, spaceSaveContent } from '@/app/providers/SpaceStoreProvider';
-import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
+import { useSpaceStore, spaceReadContent, spaceSaveContent } from '@/entities/space';
+import { useWorkspaceStore } from '@/entities/workspace';
 import { parseMarkdown } from '@/shared/lib/markdown';
 import { htmlToMarkdown } from '@/shared/lib/htmlToMarkdown';
 import { Icon, type IconName } from '@/shared/ui/Icon';

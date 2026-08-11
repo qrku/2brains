@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Textarea, Button, toast } from 'mikro-ui';
-import { useExperienceStore } from '@/app/providers/ExperienceStoreProvider';
+import { useExperienceStore } from '@/entities/experience';
 
 interface Props {
   experienceId: string;

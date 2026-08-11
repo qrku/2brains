@@ -1,6 +1,6 @@
 'use client';
 
-import { useExperienceStore } from '@/app/providers/ExperienceStoreProvider';
+import { useExperienceStore } from '@/entities/experience';
 import { CreateExperienceButton } from '@/features/create-experience';
 import { ExperienceListCard } from './ExperienceListCard';
 

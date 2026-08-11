@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Textarea, Button, toast } from 'mikro-ui';
-import { useInterviewStore } from '@/app/providers/InterviewStoreProvider';
+import { useInterviewStore } from '@/entities/interview';
 
 interface Props {
   interviewId: string;

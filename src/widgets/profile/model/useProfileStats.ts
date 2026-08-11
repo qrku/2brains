@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
-import { useSpaceStore, spaceReadNodes } from '@/app/providers/SpaceStoreProvider';
+import { useWorkspaceStore } from '@/entities/workspace';
+import { useSpaceStore, spaceReadNodes } from '@/entities/space';
 import { countBoards } from '@/entities/board';
 
 export interface ProfileStatsData {

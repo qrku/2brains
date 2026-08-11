@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button, Modal, Input, toast } from 'mikro-ui';
-import { useExperienceStore } from '@/app/providers/ExperienceStoreProvider';
+import { useExperienceStore } from '@/entities/experience';
 
 export function CreateExperienceButton() {
   const { dispatch } = useExperienceStore();

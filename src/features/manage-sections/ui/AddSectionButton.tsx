@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button, Modal, Input, toast } from 'mikro-ui';
-import { usePrepStore } from '@/app/providers/PrepStoreProvider';
+import { usePrepStore } from '@/entities/section';
 
 export function AddSectionButton() {
   const { dispatch } = usePrepStore();

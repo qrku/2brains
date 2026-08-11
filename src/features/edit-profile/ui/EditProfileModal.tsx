@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { Button, Modal, Input, toast } from 'mikro-ui';
-import { useProfileStore } from '@/app/providers/ProfileStoreProvider';
-import { AVATAR_OPTIONS, type Profile } from '@/entities/profile';
+import { useProfileStore, AVATAR_OPTIONS, type Profile } from '@/entities/profile';
 
 interface Props {
   onClose: () => void;

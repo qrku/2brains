@@ -1,10 +1,9 @@
 'use client';
 
 import { Button } from 'mikro-ui';
-import { usePrepStore } from '@/app/providers/PrepStoreProvider';
+import { usePrepStore, type Section } from '@/entities/section';
 import { TopicRow } from '@/features/toggle-topic';
 import { AddTopicForm } from '@/features/add-topic';
-import type { Section } from '@/entities/section';
 import { Icon } from '@/shared/ui/Icon';
 
 interface Props {

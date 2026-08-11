@@ -23,7 +23,7 @@ import {
   CONNECTOR_STANDOFF, DEF_FRAME_H, DEF_FRAME_W, DEF_H, DEF_W, sidePoint, toS,
 } from '@/entities/board';
 import { fail, ok, type McpTool, type McpToolResult } from '@/shared/lib/mcp/types';
-import type { BoardStore } from '@/widgets/board/model/useBoardStore';
+import type { BoardStore } from './useBoardStore';
 
 const LIST_LIMIT = 150;
 const TEXT_PREVIEW_MAX = 80;

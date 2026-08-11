@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { loadPages, savePages, deletePage } from '@/entities/custom-page';
-import type { CustomPage } from '@/entities/custom-page';
-import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
+import { loadPages, savePages, deletePage, type CustomPage } from '@/entities/custom-page';
+import { useWorkspaceStore } from '@/entities/workspace';
 import { Icon } from '@/shared/ui/Icon';
 
 const EMOJIS = ['📋','📊','🗂️','📌','🏆','🎯','🧩','💡','🔖','📝','🚀','🌟','🔧','📈','🎨'];

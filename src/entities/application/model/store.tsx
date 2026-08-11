@@ -1,8 +1,7 @@
 'use client';
 
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
-import type { Application, ApplicationStatus } from '@/entities/application';
-import { useWorkspaceStore } from './WorkspaceStoreProvider';
+import type { Application, ApplicationStatus } from './types';
 import { wsKey } from '@/shared/lib/workspace';
 
 const STORAGE_KEY = 'prep_applications_v1';
@@ -86,24 +85,29 @@ function reducer(state: State, action: Action): State {
 
 const Ctx = createContext<{ state: State; dispatch: React.Dispatch<Action> } | null>(null);
 
-export function ApplicationStoreProvider({ children }: { children: ReactNode }) {
+interface Props {
+  /** Null until the workspace store hydrates; nothing is read or written while it is. */
+  workspaceId: string | null;
+  children: ReactNode;
+}
+
+export function ApplicationStoreProvider({ workspaceId, children }: Props) {
   const [state, dispatch] = useReducer(reducer, { applications: [], hydrated: false });
-  const { state: wsState } = useWorkspaceStore();
 
   useEffect(() => {
-    if (!wsState.hydrated) return;
+    if (!workspaceId) return;
     try {
-      const raw = localStorage.getItem(wsKey(STORAGE_KEY, wsState.currentId));
+      const raw = localStorage.getItem(wsKey(STORAGE_KEY, workspaceId));
       dispatch({ type: 'HYDRATE', applications: raw ? JSON.parse(raw) : [] });
     } catch {
       dispatch({ type: 'HYDRATE', applications: [] });
     }
-  }, [wsState.hydrated, wsState.currentId]);
+  }, [workspaceId]);
 
   useEffect(() => {
-    if (!state.hydrated) return;
-    localStorage.setItem(wsKey(STORAGE_KEY, wsState.currentId), JSON.stringify(state.applications));
-  }, [state.applications, state.hydrated, wsState.currentId]);
+    if (!state.hydrated || !workspaceId) return;
+    localStorage.setItem(wsKey(STORAGE_KEY, workspaceId), JSON.stringify(state.applications));
+  }, [state.applications, state.hydrated, workspaceId]);
 
   return <Ctx.Provider value={{ state, dispatch }}>{children}</Ctx.Provider>;
 }

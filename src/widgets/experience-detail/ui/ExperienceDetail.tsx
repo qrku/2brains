@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Button, Input, toast } from 'mikro-ui';
-import { useExperienceStore } from '@/app/providers/ExperienceStoreProvider';
+import { useExperienceStore } from '@/entities/experience';
 import { PointItem, AddPointForm } from '@/features/manage-points';
 import { Icon } from '@/shared/ui/Icon';
 

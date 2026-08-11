@@ -1,8 +1,7 @@
 'use client';
 
 import { Checkbox } from 'mikro-ui';
-import { usePrepStore } from '@/app/providers/PrepStoreProvider';
-import type { Topic } from '@/entities/section';
+import { usePrepStore, type Topic } from '@/entities/section';
 import { Icon } from '@/shared/ui/Icon';
 
 interface Props {

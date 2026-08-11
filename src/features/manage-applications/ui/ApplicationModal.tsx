@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { Button, Modal, Input, Textarea, Select, toast } from 'mikro-ui';
-import { useApplicationStore } from '@/app/providers/ApplicationStoreProvider';
-import { STATUS_OPTIONS, type Application, type ApplicationStatus } from '@/entities/application';
+import { useApplicationStore, STATUS_OPTIONS, type Application, type ApplicationStatus } from '@/entities/application';
 
 interface Props {
   initial?: Application;

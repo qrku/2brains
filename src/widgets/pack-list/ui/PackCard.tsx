@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useUserPacksStore } from '@/app/providers/UserPacksStoreProvider';
-import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
-import { readPackProgress } from '@/shared/lib/storage';
-import type { BuiltinPackDef, UserPack } from '@/entities/pack';
+import { useUserPacksStore, type BuiltinPackDef, type UserPack } from '@/entities/pack';
+import { useWorkspaceStore } from '@/entities/workspace';
+import { readPackProgress } from '@/entities/section';
 import { Icon } from '@/shared/ui/Icon';
 
 interface BuiltinCardProps {

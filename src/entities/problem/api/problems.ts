@@ -1,4 +1,4 @@
-import type { Problem, Difficulty, ProblemStatus, Pattern } from '@/entities/problem';
+import type { Problem, Difficulty, ProblemStatus, Pattern } from '../model/types';
 
 /**
  * Документы и мапперы для домена задач.

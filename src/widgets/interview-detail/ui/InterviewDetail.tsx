@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Button, Input, toast } from 'mikro-ui';
-import { useInterviewStore } from '@/app/providers/InterviewStoreProvider';
+import { useInterviewStore } from '@/entities/interview';
 import { QuestionCard, AddQuestionForm } from '@/features/manage-questions';
 import { PracticeModal } from '@/features/practice-mode';
 import { Icon } from '@/shared/ui/Icon';

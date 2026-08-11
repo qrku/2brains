@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import { uid } from '@/shared/lib/uid';
-import { DEFAULT_WORKSPACE, type Workspace } from '@/entities/workspace';
+import { DEFAULT_WORKSPACE, type Workspace } from './types';
 
 const STORAGE_KEY = 'prep_workspaces_v1';
 const CURRENT_KEY = 'prep_workspace_current_v1';

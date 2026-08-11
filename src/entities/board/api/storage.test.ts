@@ -1,11 +1,11 @@
-import { DEFAULT_WORKSPACE } from '@/entities/workspace';
+import { DEFAULT_WORKSPACE_ID } from '@/shared/lib/workspace';
 import {
   DEFAULT_BOARD_ID, countBoards, defaultBoardMeta, deleteBoardData, loadBoard, loadBoardList,
   loadCurrentBoardId, saveBoard, saveBoardList, saveCurrentBoardId,
 } from './storage';
 import { mkNode } from '../lib/factory';
 
-const WS = DEFAULT_WORKSPACE.id;
+const WS = DEFAULT_WORKSPACE_ID;
 const OTHER_WS = 'ws-2';
 
 const doc = (id: string) => ({ nodes: [mkNode(id, 0, 0, 160, 90, 'box')], edges: [] });

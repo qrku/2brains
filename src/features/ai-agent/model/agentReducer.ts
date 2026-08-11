@@ -14,7 +14,7 @@
  */
 
 import { uid } from '@/shared/lib/uid';
-import type { ChatMessage, ToolCall } from './contract';
+import type { ChatMessage, ToolCall } from '@/entities/agent';
 
 export type AgentStatus = 'idle' | 'streaming' | 'waiting-confirm' | 'error';
 

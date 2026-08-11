@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import { POST } from './route';
-import type { AgentStreamEvent } from '@/features/ai-agent/model/contract';
+import type { AgentStreamEvent } from '@/entities/agent';
 
 const ORIGIN = 'http://localhost:3000';
 const URL_ = `${ORIGIN}/api/agent/chat`;

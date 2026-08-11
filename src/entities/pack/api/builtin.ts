@@ -1,5 +1,5 @@
-import { defaultSections, defaultDoneIds } from '@/entities/section';
-import type { BuiltinPackDef } from '@/entities/pack';
+import { defaultSections, defaultDoneIds } from '@/entities/section/@x/pack';
+import type { BuiltinPackDef } from '../model/types';
 
 const sectionsFor = (ids: string[]) => defaultSections.filter((s) => ids.includes(s.id));
 

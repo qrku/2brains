@@ -1,6 +1,8 @@
+'use client';
+
 import Link from 'next/link';
-import type { Section } from '@/entities/section';
-import { PrepStoreProvider } from '@/app/providers/PrepStoreProvider';
+import { type Section, PrepStoreProvider } from '@/entities/section';
+import { useWorkspaceStore } from '@/entities/workspace';
 import { ProgressSummary } from '@/widgets/progress-summary';
 import { SectionList } from '@/widgets/section-list';
 import { FilterBar } from '@/features/filter-sections';
@@ -16,7 +18,9 @@ interface Props {
   backHref?: string;
 }
 
-export function PrepTrackerWidget({ packId, sections, defaultDoneIds, title, description, backHref }: Props) {
+export function PrepTracker({ packId, sections, defaultDoneIds, title, description, backHref }: Props) {
+  const { state: wsState } = useWorkspaceStore();
+
   return (
     <div className="container">
       {backHref && (
@@ -28,7 +32,12 @@ export function PrepTrackerWidget({ packId, sections, defaultDoneIds, title, des
         <h1>{title}</h1>
         <p>{description}</p>
       </div>
-      <PrepStoreProvider packId={packId} defaultSections={sections} defaultDoneIds={defaultDoneIds}>
+      <PrepStoreProvider
+        packId={packId}
+        defaultSections={sections}
+        defaultDoneIds={defaultDoneIds}
+        workspaceId={wsState.hydrated ? wsState.currentId : null}
+      >
         <ProgressSummary />
         <div className="toolbar">
           <FilterBar />

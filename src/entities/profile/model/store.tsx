@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
-import { DEFAULT_PROFILE, type Profile } from '@/entities/profile';
+import { DEFAULT_PROFILE, type Profile } from './types';
 
 // The profile is the person using the app, not workspace data — it stays outside the
 // per-workspace key namespace so the same nickname follows every workspace.

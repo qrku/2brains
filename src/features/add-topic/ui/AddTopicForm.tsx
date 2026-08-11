@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Input, Select, Button } from 'mikro-ui';
-import { usePrepStore } from '@/app/providers/PrepStoreProvider';
+import { usePrepStore } from '@/entities/section';
 import { Icon } from '@/shared/ui/Icon';
 
 const PRIORITY_OPTIONS = [

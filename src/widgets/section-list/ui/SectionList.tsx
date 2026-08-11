@@ -1,6 +1,6 @@
 'use client';
 
-import { usePrepStore, useFilteredSections } from '@/app/providers/PrepStoreProvider';
+import { usePrepStore, useFilteredSections } from '@/entities/section';
 import { SectionCard } from './SectionCard';
 import { SectionListSkeleton } from './SectionListSkeleton';
 

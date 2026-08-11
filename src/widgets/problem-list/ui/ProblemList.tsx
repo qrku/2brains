@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 import { Button } from 'mikro-ui';
-import { useProblemStore } from '@/app/providers/ProblemStoreProvider';
+import { useProblemStore, PATTERNS, type Difficulty, type ProblemStatus, type Pattern } from '@/entities/problem';
 import { ProblemModal } from '@/features/manage-problems';
 import { ProblemCard } from './ProblemCard';
-import { PATTERNS, type Difficulty, type ProblemStatus, type Pattern } from '@/entities/problem';
 
 type DiffFilter = Difficulty | 'all';
 type StatusFilter = ProblemStatus | 'all';

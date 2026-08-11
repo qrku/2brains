@@ -2,8 +2,7 @@
 
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { useQuery, useMutation, useSubscription } from 'urql';
-import type { Problem, Difficulty, ProblemStatus, Pattern } from '@/entities/problem';
-import { useWorkspaceStore } from './WorkspaceStoreProvider';
+import type { Problem, Difficulty, ProblemStatus, Pattern } from './types';
 import {
   PROBLEMS_QUERY,
   PROBLEMS_CHANGED_SUBSCRIPTION,
@@ -14,7 +13,7 @@ import {
   type GqlProblem,
   fromGqlProblem,
   toGqlInput,
-} from '@/shared/api/problems';
+} from '../api/problems';
 
 /**
  * Первый стор, переехавший с localStorage на GraphQL.
@@ -54,10 +53,16 @@ type Action =
 
 const Ctx = createContext<{ state: State; dispatch: (action: Action) => void } | null>(null);
 
-export function ProblemStoreProvider({ children }: { children: ReactNode }) {
-  const { state: wsState } = useWorkspaceStore();
-  const workspaceId = wsState.currentId;
-  const pause = !wsState.hydrated;
+interface Props {
+  /** Null until the workspace store hydrates; the query and subscription stay paused while it is. */
+  workspaceId: string | null;
+  children: ReactNode;
+}
+
+export function ProblemStoreProvider({ workspaceId: currentId, children }: Props) {
+  const pause = currentId === null;
+  // urql still wants a defined variable while paused.
+  const workspaceId = currentId ?? '';
 
   const [result] = useQuery<{ problems: GqlProblem[] }>({
     query: PROBLEMS_QUERY,

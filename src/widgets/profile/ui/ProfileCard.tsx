@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from 'mikro-ui';
-import { useProfileStore } from '@/app/providers/ProfileStoreProvider';
+import { useProfileStore } from '@/entities/profile';
 import { EditProfileModal } from '@/features/edit-profile';
 
 export function ProfileCard() {

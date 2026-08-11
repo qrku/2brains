@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { toast } from 'mikro-ui';
-import { useProblemStore } from '@/app/providers/ProblemStoreProvider';
+import { useProblemStore, PATTERN_MAP, STATUS_LABELS, type Problem } from '@/entities/problem';
 import { ProblemModal } from '@/features/manage-problems';
-import { PATTERN_MAP, STATUS_LABELS, type Problem } from '@/entities/problem';
 import { Icon } from '@/shared/ui/Icon';
 import { safeUrl } from '@/shared/lib/safeUrl';
 

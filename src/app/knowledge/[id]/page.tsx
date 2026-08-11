@@ -1,10 +1,9 @@
 import { Suspense } from 'react';
-import { builtinPacks } from '@/data/packs/builtin';
-import { PrepTrackerWidget } from '@/widgets/prep-tracker';
+import { builtinPacks, type BuiltinPackDef } from '@/entities/pack';
+import { PrepTracker } from '@/app/_components/PrepTracker';
 import { ProgressSummarySkeleton } from '@/widgets/progress-summary';
 import { SectionListSkeleton } from '@/widgets/section-list';
 import { UserKnowledgeDetailClient } from './UserKnowledgeDetailClient';
-import type { BuiltinPackDef } from '@/entities/pack';
 
 function KnowledgeDetailSkeleton() {
   return (
@@ -21,7 +20,7 @@ function KnowledgeDetailSkeleton() {
 async function BuiltinKnowledgeLoader({ pack }: { pack: BuiltinPackDef }) {
   await new Promise<void>((r) => setTimeout(r, 60));
   return (
-    <PrepTrackerWidget
+    <PrepTracker
       packId={pack.id}
       sections={pack.sections}
       defaultDoneIds={pack.defaultDoneIds}

@@ -4,7 +4,7 @@ import { useSlashMenu } from './useSlashMenu';
 
 // The hook reaches into the SpaceStore for the list of files it can reference.
 // Feed it a fixed set: two files and one folder (the folder must be filtered out).
-jest.mock('@/app/providers/SpaceStoreProvider', () => ({
+jest.mock('@/entities/space', () => ({
   useSpaceStore: () => ({
     state: {
       nodes: [

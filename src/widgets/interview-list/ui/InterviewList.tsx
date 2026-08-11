@@ -1,6 +1,6 @@
 'use client';
 
-import { useInterviewStore } from '@/app/providers/InterviewStoreProvider';
+import { useInterviewStore } from '@/entities/interview';
 import { CreateInterviewButton } from '@/features/create-interview';
 import { InterviewListCard } from './InterviewListCard';
 

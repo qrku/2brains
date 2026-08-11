@@ -1,12 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import type {
-  CustomPage, Block, BlockType, BadgeColor, NoteColor, ProgressColor,
-  StatItem, CheckItem, KanbanCard, KanbanCol, BadgeItem, LinkItem, GalleryCard,
-} from '@/entities/custom-page';
-import { loadPage, savePage } from '@/entities/custom-page';
-import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
+import { type CustomPage, type Block, type BlockType, type BadgeColor, type NoteColor, type ProgressColor, type StatItem, type CheckItem, type KanbanCard, type KanbanCol, type BadgeItem, type LinkItem, type GalleryCard, loadPage, savePage } from '@/entities/custom-page';
+import { useWorkspaceStore } from '@/entities/workspace';
 import { Icon, type IconName } from '@/shared/ui/Icon';
 
 /* ─── Catalog ────────────────────────────────────────────────────────────── */

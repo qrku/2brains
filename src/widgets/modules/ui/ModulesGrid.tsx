@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ALL_MODULES } from '@/entities/module';
-import { useModulesStore } from '@/app/providers/ModulesStoreProvider';
+import { ALL_MODULES, useModulesStore } from '@/entities/module';
 import { Icon } from '@/shared/ui/Icon';
 
 export function ModulesGrid() {

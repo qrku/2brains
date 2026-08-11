@@ -2,13 +2,10 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { useUserPacksStore } from '@/app/providers/UserPacksStoreProvider';
-import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
+import { useUserPacksStore, CATEGORY_LABELS, type PackCategory, type BuiltinPackDef, builtinPacks } from '@/entities/pack';
+import { useWorkspaceStore } from '@/entities/workspace';
 import { CreatePackButton } from '@/features/create-pack';
-import { builtinPacks } from '@/data/packs/builtin';
-import { readPackProgress } from '@/shared/lib/storage';
-import { CATEGORY_LABELS } from '@/entities/pack';
-import type { PackCategory, BuiltinPackDef } from '@/entities/pack';
+import { readPackProgress } from '@/entities/section';
 import { Icon } from '@/shared/ui/Icon';
 
 type SortKey = 'default' | 'progress' | 'az';

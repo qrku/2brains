@@ -9,13 +9,9 @@
  */
 
 import type {
-  AgentStreamEvent,
-  ChatMessage,
-  ToolCall,
-  ToolSpec,
-} from '@/features/ai-agent/model/contract';
-import type { AgentContext } from '@/features/ai-agent/model/systemPrompt';
-import { buildSystemPrompt } from '@/features/ai-agent/model/systemPrompt';
+  AgentContext, AgentStreamEvent, ChatMessage, ToolCall, ToolSpec,
+} from '@/entities/agent';
+import { buildSystemPrompt } from '@/entities/agent';
 
 // Роут стримит ответ по мере поступления — кэшировать его нельзя,
 // а на Edge-рантайме нет доступа к части Node API, которые могут понадобиться стриму.

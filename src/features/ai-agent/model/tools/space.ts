@@ -12,11 +12,9 @@
  */
 
 import type { Dispatch } from 'react';
-import type { SpaceAction, SpaceNode, SpaceState } from '@/entities/space';
-import { spaceDeleteContent, spaceReadContent, spaceSaveContent } from '@/app/providers/SpaceStoreProvider';
+import { type SpaceAction, type SpaceNode, type SpaceState, spaceDeleteContent, spaceReadContent, spaceSaveContent } from '@/entities/space';
 import { uid } from '@/shared/lib/uid';
-import type { McpTool, McpToolResult } from '@/shared/lib/mcp/types';
-import { fail, ok } from '@/shared/lib/mcp/types';
+import { type McpTool, type McpToolResult, fail, ok } from '@/shared/lib/mcp/types';
 
 /** Содержимое файла больше этого не отдаём модели целиком — только обрезанный кусок с пометкой. */
 const MAX_READ_CHARS = 8000;

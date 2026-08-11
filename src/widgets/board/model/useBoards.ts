@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
+import { useWorkspaceStore } from '@/entities/workspace';
 import {
   DEFAULT_BOARD_NAME, deleteBoardData, loadBoardList, loadCurrentBoardId, saveBoardList,
   saveCurrentBoardId, type BoardMeta,

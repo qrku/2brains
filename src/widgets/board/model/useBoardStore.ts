@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useReducer, useRef, type Dispatch, type RefObject } from 'react';
-import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
+import { useWorkspaceStore } from '@/entities/workspace';
 import {
   loadBoard, loadBoardSettings, loadBoardView, saveBoard, saveBoardSettings, saveBoardView,
 } from '@/entities/board';

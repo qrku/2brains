@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from 'mikro-ui';
-import { usePrepStore, type Filter } from '@/app/providers/PrepStoreProvider';
+import { usePrepStore, type Filter } from '@/entities/section';
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: 'all', label: 'Все' },

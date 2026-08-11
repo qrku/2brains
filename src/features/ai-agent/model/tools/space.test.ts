@@ -1,6 +1,5 @@
 import { createSpaceTools } from './space';
-import { spaceReadContent } from '@/app/providers/SpaceStoreProvider';
-import type { SpaceAction, SpaceNode, SpaceState } from '@/entities/space';
+import { spaceReadContent, type SpaceAction, type SpaceNode, type SpaceState } from '@/entities/space';
 
 const WS = 'test-ws';
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
-import { useSpaceStore } from '@/app/providers/SpaceStoreProvider';
+import { useSpaceStore } from '@/entities/space';
 
 export interface SpaceFile { id: string; name: string; }
 

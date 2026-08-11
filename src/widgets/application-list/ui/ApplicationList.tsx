@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 import { Button } from 'mikro-ui';
-import { useApplicationStore } from '@/app/providers/ApplicationStoreProvider';
+import { useApplicationStore, type ApplicationStatus } from '@/entities/application';
 import { ApplicationModal } from '@/features/manage-applications';
 import { ApplicationCard } from './ApplicationCard';
-import type { ApplicationStatus } from '@/entities/application';
 
 const FILTER_OPTIONS: { value: ApplicationStatus | 'all'; label: string }[] = [
   { value: 'all',      label: 'Все' },

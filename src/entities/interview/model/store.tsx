@@ -7,9 +7,8 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
-import type { Interview, Question } from '@/entities/interview';
+import type { Interview, Question } from './types';
 import { uid } from '@/shared/lib/uid';
-import { useWorkspaceStore } from './WorkspaceStoreProvider';
 import { wsKey } from '@/shared/lib/workspace';
 
 const LS_KEY = 'prep_interviews_v1';
@@ -133,17 +132,22 @@ export function useInterviewStore() {
 
 // ─── Provider ────────────────────────────────────────────────────────────────
 
-export function InterviewStoreProvider({ children }: { children: ReactNode }) {
+interface Props {
+  /** Null until the workspace store hydrates; nothing is read or written while it is. */
+  workspaceId: string | null;
+  children: ReactNode;
+}
+
+export function InterviewStoreProvider({ workspaceId, children }: Props) {
   const [state, dispatch] = useReducer(reducer, {
     interviews: [],
     hydrated: false,
   });
-  const { state: wsState } = useWorkspaceStore();
 
   useEffect(() => {
-    if (!wsState.hydrated) return;
+    if (!workspaceId) return;
     try {
-      const stored = localStorage.getItem(wsKey(LS_KEY, wsState.currentId));
+      const stored = localStorage.getItem(wsKey(LS_KEY, workspaceId));
       dispatch({
         type: 'HYDRATE',
         interviews: stored ? (JSON.parse(stored) as Interview[]) : [],
@@ -151,14 +155,14 @@ export function InterviewStoreProvider({ children }: { children: ReactNode }) {
     } catch {
       dispatch({ type: 'HYDRATE', interviews: [] });
     }
-  }, [wsState.hydrated, wsState.currentId]);
+  }, [workspaceId]);
 
   useEffect(() => {
-    if (!state.hydrated) return;
+    if (!state.hydrated || !workspaceId) return;
     try {
-      localStorage.setItem(wsKey(LS_KEY, wsState.currentId), JSON.stringify(state.interviews));
+      localStorage.setItem(wsKey(LS_KEY, workspaceId), JSON.stringify(state.interviews));
     } catch {}
-  }, [state.interviews, state.hydrated, wsState.currentId]);
+  }, [state.interviews, state.hydrated, workspaceId]);
 
   return (
     <InterviewContext.Provider value={{ state, dispatch }}>

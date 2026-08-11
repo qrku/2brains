@@ -1,9 +1,9 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
-import { useRegisterTools } from '@/app/providers/AgentStoreProvider';
-import { createBoardTools } from '@/features/ai-agent';
+import { useRegisterTools } from '@/features/ai-agent';
 import { distToSegment, nodesInFrame, toC, type BEdge, type XY } from '@/entities/board';
+import { createBoardTools } from '../model/agentTools';
 import { useBoards } from '../model/useBoards';
 import { useBoardStore } from '../model/useBoardStore';
 import { useBoardGeometry, viewportCursor } from '../model/useBoardGeometry';

@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { Textarea, Button, toast } from 'mikro-ui';
-import { useInterviewStore } from '@/app/providers/InterviewStoreProvider';
-import type { Question } from '@/entities/interview';
+import { useInterviewStore, type Question } from '@/entities/interview';
 import { Icon } from '@/shared/ui/Icon';
 
 interface Props {

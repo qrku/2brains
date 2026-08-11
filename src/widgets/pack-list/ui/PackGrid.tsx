@@ -1,8 +1,7 @@
 'use client';
 
-import { useUserPacksStore } from '@/app/providers/UserPacksStoreProvider';
+import { useUserPacksStore, builtinPacks } from '@/entities/pack';
 import { CreatePackButton } from '@/features/create-pack';
-import { builtinPacks } from '@/data/packs/builtin';
 import { BuiltinPackCard, UserPackCard } from './PackCard';
 
 export function PackGrid() {

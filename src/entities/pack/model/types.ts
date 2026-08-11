@@ -1,4 +1,4 @@
-import type { Section } from '@/entities/section';
+import type { Section } from '@/entities/section/@x/pack';
 
 export type PackCategory =
   | 'frontend'

@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Button, toast } from 'mikro-ui';
-import { useInterviewStore } from '@/app/providers/InterviewStoreProvider';
+import { useInterviewStore, type Interview } from '@/entities/interview';
 import { PracticeModal } from '@/features/practice-mode';
-import type { Interview } from '@/entities/interview';
 import { Icon } from '@/shared/ui/Icon';
 
 interface Props {

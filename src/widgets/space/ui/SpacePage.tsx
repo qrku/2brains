@@ -1,10 +1,9 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useRegisterTools } from '@/app/providers/AgentStoreProvider';
-import { useSpaceStore } from '@/app/providers/SpaceStoreProvider';
-import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
-import { createSpaceTools } from '@/features/ai-agent';
+import { useRegisterTools, createSpaceTools } from '@/features/ai-agent';
+import { useSpaceStore } from '@/entities/space';
+import { useWorkspaceStore } from '@/entities/workspace';
 import { FileTree } from './FileTree';
 import { MarkdownEditor } from './MarkdownEditor';
 

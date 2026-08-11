@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useExperienceStore } from '@/app/providers/ExperienceStoreProvider';
-import type { Experience } from '@/entities/experience';
+import { useExperienceStore, type Experience } from '@/entities/experience';
 import { Icon } from '@/shared/ui/Icon';
 
 interface Props {

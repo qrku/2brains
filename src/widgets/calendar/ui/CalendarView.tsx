@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { uid } from '@/shared/lib/uid';
-import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
+import { useWorkspaceStore } from '@/entities/workspace';
 import { wsKey } from '@/shared/lib/workspace';
 import { Icon } from '@/shared/ui/Icon';
 

@@ -1,8 +1,8 @@
-import { boardReducer, initialBoardState } from '@/widgets/board/model/boardReducer';
-import type { BoardAction, BoardState } from '@/widgets/board/model/types';
-import type { BoardStore } from '@/widgets/board/model/useBoardStore';
+import { boardReducer, initialBoardState } from './boardReducer';
+import type { BoardAction, BoardState } from './types';
+import type { BoardStore } from './useBoardStore';
 import type { McpTool, McpToolResult } from '@/shared/lib/mcp/types';
-import { createBoardTools } from './board';
+import { createBoardTools } from './agentTools';
 
 /**
  * Minimal stand-in for `useBoardStore()`, built on the real `boardReducer` (no React involved) so

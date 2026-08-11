@@ -1,6 +1,5 @@
-import type { Section } from '@/entities/section';
-import { DEFAULT_WORKSPACE } from '@/entities/workspace';
-import { wsKey } from '@/shared/lib/workspace';
+import type { Section } from '../model/types';
+import { DEFAULT_WORKSPACE_ID, wsKey } from '@/shared/lib/workspace';
 
 // Legacy keys from the single-pack era — migrated to per-pack on first load.
 // Only relevant for the default workspace: these predate the workspace feature.
@@ -25,7 +24,7 @@ export function loadStorage(
 
     // One-time migration from old single-pack storage to the 'frontend' pack —
     // only for the default workspace, since legacy keys predate workspaces.
-    if (packId === 'frontend' && workspaceId === DEFAULT_WORKSPACE.id) {
+    if (packId === 'frontend' && workspaceId === DEFAULT_WORKSPACE_ID) {
       if (!rawSections) rawSections = localStorage.getItem(LEGACY_SECTIONS);
       if (!rawDone)     rawDone     = localStorage.getItem(LEGACY_DONE);
       // Write migrated data under the new key so future reads are fast
@@ -64,7 +63,7 @@ export function readPackProgress(
   if (typeof window === 'undefined') return { done: 0, total: builtinTopicIds.length, pct: 0 };
   try {
     let rawSections = localStorage.getItem(sectionsKey(packId, workspaceId));
-    if (!rawSections && packId === 'frontend' && workspaceId === DEFAULT_WORKSPACE.id)
+    if (!rawSections && packId === 'frontend' && workspaceId === DEFAULT_WORKSPACE_ID)
       rawSections = localStorage.getItem(LEGACY_SECTIONS);
 
     let topicIds: string[];
@@ -76,7 +75,7 @@ export function readPackProgress(
     }
 
     let rawDone = localStorage.getItem(doneKey(packId, workspaceId));
-    if (!rawDone && packId === 'frontend' && workspaceId === DEFAULT_WORKSPACE.id)
+    if (!rawDone && packId === 'frontend' && workspaceId === DEFAULT_WORKSPACE_ID)
       rawDone = localStorage.getItem(LEGACY_DONE);
 
     const done: string[] = rawDone ? JSON.parse(rawDone) : builtinDefaultDone;

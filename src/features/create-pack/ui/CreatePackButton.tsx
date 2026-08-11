@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button, Modal, Input, Textarea, toast } from 'mikro-ui';
-import { useUserPacksStore } from '@/app/providers/UserPacksStoreProvider';
+import { useUserPacksStore } from '@/entities/pack';
 
 export function CreatePackButton() {
   const { dispatch } = useUserPacksStore();

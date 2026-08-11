@@ -3,10 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useProfileStore } from '@/app/providers/ProfileStoreProvider';
-import { useModulesStore } from '@/app/providers/ModulesStoreProvider';
-import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
-import { ALL_MODULES } from '@/entities/module';
+import { useProfileStore } from '@/entities/profile';
+import { useModulesStore, ALL_MODULES } from '@/entities/module';
+import { useWorkspaceStore } from '@/entities/workspace';
 import { Icon } from '@/shared/ui/Icon';
 
 function BrainIcon() {

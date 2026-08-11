@@ -1,7 +1,6 @@
 'use client';
 
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
-import { useWorkspaceStore } from './WorkspaceStoreProvider';
 import { wsKey } from '@/shared/lib/workspace';
 
 const STORAGE_KEY = 'prep_modules_v1';
@@ -35,25 +34,30 @@ function reducer(state: ModulesState, action: Action): ModulesState {
 
 const Ctx = createContext<{ state: ModulesState; dispatch: React.Dispatch<Action> } | null>(null);
 
-export function ModulesStoreProvider({ children }: { children: ReactNode }) {
+interface Props {
+  /** Null until the workspace store hydrates; nothing is read or written while it is. */
+  workspaceId: string | null;
+  children: ReactNode;
+}
+
+export function ModulesStoreProvider({ workspaceId, children }: Props) {
   const [state, dispatch] = useReducer(reducer, { hydrated: false, enabled: [] });
-  const { state: wsState } = useWorkspaceStore();
 
   useEffect(() => {
-    if (!wsState.hydrated) return;
+    if (!workspaceId) return;
     try {
-      const raw = localStorage.getItem(wsKey(STORAGE_KEY, wsState.currentId));
+      const raw = localStorage.getItem(wsKey(STORAGE_KEY, workspaceId));
       dispatch({ type: 'HYDRATE', enabled: raw ? JSON.parse(raw) : [] });
     } catch {
       dispatch({ type: 'HYDRATE', enabled: [] });
     }
-  }, [wsState.hydrated, wsState.currentId]);
+  }, [workspaceId]);
 
   useEffect(() => {
-    if (state.hydrated) {
-      localStorage.setItem(wsKey(STORAGE_KEY, wsState.currentId), JSON.stringify(state.enabled));
+    if (state.hydrated && workspaceId) {
+      localStorage.setItem(wsKey(STORAGE_KEY, workspaceId), JSON.stringify(state.enabled));
     }
-  }, [state.hydrated, state.enabled, wsState.currentId]);
+  }, [state.hydrated, state.enabled, workspaceId]);
 
   return <Ctx.Provider value={{ state, dispatch }}>{children}</Ctx.Provider>;
 }

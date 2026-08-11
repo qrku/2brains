@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useApplicationStore } from '@/app/providers/ApplicationStoreProvider';
+import { useApplicationStore, STATUS_LABELS, type Application } from '@/entities/application';
 import { ApplicationModal } from '@/features/manage-applications';
-import { STATUS_LABELS, type Application } from '@/entities/application';
 import { Icon } from '@/shared/ui/Icon';
 import { safeUrl } from '@/shared/lib/safeUrl';
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button, Modal, Input, toast } from 'mikro-ui';
-import { useInterviewStore } from '@/app/providers/InterviewStoreProvider';
+import { useInterviewStore } from '@/entities/interview';
 
 export function CreateInterviewButton() {
   const { dispatch } = useInterviewStore();

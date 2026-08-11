@@ -14,9 +14,8 @@ Object.assign(global, {
   TextDecoder: global.TextDecoder ?? NodeTextDecoder,
 });
 
-import type { McpTool } from '@/shared/lib/mcp/types';
-import { ok } from '@/shared/lib/mcp/types';
-import type { AgentStreamEvent, ChatMessage, ToolCall } from './contract';
+import { type McpTool, ok } from '@/shared/lib/mcp/types';
+import type { AgentStreamEvent, ChatMessage, ToolCall } from '@/entities/agent';
 import { useAgentChat } from './useAgentChat';
 
 /* ─── Моки окружения хука ──────────────────────────────────────────────────── */
@@ -28,7 +27,7 @@ const mockCallTool = jest.fn(
 
 jest.mock('next/navigation', () => ({ usePathname: () => '/space' }));
 
-jest.mock('@/app/providers/AgentStoreProvider', () => ({
+jest.mock('./registry', () => ({
   useAgentRegistry: () => ({
     listTools: () => mockTools,
     callTool: (name: string, args: Record<string, unknown>) => mockCallTool(name, args),
@@ -36,13 +35,14 @@ jest.mock('@/app/providers/AgentStoreProvider', () => ({
   }),
 }));
 
-jest.mock('@/app/providers/WorkspaceStoreProvider', () => ({
+jest.mock('@/entities/workspace', () => ({
+  DEFAULT_WORKSPACE: { id: 'personal', name: 'Personal' },
   useWorkspaceStore: () => ({
     state: { hydrated: true, currentId: 'personal', workspaces: [{ id: 'personal', name: 'Personal' }] },
   }),
 }));
 
-jest.mock('@/app/providers/SpaceStoreProvider', () => ({
+jest.mock('@/entities/space', () => ({
   useSpaceStore: () => ({
     state: { hydrated: true, nodes: [], openFileId: null, expanded: [] },
   }),

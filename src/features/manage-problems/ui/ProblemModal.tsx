@@ -2,16 +2,7 @@
 
 import { useState } from 'react';
 import { Button, Modal, Input, Textarea, Select, toast } from 'mikro-ui';
-import { useProblemStore } from '@/app/providers/ProblemStoreProvider';
-import {
-  PATTERNS,
-  DIFFICULTY_LABELS,
-  STATUS_LABELS,
-  type Problem,
-  type Difficulty,
-  type ProblemStatus,
-  type Pattern,
-} from '@/entities/problem';
+import { useProblemStore, PATTERNS, DIFFICULTY_LABELS, STATUS_LABELS, type Problem, type Difficulty, type ProblemStatus, type Pattern } from '@/entities/problem';
 
 interface Props {
   initial?: Problem;

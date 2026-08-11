@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { Textarea, Button, toast } from 'mikro-ui';
-import { useExperienceStore } from '@/app/providers/ExperienceStoreProvider';
-import type { Point } from '@/entities/experience';
+import { useExperienceStore, type Point } from '@/entities/experience';
 import { Icon } from '@/shared/ui/Icon';
 
 interface Props {

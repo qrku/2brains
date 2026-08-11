@@ -1,20 +1,20 @@
-import { LandingClient } from './_components/LandingClient';
+import { LandingClient } from "./_components/LandingClient";
 
 const FEATURES = [
   {
-    icon: '📝',
-    title: 'Пространство',
-    desc: 'Markdown-редактор с деревом файлов. Пиши в визуальном или текстовом режиме — всё сохраняется автоматически.',
+    icon: "📝",
+    title: "Пространство",
+    desc: "Markdown-редактор с деревом файлов. Пиши в визуальном или текстовом режиме — всё сохраняется автоматически.",
   },
   {
-    icon: '🗂️',
-    title: 'Доска',
-    desc: 'Бесконечный холст в стиле Miro. Размещай текст и блоки, соединяй стрелками, масштабируй жестами.',
+    icon: "🗂️",
+    title: "Доска",
+    desc: "Бесконечный холст в стиле Miro. Размещай текст и блоки, соединяй стрелками, масштабируй жестами.",
   },
   {
-    icon: '🧩',
-    title: 'Модули',
-    desc: 'Трекеры задач, опыта и откликов. Подключай только то, что нужно — лишнего в интерфейсе не будет.',
+    icon: "🧩",
+    title: "Модули",
+    desc: "Трекеры задач, опыта и откликов. Подключай только то, что нужно — лишнего в интерфейсе не будет.",
   },
 ];
 
@@ -32,22 +32,13 @@ export default function LandingPage() {
         </div>
         <h1 className="land-h1">Твой второй мозг</h1>
         <p className="land-sub">
-          Пространство для знаний, идей и&nbsp;подготовки.<br />
+          Пространство для знаний, идей и&nbsp;подготовки.
+          <br />
           Всё в одном месте — редактор, доска, трекеры.
         </p>
 
         <LandingClient />
       </main>
-
-      <section className="land-features">
-        {FEATURES.map((f) => (
-          <div key={f.title} className="land-feat">
-            <span className="land-feat-icon">{f.icon}</span>
-            <div className="land-feat-title">{f.title}</div>
-            <div className="land-feat-desc">{f.desc}</div>
-          </div>
-        ))}
-      </section>
 
       <footer className="land-footer">
         © 2brain · {new Date().getFullYear()}

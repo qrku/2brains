@@ -14,15 +14,15 @@
 
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { useAgentRegistry } from '@/app/providers/AgentStoreProvider';
-import { useWorkspaceStore } from '@/app/providers/WorkspaceStoreProvider';
-import { useSpaceStore } from '@/app/providers/SpaceStoreProvider';
-import { DEFAULT_WORKSPACE } from '@/entities/workspace';
-import type { SpaceNode } from '@/entities/space';
+import { useAgentRegistry } from './registry';
+import { useWorkspaceStore, DEFAULT_WORKSPACE } from '@/entities/workspace';
+import { useSpaceStore, type SpaceNode } from '@/entities/space';
 import { wsKey } from '@/shared/lib/workspace';
 import type { McpRegistry } from '@/shared/lib/mcp/types';
-import { buildSystemPrompt, type AgentContext } from './systemPrompt';
-import { toToolSpec, type AgentChatRequest, type AgentStreamEvent, type ChatMessage, type ToolCall } from './contract';
+import {
+  buildSystemPrompt, toToolSpec,
+  type AgentChatRequest, type AgentContext, type AgentStreamEvent, type ChatMessage, type ToolCall,
+} from '@/entities/agent';
 import {
   agentReducer,
   initialAgentState,

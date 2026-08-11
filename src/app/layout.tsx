@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { AppProviders } from '@/app/providers/AppProviders';
 import { AgentWidget } from '@/features/ai-agent';
-import { Nav } from '@/shared/ui/Nav';
+import { Nav } from '@/widgets/nav';
 import './globals.css';
 import 'mikro-ui/tokens';
 import 'mikro-ui/styles';
