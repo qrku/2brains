@@ -6,12 +6,6 @@ import { Provider as UrqlProvider } from 'urql';
 import { gqlClient } from '@/shared/api/client';
 import { WorkspaceStoreProvider, useWorkspaceStore } from '@/entities/workspace';
 import { SpaceStoreProvider } from '@/entities/space';
-import { ModulesStoreProvider } from '@/entities/module';
-import { InterviewStoreProvider } from '@/entities/interview';
-import { ExperienceStoreProvider } from '@/entities/experience';
-import { ApplicationStoreProvider } from '@/entities/application';
-import { ProblemStoreProvider } from '@/entities/problem';
-import { UserPacksStoreProvider } from '@/entities/pack';
 import { ProfileStoreProvider } from '@/entities/profile';
 import { AgentStoreProvider } from '@/features/ai-agent';
 
@@ -40,22 +34,10 @@ function WorkspaceScope({ children }: { children: ReactNode }) {
   return (
     <SpaceStoreProvider workspaceId={workspaceId}>
       <AgentStoreProvider>
-        <ModulesStoreProvider workspaceId={workspaceId}>
-          <InterviewStoreProvider workspaceId={workspaceId}>
-            <ExperienceStoreProvider workspaceId={workspaceId}>
-              <ApplicationStoreProvider workspaceId={workspaceId}>
-                <ProblemStoreProvider workspaceId={workspaceId}>
-                  <UserPacksStoreProvider workspaceId={workspaceId}>
-                    <ProfileStoreProvider>
-                      {children}
-                      <ToastProvider />
-                    </ProfileStoreProvider>
-                  </UserPacksStoreProvider>
-                </ProblemStoreProvider>
-              </ApplicationStoreProvider>
-            </ExperienceStoreProvider>
-          </InterviewStoreProvider>
-        </ModulesStoreProvider>
+        <ProfileStoreProvider>
+          {children}
+          <ToastProvider />
+        </ProfileStoreProvider>
       </AgentStoreProvider>
     </SpaceStoreProvider>
   );

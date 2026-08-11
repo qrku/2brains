@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useProfileStore } from '@/entities/profile';
-import { useModulesStore, ALL_MODULES } from '@/entities/module';
 import { useWorkspaceStore } from '@/entities/workspace';
 import { Icon } from '@/shared/ui/Icon';
 
@@ -20,7 +19,6 @@ function BrainIcon() {
 export function Nav() {
   const pathname = usePathname();
   const { state: profileState } = useProfileStore();
-  const { state: modulesState } = useModulesStore();
   const { state: wsState, dispatch: wsDispatch } = useWorkspaceStore();
 
   const [wsOpen, setWsOpen] = useState(false);
@@ -55,7 +53,6 @@ export function Nav() {
   const isBoard = pathname.startsWith('/board');
   const isCalendar = pathname.startsWith('/calendar');
 
-  const enabledModules = ALL_MODULES.filter((m) => modulesState.enabled.includes(m.id));
   const currentWorkspace = wsState.workspaces.find((w) => w.id === wsState.currentId);
 
   function submitAdd() {
@@ -142,16 +139,6 @@ export function Nav() {
         <Link href="/calendar" className={`nav-link${isCalendar ? ' active' : ''}`}>
           Календарь
         </Link>
-
-        {enabledModules.map((mod) => (
-          <Link
-            key={mod.id}
-            href={mod.href}
-            className={`nav-link${pathname.startsWith(mod.href) ? ' active' : ''}`}
-          >
-            {mod.label}
-          </Link>
-        ))}
 
         <div style={{ flex: 1 }} />
 
