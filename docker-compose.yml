@@ -4,7 +4,7 @@ services:
     # ask for it (`docker compose build` / `up --build`) — so local dev builds from
     # source, while the server's plain `docker compose pull` fetches this tag from
     # ghcr.io without ever building anything.
-    image: ghcr.io/qrku/2brain:latest
+    image: ghcr.io/qrku/2brains:latest
     build: .
     ports:
       - '3000:3000'
