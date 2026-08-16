@@ -8,7 +8,7 @@ interface Props {
   onClose: () => void;
   uiProps: PointerTracker['uiProps'];
 }
-
+// Test deploy
 export function BoardSettingsModal({ settings, onChange, onClose, uiProps }: Props) {
   return (
     <div
