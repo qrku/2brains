@@ -253,6 +253,21 @@ jobs:
       contents: read
       packages: read
     steps:
+      - uses: actions/checkout@v7
+
+      # Same docker-compose.yml as local dev (it has both `image` and `build`) —
+      # copied over so the server never needs a hand-edited copy of its own. The app
+      # itself is never git-pulled there; it arrives as the image built above.
+      - name: Sync compose file to server
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: docker-compose.yml
+          target: /opt/2brain
+          overwrite: true
+
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1
         env:

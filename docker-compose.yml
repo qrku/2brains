@@ -1,5 +1,10 @@
 services:
   app:
+    # `image` names the published tag; `build` is only consulted when you explicitly
+    # ask for it (`docker compose build` / `up --build`) — so local dev builds from
+    # source, while the server's plain `docker compose pull` fetches this tag from
+    # ghcr.io without ever building anything.
+    image: ghcr.io/qrku/2brain:latest
     build: .
     ports:
       - '3000:3000'
