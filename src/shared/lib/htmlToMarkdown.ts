@@ -3,6 +3,14 @@
    (contentEditable wraps new lines in <div> on Chrome, <br> on Firefox). */
 
 /**
+ * Текст узла для markdown: nbsp → обычный пробел, zero-width space — прочь
+ * (визуальный редактор ставит его, чтобы вывести каретку из <mark> и подобных).
+ */
+function plainText(s: string): string {
+  return s.replace(/\u00a0/g, ' ').replace(/\u200b/g, '');
+}
+
+/**
  * Text of a code block, preserving the line breaks contentEditable may have turned into <br> or
  * per-line <div> wrappers (Chrome) — DOM textContent would silently drop them and merge the lines.
  */
@@ -29,11 +37,11 @@ function codeText(code: Element): string {
     });
   };
   walk(code);
-  return out.replace(/ /g, ' ').replace(/\n$/, '');
+  return plainText(out).replace(/\n$/, '');
 }
 
 function inlineNode(n: Node): string {
-  if (n.nodeType === Node.TEXT_NODE) return (n.textContent ?? '').replace(/ /g, ' ');
+  if (n.nodeType === Node.TEXT_NODE) return plainText(n.textContent ?? '');
   if (n.nodeType !== Node.ELEMENT_NODE) return '';
   const e = n as Element;
   const t = e.tagName.toLowerCase();
@@ -93,7 +101,7 @@ function listToMd(el: Element, ordered: boolean, indent: string): string {
 
 function nodeToMd(node: Node): string {
   if (node.nodeType === Node.TEXT_NODE) {
-    return (node.textContent ?? '').replace(/ /g, ' ');
+    return plainText(node.textContent ?? '');
   }
   if (node.nodeType !== Node.ELEMENT_NODE) return '';
 

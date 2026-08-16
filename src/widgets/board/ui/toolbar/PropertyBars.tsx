@@ -7,7 +7,7 @@ import {
   type XY,
 } from '@/entities/board';
 import { Icon } from '@/shared/ui/Icon';
-import { ALIGNS, SHAPES } from './config';
+import { ALIGNS, SHAPES } from '../config';
 import { StrokeControls } from './StrokeControls';
 
 /** Three stacked lines whose horizontal offsets encode the alignment. */

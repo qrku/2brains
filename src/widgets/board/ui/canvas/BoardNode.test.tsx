@@ -5,7 +5,7 @@ import { BoardNode, type NodeHandlers } from './BoardNode';
 // BoardNode always calls useSlashMenu, which reaches into the SpaceStore context.
 // These tests exercise render branches, not the slash menu, so stub the hook to an
 // inert, closed menu and keep the component free of provider wiring.
-jest.mock('../model/useSlashMenu', () => ({
+jest.mock('../../model/slashMenu/useSlashMenu', () => ({
   useSlashMenu: () => ({
     open: false,
     x: 0,

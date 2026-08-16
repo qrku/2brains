@@ -198,6 +198,79 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+  # Named `docker-publish` rather than `build` — that job id is already the Next.js
+  # compile step above (feeds the e2e artifact). Only runs on main: PR runs would
+  # otherwise fight over the `latest` tag.
+  docker-publish:
+    name: Publish image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # ghcr.io rejects uppercase in image paths; github.repository inherits whatever
+      # case the org/repo name has, so normalize defensively rather than assume.
+      - name: Resolve image name
+        id: image
+        run: echo "name=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.image.outputs.name }}:latest
+            ${{ steps.image.outputs.name }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [lint, typecheck, test, e2e, docker, audit, docker-publish]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    # Separate from the workflow-level concurrency group above: this one guards the
+    # SSH session specifically, so a second push queues behind the first deploy
+    # instead of racing it, regardless of what else in the workflow is running.
+    concurrency:
+      group: deploy-prod
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1
+        env:
+          GHCR_ACTOR: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          envs: GHCR_ACTOR,GHCR_TOKEN
+          script: |
+            set -e
+            cd /opt/2brain
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_ACTOR" --password-stdin
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker image prune -f
+
   # Single required status check for branch protection: it turns red if any job above
   # failed or was skipped, so new jobs are covered without touching repo settings.
   ci:

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Icon } from '@/shared/ui/Icon';
-import type { SlashMenu } from '../model/useSlashMenu';
+import type { SlashMenu } from '../../model/slashMenu/useSlashMenu';
 
 /**
  * Rendered into document.body: the node it belongs to lives inside the scaled canvas, which

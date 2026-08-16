@@ -1,7 +1,7 @@
 import { Icon } from '@/shared/ui/Icon';
-import type { PointerTracker } from '../model/usePointerTracker';
-import type { Tool } from '../model/types';
-import { TOOLS } from './config';
+import type { PointerTracker } from '../../model/dragging/usePointerTracker';
+import type { Tool } from '../../model/types';
+import { TOOLS } from '../config';
 
 interface Props {
   tool: Tool;

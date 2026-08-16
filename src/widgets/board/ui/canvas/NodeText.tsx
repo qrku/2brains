@@ -1,5 +1,5 @@
 import { Icon } from '@/shared/ui/Icon';
-import type { NoteRef } from './NoteAside';
+import type { NoteRef } from '../NoteAside';
 
 /** Matches the [[space:<id>|<name>]] notation that useSlashMenu inserts. */
 const REF_RE = /\[\[space:([^|]+)\|([^\]]+)\]\]/g;

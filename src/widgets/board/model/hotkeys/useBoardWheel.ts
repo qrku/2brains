@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, type RefObject } from 'react';
-import { viewportPoint } from './pointer';
-import type { BoardStore } from './useBoardStore';
-import type { PointerTracker } from './usePointerTracker';
+import { viewportPoint } from '../dragging/pointer';
+import type { BoardStore } from '../useBoardStore';
+import type { PointerTracker } from '../dragging/usePointerTracker';
 
 const PINCH_ZOOM_STEP = 1.05;
 const WHEEL_ZOOM_STEP = 1.15;

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { toC } from '@/entities/board';
-import type { PointerTracker } from './usePointerTracker';
-import type { BoardStore } from './useBoardStore';
+import type { PointerTracker } from '../dragging/usePointerTracker';
+import type { BoardStore } from '../useBoardStore';
 
 /**
  * Board-wide keys. Everything here is suppressed while a node's text is being edited, so

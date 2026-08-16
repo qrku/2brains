@@ -1,5 +1,5 @@
 import { Icon } from '@/shared/ui/Icon';
-import type { PointerTracker } from '../model/usePointerTracker';
+import type { PointerTracker } from '../../model/dragging/usePointerTracker';
 
 const ZOOM_STEP = 1.25;
 

@@ -2,7 +2,7 @@
 
 import { useEffect, type RefObject } from 'react';
 import { pointerPos } from './pointer';
-import type { BoardStore } from './useBoardStore';
+import type { BoardStore } from '../useBoardStore';
 
 /**
  * Feeds window-level mouse movement into the reducer for the duration of a drag.

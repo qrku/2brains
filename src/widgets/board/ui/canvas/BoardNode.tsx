@@ -11,10 +11,10 @@ import {
   type ResizeEdge,
   type Side,
 } from '@/entities/board';
-import { useSlashMenu } from '../model/useSlashMenu';
+import { useSlashMenu } from '../../model/slashMenu/useSlashMenu';
 import { NodeText } from './NodeText';
-import { SlashMenuPopup } from './SlashMenuPopup';
-import type { NoteRef } from './NoteAside';
+import { SlashMenuPopup } from '../slashMenu/SlashMenuPopup';
+import type { NoteRef } from '../NoteAside';
 
 const SIDES: Side[] = ['n', 's', 'e', 'w'];
 const RESIZE_EDGES: ResizeEdge[] = ['n', 's', 'e', 'w'];
@@ -179,7 +179,7 @@ export const BoardNode = memo(function BoardNode({
               style={{
                 fontSize: node.fontSize,
                 lineHeight: 1.4,
-                color: node.text ? '#111' : '#ccc',
+                color: node.text ? 'var(--ink)' : 'var(--text-5)',
                 textAlign: node.align ?? 'left',
               }}
             >

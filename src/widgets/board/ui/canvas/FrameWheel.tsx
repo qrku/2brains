@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { BNode } from '@/entities/board';
 import { Icon } from '@/shared/ui/Icon';
-import type { PointerTracker } from '../model/usePointerTracker';
+import type { PointerTracker } from '../../model/dragging/usePointerTracker';
 
 const ITEM_H = 38;
 const SLOTS = 5; // visible rows: the centre plus two on each side

@@ -1,6 +1,6 @@
-import { boardReducer, initialBoardState } from './boardReducer';
-import type { BoardAction, BoardState } from './types';
-import type { BoardStore } from './useBoardStore';
+import { boardReducer, initialBoardState } from '../boardReducer';
+import type { BoardAction, BoardState } from '../types';
+import type { BoardStore } from '../useBoardStore';
 import type { McpTool, McpToolResult } from '@/shared/lib/mcp/types';
 import { createBoardTools } from './agentTools';
 

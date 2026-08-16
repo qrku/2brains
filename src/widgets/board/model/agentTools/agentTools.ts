@@ -29,7 +29,7 @@ import {
   toS,
 } from '@/entities/board';
 import { fail, ok, type McpTool, type McpToolResult } from '@/shared/lib/mcp/types';
-import type { BoardStore } from './useBoardStore';
+import type { BoardStore } from '../useBoardStore';
 
 const LIST_LIMIT = 150;
 const TEXT_PREVIEW_MAX = 80;

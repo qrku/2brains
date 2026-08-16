@@ -2,7 +2,7 @@
 
 import { useEffect, type RefObject } from 'react';
 import type { PointerTracker } from './usePointerTracker';
-import type { BoardStore } from './useBoardStore';
+import type { BoardStore } from '../useBoardStore';
 
 /**
  * Scrolls the board when the cursor lingers near a viewport edge, so a node can be dragged

@@ -1,4 +1,4 @@
-import type { PointerTracker } from '../model/usePointerTracker';
+import type { PointerTracker } from '../../model/dragging/usePointerTracker';
 import { StrokeControls } from './StrokeControls';
 
 interface Props {

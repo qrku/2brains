@@ -1,6 +1,6 @@
 import type { BoardSettings } from '@/entities/board';
 import { Icon } from '@/shared/ui/Icon';
-import type { PointerTracker } from '../model/usePointerTracker';
+import type { PointerTracker } from '../../model/dragging/usePointerTracker';
 
 interface Props {
   settings: BoardSettings;

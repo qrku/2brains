@@ -1,5 +1,5 @@
 import type { XY } from '@/entities/board';
-import type { PointerPos } from './types';
+import type { PointerPos } from '../types';
 
 /** Mouse position relative to the viewport box. Works for both React and native mouse events. */
 export function viewportPoint(e: { clientX: number; clientY: number }, vp: HTMLElement | null): XY {

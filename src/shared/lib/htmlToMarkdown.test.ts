@@ -62,4 +62,18 @@ describe('nested lists', () => {
   it('leaves a flat list untouched', () => {
     expect(roundTrip('- a\n- b')).toBe('- a\n- b');
   });
+
+  it('reads the checked state from the attribute the editor toggles', () => {
+    const html =
+      '<ul class="md-ul"><li class="md-li md-task-item">' +
+      '<input type="checkbox" checked class="md-checkbox"> сделано</li></ul>';
+    expect(htmlToMarkdown(html)).toBe('- [x] сделано');
+  });
+});
+
+describe('zero-width spaces', () => {
+  it('drops the ZWSP the editor uses to park the caret outside <mark>', () => {
+    const html = '<p class="md-p"><mark class="md-mark">важно</mark>​ дальше</p>';
+    expect(htmlToMarkdown(html)).toBe('==важно== дальше');
+  });
 });

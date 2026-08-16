@@ -19,7 +19,7 @@ import {
   type Side,
   type XY,
 } from '@/entities/board';
-import type { BoardState } from './types';
+import type { BoardState } from '../types';
 
 export interface EdgeRender {
   id: string;

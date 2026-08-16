@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@/shared/ui/Icon';
-import type { PointerTracker } from '../model/usePointerTracker';
-import type { BoardsStore } from '../model/useBoards';
+import type { PointerTracker } from '../../model/dragging/usePointerTracker';
+import type { BoardsStore } from '../../model/useBoards';
 
 interface Props {
   boards: BoardsStore;

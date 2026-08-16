@@ -8,11 +8,6 @@ import {
   type SubscriptionForwarder,
 } from 'urql';
 
-/**
- * Подписки едут по SSE, а не по WebSocket: Next route handler не умеет
- * Upgrade-хендшейк, а graphql-yoga отдаёт subscriptions через SSE из коробки.
- * Когда появится настоящий бэкенд с WS — меняется только этот exchange.
- */
 const sseSubscription: SubscriptionForwarder = (request) => {
   return {
     subscribe(sink) {

@@ -1,5 +1,5 @@
 import type { BEdge, XY } from '@/entities/board';
-import type { EdgeRender } from '../model/useBoardGeometry';
+import type { EdgeRender } from '../../model/geometry/useBoardGeometry';
 
 /** Invisible fat stroke laid under each arrow so it can be grabbed without pixel-perfect aim. */
 const HIT_STROKE_W = 16;
@@ -59,7 +59,7 @@ export function BoardEdges({
     <svg className="board-svg" aria-hidden>
       {arrows.map(({ id, edge, verts, screenVerts, d }) => {
         const selected = selectedEdge === id;
-        const color = selected ? '#4a90e2' : '#c8c8c8';
+        const color = selected ? 'var(--accent)' : 'var(--text-5)';
         return (
           <g key={id}>
             <path
@@ -95,8 +95,8 @@ export function BoardEdges({
                   cx={screenVerts[i + 1].x}
                   cy={screenVerts[i + 1].y}
                   r={5}
-                  fill="#fff"
-                  stroke="#4a90e2"
+                  fill="var(--paper)"
+                  stroke="var(--accent)"
                   strokeWidth={2}
                   style={{ pointerEvents: 'all', cursor: 'grab' }}
                   onMouseDown={(e) => onBendDown(e, id, i, p)}
@@ -111,7 +111,7 @@ export function BoardEdges({
         <path
           d={previewPath}
           fill="none"
-          stroke="#666"
+          stroke="var(--text-3)"
           strokeWidth={1.5}
           strokeDasharray="5 4"
           opacity={0.7}

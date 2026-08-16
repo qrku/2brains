@@ -11,7 +11,7 @@ export interface NoteRef {
   name: string;
 }
 
-const EMPTY_HTML = '<p style="color:#ccc">Файл пустой</p>';
+const EMPTY_HTML = '<p style="color:var(--text-5)">Файл пустой</p>';
 
 /** Read-only preview of a Space note referenced from a board node. */
 export function NoteAside({ note, onClose }: { note: NoteRef | null; onClose: () => void }) {
