@@ -12,6 +12,12 @@ export const LONG_PRESS_MS = 500;
 /** Дрожь пальца движением не считается; дальше этого порога жест — перетаскивание. */
 const MOVE_TOLERANCE_PX = 10;
 
+/** Точка, где палец стоял всё нажатие, в координатах окна. */
+export interface PressPoint {
+  clientX: number;
+  clientY: number;
+}
+
 export interface LongPress {
   /** Палец стоит и отсчёт идёт — по этому флагу рисуется отклик на нажатие. */
   pressing: boolean;
@@ -29,10 +35,10 @@ export interface LongPress {
  * перетаскивание тем же нажатием, и блок успевает уехать из-под пальца — его
  * собственные события до конца жеста уже не доходят.
  */
-export function useLongPress(onFire: () => void): LongPress {
+export function useLongPress(onFire: (at: PressPoint) => void): LongPress {
   const [pressing, setPressing] = useState(false);
   const timer = useRef(0);
-  const origin = useRef<{ x: number; y: number } | null>(null);
+  const origin = useRef<PressPoint | null>(null);
 
   const cancel = useCallback(() => {
     window.clearTimeout(timer.current);
@@ -43,13 +49,16 @@ export function useLongPress(onFire: () => void): LongPress {
   const start = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse') return;
     window.clearTimeout(timer.current);
-    origin.current = { x: e.clientX, y: e.clientY };
+    const at: PressPoint = { clientX: e.clientX, clientY: e.clientY };
+    origin.current = at;
     setPressing(true);
     timer.current = window.setTimeout(() => {
       origin.current = null;
       setPressing(false);
       haptic();
-      onFire();
+      // Место нажатия, а не текущее положение пальца: за 500 мс он мог сместиться
+      // на пару пикселей, и жест обязан начаться ровно там, где его начали.
+      onFire(at);
     }, LONG_PRESS_MS);
   };
 
@@ -59,7 +68,8 @@ export function useLongPress(onFire: () => void): LongPress {
     const onMove = (e: PointerEvent) => {
       const from = origin.current;
       if (!from) return;
-      if (Math.hypot(e.clientX - from.x, e.clientY - from.y) > MOVE_TOLERANCE_PX) cancel();
+      const away = Math.hypot(e.clientX - from.clientX, e.clientY - from.clientY);
+      if (away > MOVE_TOLERANCE_PX) cancel();
     };
 
     window.addEventListener('pointermove', onMove);

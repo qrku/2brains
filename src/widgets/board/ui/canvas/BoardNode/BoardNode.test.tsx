@@ -42,6 +42,7 @@ function makeNode(overrides: Partial<BNode> = {}): BNode {
 const handlers: NodeHandlers = {
   onDown: jest.fn(),
   onEdit: jest.fn(),
+  onLongPress: jest.fn(),
   onTouchOpen: jest.fn(),
   onConnectorDown: jest.fn(),
   onResizeDown: jest.fn(),
@@ -78,6 +79,7 @@ function renderNode(node: BNode) {
       selected={false}
       soloSelected={false}
       editing={false}
+      dragging={false}
       dropSide={null}
       handlers={handlers}
     />,
@@ -140,6 +142,7 @@ describe('BoardNode render branches', () => {
           selected
           soloSelected={false}
           editing={false}
+          dragging={false}
           dropSide={null}
           handlers={handlers}
         />,
@@ -154,6 +157,7 @@ describe('BoardNode render branches', () => {
           selected={false}
           soloSelected={false}
           editing={false}
+          dragging={false}
           dropSide="n"
           handlers={handlers}
         />,
@@ -200,17 +204,18 @@ describe('долгое нажатие пальцем', () => {
     jest.useRealTimers();
   });
 
-  it('открывает блок и отдаёт вибрацию, когда палец простоял на месте', () => {
+  it('берёт блок в руку и отдаёт вибрацию, когда палец простоял на месте', () => {
     const root = renderNode(makeNode());
 
     pressAt(root);
     hold();
 
-    expect(handlers.onTouchOpen).toHaveBeenCalledWith('n1');
+    // Перенос начинается там, где палец опустился, а не там, где он к концу отсчёта.
+    expect(handlers.onLongPress).toHaveBeenCalledWith('n1', { clientX: 50, clientY: 50 });
     expect(haptic).toHaveBeenCalled();
   });
 
-  it('простой тап только выделяет: панель и правка не всплывают', () => {
+  it('простой тап только выделяет: ни переноса, ни правки', () => {
     const root = renderNode(makeNode());
 
     pressAt(root);
@@ -218,17 +223,18 @@ describe('долгое нажатие пальцем', () => {
     hold();
 
     expect(handlers.onDown).toHaveBeenCalled();
+    expect(handlers.onLongPress).not.toHaveBeenCalled();
     expect(handlers.onTouchOpen).not.toHaveBeenCalled();
   });
 
-  it('уехавший палец — это перенос, а не долгое нажатие', () => {
+  it('уехавший палец обрывает жест: доску листают тем же движением', () => {
     const root = renderNode(makeNode());
 
     pressAt(root);
     fireEvent.pointerMove(window, { clientX: 90, clientY: 50 });
     hold();
 
-    expect(handlers.onTouchOpen).not.toHaveBeenCalled();
+    expect(handlers.onLongPress).not.toHaveBeenCalled();
   });
 
   it('дрожь пальца отсчёт не сбивает', () => {
@@ -238,17 +244,35 @@ describe('долгое нажатие пальцем', () => {
     fireEvent.pointerMove(window, { clientX: 54, clientY: 53 });
     hold();
 
-    expect(handlers.onTouchOpen).toHaveBeenCalledWith('n1');
+    expect(handlers.onLongPress).toHaveBeenCalledWith('n1', { clientX: 50, clientY: 50 });
   });
 
-  it('на мыши жеста нет — там для этого двойной клик и выделение', () => {
+  it('на мыши жеста нет — там перенос начинает само нажатие', () => {
     const root = renderNode(makeNode());
 
     fireEvent.pointerDown(root, { pointerType: 'mouse', clientX: 50, clientY: 50, button: 0 });
     hold();
 
-    expect(handlers.onTouchOpen).not.toHaveBeenCalled();
+    expect(handlers.onLongPress).not.toHaveBeenCalled();
     expect(handlers.onDown).toHaveBeenCalled();
+  });
+});
+
+describe('двойной тап', () => {
+  /** Два быстрых касания подряд в одной точке. */
+  const doubleTap = (el: HTMLElement) => {
+    const at = { pointerType: 'touch', clientX: 50, clientY: 50, button: 0 };
+    fireEvent.pointerDown(el, at);
+    fireEvent.pointerUp(window, at);
+    fireEvent.pointerDown(el, at);
+  };
+
+  it('открывает блок на правку вместе с панелью', () => {
+    const root = renderNode(makeNode());
+
+    doubleTap(root);
+
+    expect(handlers.onTouchOpen).toHaveBeenCalledWith('n1');
   });
 
   it('рисунок панель тоже открывает — правит она обводку, а не текст', () => {
@@ -262,10 +286,18 @@ describe('долгое нажатие пальцем', () => {
       }),
     );
 
-    pressAt(root);
-    hold();
+    doubleTap(root);
 
     expect(handlers.onTouchOpen).toHaveBeenCalledWith('n1');
+  });
+
+  it('второе касание не уезжает в перенос', () => {
+    const root = renderNode(makeNode());
+
+    doubleTap(root);
+
+    // Первое касание блок выделило, второе — только открыло: `onDown` ровно один.
+    expect(handlers.onDown).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -277,6 +309,7 @@ describe('кнопка файла ноды', () => {
         selected={false}
         soloSelected={false}
         editing={false}
+        dragging={false}
         dropSide={null}
         handlers={handlers}
         {...props}
@@ -336,6 +369,7 @@ describe('связанная копия', () => {
         selected={false}
         soloSelected={false}
         editing={false}
+        dragging={false}
         dropSide={null}
         fileId="f1"
         fileName="Кэширование.md"

@@ -30,6 +30,7 @@ import { useBoardPinch } from '../../../model/hotkeys/useBoardPinch';
 import { useBoardWheel } from '../../../model/hotkeys/useBoardWheel';
 import { useDragMachine } from '../../../model/dragging/useDragMachine';
 import { useEdgePan } from '../../../model/dragging/useEdgePan';
+import { useLongPress, type PressPoint } from '../../../model/dragging/useLongPress';
 import { usePointerTracker } from '../../../model/dragging/usePointerTracker';
 import { viewportPoint } from '../../../model/dragging/pointer';
 import { BoardBottomBar } from '../../toolbar/BoardBottomBar/BoardBottomBar';
@@ -216,6 +217,12 @@ export function BoardCanvas() {
     return [...nodes.filter((n) => n.kind === 'frame'), ...nodes.filter((n) => n.kind !== 'frame')];
   }, [nodes]);
 
+  /** Блоки, едущие за указателем прямо сейчас: на пальце они рисуются приподнятыми. */
+  const draggingIds = useMemo(
+    () => new Set(state.drag.type === 'nodes' ? state.drag.ids : []),
+    [state.drag],
+  );
+
   // Frames listed for the jump rail, ordered the way they read on the canvas: top-to-bottom.
   const frames = useMemo(
     () => nodes.filter((n) => n.kind === 'frame').sort((a, b) => a.y - b.y || a.x - b.x),
@@ -236,6 +243,25 @@ export function BoardCanvas() {
 
   /** Время и место предыдущего касания холста — по ним распознаётся двойной тап. */
   const lastTap = useRef<{ t: number; x: number; y: number } | null>(null);
+
+  /**
+   * Зажатый пустой холст переходит из переноса доски в рамку выделения.
+   *
+   * Одним пальцем доску листают постоянно, поэтому обычное движение осталось
+   * переносом; рамка — тот же жест, что и захват блока, только на пустом месте.
+   * Отмена начатого переноса обязательна: доска уже поехала за пальцем, и без
+   * неё рамка тянулась бы по едущему холсту.
+   */
+  const viewportPress = useLongPress(
+    useCallback(
+      (at: PressPoint) => {
+        dispatch({ type: 'DRAG_CANCEL' });
+        const { x, y } = viewportPoint(at, vpRef.current);
+        dispatch({ type: 'DRAG_START', drag: { type: 'select', sx: x, sy: y, ex: x, ey: y } });
+      },
+      [dispatch],
+    ),
+  );
 
   // Only fires for presses that reach the viewport itself — nodes and panels stop propagation.
   const onViewportDown = (e: React.PointerEvent) => {
@@ -258,7 +284,13 @@ export function BoardCanvas() {
         type: 'DRAG_START',
         drag: { type: 'pan', startX: e.clientX, startY: e.clientY, ox: view.x, oy: view.y },
       });
-      if (touchPan) handleTap(e);
+      if (touchPan) {
+        // Пустое место — это «ничего не выбрано»: тап по нему снимает выделение,
+        // даже если следом окажется переносом доски.
+        dispatch({ type: 'SELECT', ids: [] });
+        viewportPress.start(e);
+        handleTap(e);
+      }
       return;
     }
     if (e.button !== 0) return;
@@ -296,6 +328,7 @@ export function BoardCanvas() {
     if (Math.hypot(e.clientX - prev.x, e.clientY - prev.y) > 24) return;
 
     lastTap.current = null;
+    viewportPress.cancel();
     dispatch({ type: 'DRAG_CANCEL' });
     addNodeAt(e);
   };
@@ -313,13 +346,53 @@ export function BoardCanvas() {
 
   /* ── Nodes ────────────────────────────────────────────────────────── */
 
+  /**
+   * Заводит перенос блоков. Отдельно от обработчика нажатия, потому что источников
+   * два: мышь начинает перенос сразу, а палец — только после долгого нажатия.
+   *
+   * `ids` приходит снаружи, а не читается из состояния: выделение могло быть
+   * отправлено секунду назад тем же обработчиком, а `stateRef` обновляется
+   * эффектом — то есть уже после того, как обработчик закончится.
+   */
+  const beginNodeDrag = useCallback(
+    (ids: string[], at: { clientX: number; clientY: number }) => {
+      const { nodes } = stateRef.current;
+
+      // Dragging a frame carries its contents: fold every node currently inside a selected frame
+      // into the move set, so the frame behaves as one logical unit. Membership is purely spatial,
+      // so a block simply dropped inside a frame is picked up next time the frame moves.
+      const moving = new Set(ids);
+      for (const n of nodes) {
+        if (n.kind === 'frame' && ids.includes(n.id)) {
+          for (const m of nodesInFrame(nodes, n)) moving.add(m.id);
+        }
+      }
+
+      const origins: Record<string, XY> = {};
+      for (const n of nodes) {
+        if (moving.has(n.id)) origins[n.id] = { x: n.x, y: n.y };
+      }
+      dispatch({
+        type: 'DRAG_START',
+        drag: {
+          type: 'nodes',
+          ids: [...moving],
+          startX: at.clientX,
+          startY: at.clientY,
+          origins,
+        },
+      });
+    },
+    [dispatch, stateRef],
+  );
+
   // Stable for the component's lifetime — see NodeHandlers on why that matters.
   const nodeHandlers = useMemo<NodeHandlers>(
     () => ({
       onDown: (e, node) => {
         if (e.button !== 0) return;
         e.stopPropagation();
-        const { editing, selected, nodes } = stateRef.current;
+        const { editing, selected } = stateRef.current;
 
         // Keep the contentEditable focused while dragging the node it belongs to.
         if (editing === node.id) e.preventDefault();
@@ -341,24 +414,18 @@ export function BoardCanvas() {
           dispatch({ type: 'SELECT', ids });
         }
 
-        // Dragging a frame carries its contents: fold every node currently inside a selected frame
-        // into the move set, so the frame behaves as one logical unit. Membership is purely spatial,
-        // so a block simply dropped inside a frame is picked up next time the frame moves.
-        const moving = new Set(ids);
-        for (const n of nodes) {
-          if (n.kind === 'frame' && ids.includes(n.id)) {
-            for (const m of nodesInFrame(nodes, n)) moving.add(m.id);
-          }
-        }
+        // Мышью нажатие и есть начало переноса. Пальцем — только выделение: перенос
+        // ждёт долгого нажатия, иначе доску не пролистать, не сдвинув то, за что взялся.
+        if (e.pointerType === 'mouse') beginNodeDrag(ids, e);
+      },
 
-        const origins: Record<string, XY> = {};
-        for (const n of nodes) {
-          if (moving.has(n.id)) origins[n.id] = { x: n.x, y: n.y };
-        }
-        dispatch({
-          type: 'DRAG_START',
-          drag: { type: 'nodes', ids: [...moving], startX: e.clientX, startY: e.clientY, origins },
-        });
+      onLongPress: (id, at) => {
+        const { nodes, selected } = stateRef.current;
+        if (!nodes.some((n) => n.id === id)) return;
+
+        markGestureLearned();
+        // Выделение уже случилось на касании — группу, если блок в ней, несём целиком.
+        beginNodeDrag(selected.includes(id) ? selected : [id], at);
       },
 
       onEdit: (id) => {
@@ -414,7 +481,7 @@ export function BoardCanvas() {
       onBlur: () => dispatch({ type: 'EDIT', id: null }),
       onOpenNote: setNote,
     }),
-    [dispatch, stateRef, markGestureLearned],
+    [dispatch, stateRef, beginNodeDrag, markGestureLearned],
   );
 
   /* ── Edges ────────────────────────────────────────────────────────── */
@@ -544,6 +611,7 @@ export function BoardCanvas() {
                 selected={selected.includes(node.id)}
                 soloSelected={selected.length === 1 && selected[0] === node.id}
                 editing={editing === node.id}
+                dragging={draggingIds.has(node.id)}
                 dropSide={geom.dropTargetId === node.id ? geom.dropTargetSide : null}
                 fileId={mirror?.id}
                 fileName={mirror?.name}

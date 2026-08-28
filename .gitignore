@@ -4,7 +4,9 @@ node_modules/
 .pnp.js
 
 # next.js
-.next/
+# Шаблон, а не одно `.next/`: любой каталог сборки, попавший под `git add .`,
+# уходит в lint-staged, и prettier с eslint валят на нём коммит целиком.
+.next*/
 out/
 build/
 .vercel/
