@@ -5,9 +5,30 @@
   /* Как и холст: без этого браузер отменяет перетаскивание блока пальцем,
      приняв его за прокрутку. */
   touch-action: none;
+  /* Долгое нажатие — наш жест. Без этого iOS перехватывает его первым и
+     показывает своё меню с лупой и «Скопировать». */
+  -webkit-touch-callout: none;
+  /* Возврат из `pressing`, когда жест оборвали: класс снимается мгновенно, а
+     блок должен осесть плавно. */
+  transition: transform 0.12s ease-out;
 }
 .board-node.sel {
   cursor: default;
+}
+
+/* Отклик на долгое нажатие: блок подрастает ровно столько, сколько нужно держать
+   палец (LONG_PRESS_MS в useLongPress). Само движение и есть индикатор — по нему
+   видно, что жест начался и сколько осталось. */
+.board-node.pressing {
+  animation: node-press 500ms ease-out forwards;
+}
+@keyframes node-press {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.04);
+  }
 }
 
 /* Shape background layer */
@@ -150,6 +171,19 @@
 .frame-label.editing {
   overflow: visible;
   text-overflow: clip;
+}
+
+/* Пока текст правят с пальца, размер шрифта поднимается до порога iOS (16px —
+   см. globals.css): ниже него Safari наезжает на страницу и обратно масштаб не
+   отдаёт, а на холсте отщипнуть его нельзя — доска забирает жесты себе.
+   Правило висит на времени правки, поэтому вне её нода выглядит как задумано,
+   а размеры шрифта в модели остаются нетронутыми. `!important` — потому что
+   свой `fontSize` нода задаёт инлайном, а инлайн сильнее класса. */
+@media (pointer: coarse) {
+  .board-node-text.editing,
+  .frame-label.editing {
+    font-size: 16px !important;
+  }
 }
 .bk-frame.sel .frame-label {
   color: var(--accent);

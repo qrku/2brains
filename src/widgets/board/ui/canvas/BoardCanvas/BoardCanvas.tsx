@@ -22,6 +22,7 @@ import { useSpaceStore } from '@/entities/space';
 import { useWorkspaceStore } from '@/entities/workspace';
 import { createBoardTools } from '../../../model/agentTools/agentTools';
 import { useBoards } from '../../../model/useBoards';
+import { useGestureHint } from '../../../model/useGestureHint';
 import { useBoardStore } from '../../../model/useBoardStore';
 import { useBoardGeometry, viewportCursor } from '../../../model/geometry/useBoardGeometry';
 import { useBoardHotkeys } from '../../../model/hotkeys/useBoardHotkeys';
@@ -39,6 +40,7 @@ import { BoardSettingsModal } from '../../settings/BoardSettingsModal/BoardSetti
 import { BoardSwitcher } from '../../switcher/BoardSwitcher/BoardSwitcher';
 import { BoardToolbar } from '../../toolbar/BoardToolbar/BoardToolbar';
 import { FrameWheel } from '../FrameWheel/FrameWheel';
+import { GestureHint } from '../../GestureHint/GestureHint';
 import { NoteAside, type NoteRef } from '../../NoteAside/NoteAside';
 import { PasteModePopup } from '../../paste/PasteModePopup/PasteModePopup';
 import { PenPanel } from '../../toolbar/PenPanel/PenPanel';
@@ -48,6 +50,7 @@ import {
   NodePropertyBar,
 } from '../../toolbar/PropertyBars/PropertyBars';
 import { cx } from '@/shared/lib/cx';
+import { useMediaQuery } from '@/shared/lib/useMediaQuery';
 import styles from './BoardCanvas.module.css';
 
 export function BoardCanvas() {
@@ -132,6 +135,19 @@ export function BoardCanvas() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [note, setNote] = useState<NoteRef | null>(null);
 
+  /**
+   * Блок, которому открыли панель свойств пальцем.
+   *
+   * На мыши панель показывается на выделение, и отдельного состояния ей не
+   * нужно. Пальцем выделяют постоянно — тапом перед переносом или стрелкой, — и
+   * панель на каждый такой тап закрывала бы полдоски. Поэтому её вызывают
+   * отдельным жестом (долгое нажатие, см. useLongPress), а здесь помнится, для
+   * кого именно она открыта.
+   */
+  const touchUi = useMediaQuery('(pointer: coarse)');
+  const [toolsFor, setToolsFor] = useState<string | null>(null);
+  const { visible: hintVisible, show: showHint, markGestureLearned } = useGestureHint();
+
   // Нода, из которой открыта панель: по ней решается, есть ли что отвязывать.
   const noteNode = useMemo(
     () => (note?.nodeId ? (state.nodes.find((n) => n.id === note.nodeId) ?? null) : null),
@@ -179,6 +195,20 @@ export function BoardCanvas() {
 
   const { view, tool, nodes, selected, selectedEdge, editing } = state;
 
+  /**
+   * Момент, когда подсказка про долгое нажатие уместна: блок выбран пальцем,
+   * жест закончился, а дальше ничего не произошло — ни правки, ни панели. Ровно
+   * здесь человек и упирается в то, что тап больше ничего не открывает.
+   *
+   * Условие про `drag` обязательно: тап заводит перенос ещё до того, как палец
+   * оторвётся, и без него подсказка всплывала бы прямо под движущимся блоком.
+   */
+  useEffect(() => {
+    if (!touchUi || editing || toolsFor) return;
+    if (selected.length !== 1 || state.drag.type !== 'none') return;
+    showHint();
+  }, [touchUi, editing, toolsFor, selected, state.drag.type, showHint]);
+
   // Frames are containers, so they paint behind everything else. A stable partition (rather than a
   // sort) keeps each node's relative order — and thus its React key position — untouched.
   const renderNodes = useMemo(() => {
@@ -215,6 +245,7 @@ export function BoardCanvas() {
 
     if (editing) dispatch({ type: 'EDIT', id: null });
     dispatch({ type: 'SELECT_EDGE', id: null });
+    setToolsFor(null);
 
     // Middle button, Space+LMB, or the hand tool all mean "pan".
     // Пальцем по пустому холсту — тоже перенос: рамка выделения там ничего не
@@ -293,6 +324,8 @@ export function BoardCanvas() {
         // Keep the contentEditable focused while dragging the node it belongs to.
         if (editing === node.id) e.preventDefault();
         dispatch({ type: 'SELECT_EDGE', id: null });
+        // Панель принадлежит одному блоку: касание любого другого её закрывает.
+        setToolsFor((cur) => (cur === node.id ? cur : null));
 
         let ids: string[];
         if (e.ctrlKey || e.metaKey) {
@@ -336,6 +369,21 @@ export function BoardCanvas() {
         dispatch({ type: 'EDIT', id });
       },
 
+      onTouchOpen: (id) => {
+        const node = stateRef.current.nodes.find((n) => n.id === id);
+        if (!node) return;
+
+        // Нажатие уже завело перенос блока: без отмены палец, оставшийся на
+        // экране, таскал бы открытый на правку блок за собой.
+        dispatch({ type: 'DRAG_CANCEL' });
+        setToolsFor(id);
+        markGestureLearned();
+
+        // Рисунку править нечего, связанной копии — негде (текст ведёт оригинал);
+        // панель со свойствами им всё равно полагается.
+        if (node.kind !== 'draw' && !node.link) dispatch({ type: 'EDIT', id });
+      },
+
       onConnectorDown: (e, node, side) => {
         dispatch({ type: 'SELECT_EDGE', id: null });
         const { x, y } = viewportPoint(e, vpRef.current);
@@ -366,7 +414,7 @@ export function BoardCanvas() {
       onBlur: () => dispatch({ type: 'EDIT', id: null }),
       onOpenNote: setNote,
     }),
-    [dispatch, stateRef],
+    [dispatch, stateRef, markGestureLearned],
   );
 
   /* ── Edges ────────────────────────────────────────────────────────── */
@@ -416,7 +464,24 @@ export function BoardCanvas() {
     dispatch({ type: 'DELETE_EDGE_POINT', edgeId, index });
   };
 
-  const deleteSelection = () => dispatch({ type: 'DELETE_SELECTION' });
+  const deleteSelection = () => {
+    setToolsFor(null);
+    dispatch({ type: 'DELETE_SELECTION' });
+  };
+
+  const closeTools = () => {
+    setToolsFor(null);
+    dispatch({ type: 'EDIT', id: null });
+  };
+
+  /**
+   * Кому показывать панель свойств: пальцу — тому блоку, который открыли жестом,
+   * мыши — просто выделенному. Пальцем панель держится и во время правки, ради
+   * неё жест и делался; на мыши она в правку не лезет, там хватает выделения.
+   */
+  const propsNode = touchUi
+    ? (nodes.find((n) => n.id === toolsFor) ?? null)
+    : geom.propsAnchor && geom.selectedNode;
 
   /**
    * Разрывает связь: нода становится самостоятельной копией со своим файлом.
@@ -529,23 +594,18 @@ export function BoardCanvas() {
           />
         ))}
 
-        {geom.selectedNode && geom.propsAnchor && (
+        {propsNode && (
           <NodePropertyBar
-            at={geom.propsAnchor}
-            node={geom.selectedNode}
-            onFontSize={(delta) =>
-              dispatch({ type: 'FONT_SIZE', id: geom.selectedNode!.id, delta })
-            }
-            onShape={(shape) => dispatch({ type: 'SET_SHAPE', id: geom.selectedNode!.id, shape })}
-            onAlign={(align) => dispatch({ type: 'SET_ALIGN', id: geom.selectedNode!.id, align })}
-            onStrokeColor={(color) =>
-              dispatch({ type: 'STROKE_COLOR', id: geom.selectedNode!.id, color })
-            }
-            onStrokeWidth={(delta) =>
-              dispatch({ type: 'STROKE_WIDTH', id: geom.selectedNode!.id, delta })
-            }
+            at={touchUi ? null : geom.propsAnchor}
+            node={propsNode}
+            onFontSize={(delta) => dispatch({ type: 'FONT_SIZE', id: propsNode.id, delta })}
+            onShape={(shape) => dispatch({ type: 'SET_SHAPE', id: propsNode.id, shape })}
+            onAlign={(align) => dispatch({ type: 'SET_ALIGN', id: propsNode.id, align })}
+            onStrokeColor={(color) => dispatch({ type: 'STROKE_COLOR', id: propsNode.id, color })}
+            onStrokeWidth={(delta) => dispatch({ type: 'STROKE_WIDTH', id: propsNode.id, delta })}
             onDelete={deleteSelection}
-            onUnlink={geom.selectedNode.link ? () => unlink([geom.selectedNode!]) : undefined}
+            onUnlink={propsNode.link ? () => unlink([propsNode]) : undefined}
+            onClose={touchUi ? closeTools : undefined}
           />
         )}
 
@@ -604,6 +664,7 @@ export function BoardCanvas() {
         )}
 
         <BoardHint tool={tool} />
+        <GestureHint visible={hintVisible} />
 
         {settingsOpen && (
           <BoardSettingsModal

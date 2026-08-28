@@ -45,12 +45,18 @@ function AlignGlyph({ align }: { align: TextAlign }) {
   );
 }
 
-/** Floating bar pinned above whatever is selected. */
-function Bar({ at, children }: { at: XY; children: React.ReactNode }) {
+/**
+ * Floating bar pinned above whatever is selected.
+ *
+ * `at: null` — вариант для пальца: панель не привязана к блоку, а встаёт полосой
+ * сверху холста. Блок в этот момент правят, то есть он под пальцем и наполовину
+ * под клавиатурой, а панель над ним то и дело оказывалась бы за краем экрана.
+ */
+function Bar({ at, children }: { at: XY | null; children: React.ReactNode }) {
   return (
     <div
-      className={styles['board-props']}
-      style={{ left: at.x, top: at.y }}
+      className={cx(styles['board-props'], !at && styles.docked)}
+      style={at ? { left: at.x, top: at.y } : undefined}
       onPointerDown={(e) => e.stopPropagation()}
     >
       {children}
@@ -71,7 +77,8 @@ function DeleteButton({ onDelete }: { onDelete: () => void }) {
 }
 
 interface NodeBarProps {
-  at: XY;
+  /** `null` — панель полосой сверху холста, см. `Bar`. */
+  at: XY | null;
   node: BNode;
   onFontSize: (delta: number) => void;
   onShape: (shape: NodeShape) => void;
@@ -81,6 +88,8 @@ interface NodeBarProps {
   onDelete: () => void;
   /** Разорвать связь с оригиналом; передаётся только для связанной копии. */
   onUnlink?: () => void;
+  /** Закрыть панель. Есть только у варианта для пальца: мышь закрывает её выделением. */
+  onClose?: () => void;
 }
 
 export function NodePropertyBar({
@@ -93,6 +102,7 @@ export function NodePropertyBar({
   onStrokeWidth,
   onDelete,
   onUnlink,
+  onClose,
 }: NodeBarProps) {
   return (
     <Bar at={at}>
@@ -168,6 +178,12 @@ export function NodePropertyBar({
       )}
       <div className={styles['bp-sep']} />
       <DeleteButton onDelete={onDelete} />
+      {/* Своей строкой во всю ширину — разделитель ей не нужен, её отбивает сам перенос. */}
+      {onClose && (
+        <button className={cx(styles['bp-btn'], styles['bp-done'])} onClick={onClose}>
+          Готово
+        </button>
+      )}
     </Bar>
   );
 }

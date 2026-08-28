@@ -1,0 +1,30 @@
+/* Подсказка про жест: тёмная пилюля над нижней панелью — тот же словарь, что у
+   панели свойств, чтобы читалась как часть доски, а не как системное окно.
+   Отступ снизу обходит панель масштаба, `env()` — жест-полоску айфона. */
+.board-gesture-hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  /* Без явной ширины строка ужалась бы до половины экрана: элемент прижат
+     `left: 50%`, и свободного места ему остаётся ровно столько. */
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 9px 15px;
+  border-radius: 999px;
+  background: var(--dark-chrome);
+  color: var(--paper);
+  font-size: 12.5px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+  z-index: 205;
+  /* Подсказка ничего не ловит: под ней холст, и тап должен доходить до него. */
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 6px);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+.board-gesture-hint.on {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}

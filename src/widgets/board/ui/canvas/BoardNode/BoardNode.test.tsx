@@ -1,7 +1,11 @@
-import { render } from '@testing-library/react';
+import { act, fireEvent, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { BNode } from '@/entities/board';
+import { haptic } from '@/shared/lib/haptics';
+import { LONG_PRESS_MS } from '../../../model/dragging/useLongPress';
 import { BoardNode, type NodeHandlers } from './BoardNode';
+
+jest.mock('@/shared/lib/haptics', () => ({ haptic: jest.fn() }));
 
 // BoardNode always calls useSlashMenu, which reaches into the SpaceStore context.
 // These tests exercise render branches, not the slash menu, so stub the hook to an
@@ -38,12 +42,34 @@ function makeNode(overrides: Partial<BNode> = {}): BNode {
 const handlers: NodeHandlers = {
   onDown: jest.fn(),
   onEdit: jest.fn(),
+  onTouchOpen: jest.fn(),
   onConnectorDown: jest.fn(),
   onResizeDown: jest.fn(),
   onTextInput: jest.fn(),
   onBlur: jest.fn(),
   onOpenNote: jest.fn(),
 };
+
+// Обработчики общие на весь файл: без сброса вызовы из одного теста дочитываются в другом.
+beforeEach(() => {
+  for (const fn of Object.values(handlers)) (fn as jest.Mock).mockClear();
+});
+
+/**
+ * В jsdom нет PointerEvent, и `fireEvent` шлёт вместо него голый `Event` — а с
+ * ним теряются и вид указателя, и координаты, то есть ровно то, чем один жест
+ * отличается от другого. MouseEvent несёт координаты сам, дописать нужно только
+ * `pointerType`.
+ */
+class TestPointerEvent extends MouseEvent {
+  readonly pointerType: string;
+
+  constructor(type: string, init: MouseEventInit & { pointerType?: string } = {}) {
+    super(type, init);
+    this.pointerType = init.pointerType ?? '';
+  }
+}
+(window as unknown as { PointerEvent: unknown }).PointerEvent = TestPointerEvent;
 
 function renderNode(node: BNode) {
   const { container } = render(
@@ -151,6 +177,95 @@ describe('BoardNode render branches', () => {
       const root = renderNode(makeNode({ shape: 'rect', w: 100, h: 60 }));
       expect(root).toHaveStyle({ width: '100px', height: '60px' });
     });
+  });
+});
+
+describe('долгое нажатие пальцем', () => {
+  /** Палец опустился на блок в точке (x, y). */
+  const pressAt = (el: HTMLElement, x = 50, y = 50) =>
+    fireEvent.pointerDown(el, { pointerType: 'touch', clientX: x, clientY: y, button: 0 });
+
+  /** Прокрутить отсчёт до конца — жест должен сработать сам. */
+  const hold = () =>
+    act(() => {
+      jest.advanceTimersByTime(LONG_PRESS_MS);
+    });
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    (haptic as jest.Mock).mockClear();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('открывает блок и отдаёт вибрацию, когда палец простоял на месте', () => {
+    const root = renderNode(makeNode());
+
+    pressAt(root);
+    hold();
+
+    expect(handlers.onTouchOpen).toHaveBeenCalledWith('n1');
+    expect(haptic).toHaveBeenCalled();
+  });
+
+  it('простой тап только выделяет: панель и правка не всплывают', () => {
+    const root = renderNode(makeNode());
+
+    pressAt(root);
+    fireEvent.pointerUp(window, { clientX: 50, clientY: 50 });
+    hold();
+
+    expect(handlers.onDown).toHaveBeenCalled();
+    expect(handlers.onTouchOpen).not.toHaveBeenCalled();
+  });
+
+  it('уехавший палец — это перенос, а не долгое нажатие', () => {
+    const root = renderNode(makeNode());
+
+    pressAt(root);
+    fireEvent.pointerMove(window, { clientX: 90, clientY: 50 });
+    hold();
+
+    expect(handlers.onTouchOpen).not.toHaveBeenCalled();
+  });
+
+  it('дрожь пальца отсчёт не сбивает', () => {
+    const root = renderNode(makeNode());
+
+    pressAt(root);
+    fireEvent.pointerMove(window, { clientX: 54, clientY: 53 });
+    hold();
+
+    expect(handlers.onTouchOpen).toHaveBeenCalledWith('n1');
+  });
+
+  it('на мыши жеста нет — там для этого двойной клик и выделение', () => {
+    const root = renderNode(makeNode());
+
+    fireEvent.pointerDown(root, { pointerType: 'mouse', clientX: 50, clientY: 50, button: 0 });
+    hold();
+
+    expect(handlers.onTouchOpen).not.toHaveBeenCalled();
+    expect(handlers.onDown).toHaveBeenCalled();
+  });
+
+  it('рисунок панель тоже открывает — правит она обводку, а не текст', () => {
+    const root = renderNode(
+      makeNode({
+        kind: 'draw',
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 1 },
+        ],
+      }),
+    );
+
+    pressAt(root);
+    hold();
+
+    expect(handlers.onTouchOpen).toHaveBeenCalledWith('n1');
   });
 });
 

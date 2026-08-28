@@ -12,6 +12,7 @@ import {
   type ResizeEdge,
   type Side,
 } from '@/entities/board';
+import { useLongPress } from '../../../model/dragging/useLongPress';
 import { useSlashMenu } from '../../../model/slashMenu/useSlashMenu';
 import { NodeText } from '../NodeText/NodeText';
 import { SlashMenuPopup } from '../../slashMenu/SlashMenuPopup/SlashMenuPopup';
@@ -31,6 +32,13 @@ const RESIZE_CORNERS: ResizeEdge[] = ['nw', 'ne', 'sw', 'se'];
 export interface NodeHandlers {
   onDown: (e: React.PointerEvent, node: BNode) => void;
   onEdit: (id: string) => void;
+  /**
+   * Палец открыл блок: правка текста и панель свойств разом. Отдельно от
+   * `onEdit`, потому что панель на телефоне вызывается жестом, а не выделением,
+   * и потому что у блоков без текста (рисунок) открывать на правку нечего —
+   * панель им всё равно нужна.
+   */
+  onTouchOpen: (id: string) => void;
   onConnectorDown: (e: React.PointerEvent, node: BNode, side: Side) => void;
   onResizeDown: (e: React.PointerEvent, node: BNode, edge: ResizeEdge) => void;
   onTextInput: (id: string, text: string) => void;
@@ -123,6 +131,13 @@ export const BoardNode = memo(function BoardNode({
   );
 
   /**
+   * Долгое нажатие — то же, что двойной тап: блок открывается на правку вместе с
+   * панелью свойств. Простой тап оставлен под выделение, перенос и стрелки:
+   * панель, всплывающая на каждое касание, закрывала бы полдоски.
+   */
+  const press = useLongPress(useCallback(() => handlers.onTouchOpen(node.id), [handlers, node.id]));
+
+  /**
    * Второй быстрый тап по блоку открывает его на правку — тем же жестом, что и
    * двойной клик мышью, которого на касании браузер не присылает.
    *
@@ -144,15 +159,18 @@ export const BoardNode = memo(function BoardNode({
       if (isDoubleTap) {
         lastTap.current = null;
         e.stopPropagation();
-        if (!isDraw) handlers.onEdit(node.id);
+        press.cancel();
+        handlers.onTouchOpen(node.id);
         return;
       }
+      press.start(e);
     }
     handlers.onDown(e, node);
   };
 
   const className = cx(
     styles['board-node'],
+    press.pressing && styles.pressing,
     isText && styles['bk-text'],
     isDraw && styles['draw-kind'],
     isFrame && styles['bk-frame'],
@@ -217,7 +235,7 @@ export const BoardNode = memo(function BoardNode({
             <div
               key="editable"
               ref={editorRef}
-              className={styles['board-node-text']}
+              className={cx(styles['board-node-text'], styles.editing)}
               style={{ fontSize: node.fontSize, lineHeight: 1.4, textAlign: node.align ?? 'left' }}
               contentEditable
               suppressContentEditableWarning
