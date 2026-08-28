@@ -173,19 +173,44 @@ export function nodesInRect(nodes: BNode[], c1: XY, c2: XY): BNode[] {
   return nodes.filter((n) => n.x + n.w > x1 && n.x < x2 && n.y + n.h > y1 && n.y < y2);
 }
 
+/** Whether a node counts as living inside a frame: its centre lies within the frame's box. */
+function insideFrame(node: BNode, frame: BNode): boolean {
+  const cx = node.x + node.w / 2;
+  const cy = node.y + node.h / 2;
+  return (
+    node.id !== frame.id &&
+    node.kind !== 'frame' &&
+    cx > frame.x &&
+    cx < frame.x + frame.w &&
+    cy > frame.y &&
+    cy < frame.y + frame.h
+  );
+}
+
 /** A frame's logical contents: non-frame nodes whose centre lies inside its box. */
 export function nodesInFrame(nodes: BNode[], frame: BNode): BNode[] {
-  const cx = (n: BNode) => n.x + n.w / 2;
-  const cy = (n: BNode) => n.y + n.h / 2;
-  return nodes.filter(
-    (n) =>
-      n.id !== frame.id &&
-      n.kind !== 'frame' &&
-      cx(n) > frame.x &&
-      cx(n) < frame.x + frame.w &&
-      cy(n) > frame.y &&
-      cy(n) < frame.y + frame.h,
-  );
+  return nodes.filter((n) => insideFrame(n, frame));
+}
+
+/**
+ * The frame a node belongs to, or null when it sits on the bare canvas.
+ *
+ * Frames may overlap, so containment alone is ambiguous; the smallest containing frame wins,
+ * which reads as "the innermost one". Equal areas fall back to board order, so the answer is
+ * stable across renders — the file tree mirrors it, and a flapping answer would move files.
+ */
+export function frameOf(nodes: BNode[], node: BNode): BNode | null {
+  let best: BNode | null = null;
+  let bestArea = Infinity;
+  for (const f of nodes) {
+    if (f.kind !== 'frame' || !insideFrame(node, f)) continue;
+    const area = f.w * f.h;
+    if (area < bestArea) {
+      best = f;
+      bestArea = area;
+    }
+  }
+  return best;
 }
 
 /** Bounding box of a set of nodes; null when empty. */

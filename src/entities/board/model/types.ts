@@ -16,6 +16,12 @@ export interface T {
   scale: number;
 }
 
+/** Указатель на ноду конкретной доски — адрес оригинала для связанных и скопированных нод. */
+export interface BoardNodeRef {
+  boardId: string;
+  nodeId: string;
+}
+
 export interface BNode {
   id: string;
   x: number;
@@ -26,6 +32,18 @@ export interface BNode {
   kind: NodeKind;
   fontSize: number;
   shape: NodeShape;
+  /**
+   * Нода — связанная копия ноды другой доски: показывает её файл и правку не принимает.
+   * Своего файла в Пространстве у такой ноды нет, она делит файл с оригиналом, поэтому
+   * зеркало её пропускает. Ссылка всегда указывает на первоисточник, а не на промежуточную
+   * связанную копию — иначе удаление середины цепочки рвало бы связь у концов.
+   */
+  link?: BoardNodeRef;
+  /**
+   * Откуда ноду скопировали как самостоятельный дубликат. Нужна ровно один раз — чтобы при
+   * создании файла перенести в него содержимое оригинала; дальше это просто происхождение.
+   */
+  copiedFrom?: BoardNodeRef;
   align?: TextAlign; // undefined === 'left' (keeps older saved boards valid)
   points?: XY[]; // kind === 'draw': freehand stroke, normalized to 0..1 within the node's own box
   color?: string; // kind === 'draw'

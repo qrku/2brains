@@ -1,0 +1,37 @@
+/* Small field-label utility used inside this modal's form. */
+.modal-field-label {
+  font-size: 12px;
+  color: var(--text-4);
+  margin-bottom: 4px;
+}
+
+/* Profile edit modal — avatar grid.
+   Число колонок задаётся минимальной клеткой, а не константой: сетка из десяти
+   столбцов на телефоне даёт клетку в 28 px, куда эмодзи помещается, а палец —
+   уже нет. */
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+  gap: 4px;
+}
+.avatar-opt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--bg-2);
+  border: 1.5px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 80ms;
+  line-height: 1;
+}
+.avatar-opt:hover {
+  border-color: var(--border-1);
+}
+.avatar-opt.active {
+  border-color: var(--ink);
+  background: var(--paper);
+}

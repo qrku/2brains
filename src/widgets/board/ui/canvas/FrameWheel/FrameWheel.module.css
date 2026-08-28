@@ -1,0 +1,111 @@
+/* Frame wheel — an iOS-timer-style picker on the right edge; no chrome, dims until hovered */
+.board-wheel {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  width: 178px;
+  z-index: 100;
+  opacity: 0.6;
+  transition: opacity 0.18s ease;
+}
+.board-wheel:hover {
+  opacity: 1;
+}
+
+.board-wheel-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 8px;
+  color: var(--text-4);
+}
+.board-wheel-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--ink);
+}
+.board-wheel-input::placeholder {
+  color: var(--text-4);
+}
+
+.board-wheel-viewport {
+  position: relative;
+}
+.board-wheel-scroll {
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  /* fade only the very edges so items ease in and out of the wheel */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 12%,
+    #000 88%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(to bottom, transparent 0, #000 12%, #000 88%, transparent 100%);
+}
+.board-wheel-scroll::-webkit-scrollbar {
+  display: none;
+}
+.board-wheel-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  scroll-snap-align: center;
+  text-align: left;
+  flex-shrink: 0;
+  will-change: opacity, transform;
+}
+.board-wheel-idx {
+  flex-shrink: 0;
+  width: 18px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-4);
+  text-align: center;
+}
+.board-wheel-item.center .board-wheel-idx {
+  color: var(--accent-strong);
+}
+.board-wheel-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.board-wheel-item.center .board-wheel-name {
+  color: var(--ink);
+  font-weight: 600;
+}
+.board-wheel-empty {
+  padding: 10px 8px;
+  font-size: 11px;
+  color: var(--text-5);
+  text-align: center;
+}
+
+/* Колесо занимает 178 px — половину узкого экрана — и лежит поверх холста без
+   собственного фона, так что фреймы читаются вперемешку с блоками под ними.
+   Переход к фрейму на телефоне остаётся через выделение и масштаб. */
+@media (max-width: 720px) {
+  .board-wheel {
+    display: none;
+  }
+}

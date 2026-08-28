@@ -1,4 +1,4 @@
-export type { SpaceNode, SpaceState, SpaceAction } from './model/types';
+export type { SpaceNode, SpaceNodeOrigin, SpaceState, SpaceAction } from './model/types';
 export { SpaceStoreProvider, useSpaceStore } from './model/store';
 export type { SpaceMeta } from './api/storage';
 export {

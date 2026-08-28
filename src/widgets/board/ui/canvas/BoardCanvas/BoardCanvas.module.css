@@ -1,0 +1,67 @@
+.board-wrap {
+  position: relative;
+  width: 100%;
+  height: var(--app-h);
+  overflow: hidden;
+}
+
+.board-vp {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-2);
+  background-image: radial-gradient(circle, var(--board-dot) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-user-select: none;
+  user-select: none;
+  /* Холст забирает жесты себе целиком: иначе браузер трактует движение пальца
+     как прокрутку страницы, отменяет начатое перетаскивание через
+     `pointercancel` — и блок бросает на полпути. Масштаб двумя пальцами доска
+     обрабатывает сама, см. useBoardPinch. */
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+.board-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  will-change: transform;
+}
+
+/* Draw preview (dashed rect while dragging) */
+.board-draw-preview {
+  position: absolute;
+  border: 2px dashed var(--text-3);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.04);
+  pointer-events: none;
+  z-index: 50;
+}
+
+.board-select-rect {
+  position: absolute;
+  border: 1.5px solid var(--accent);
+  border-radius: 3px;
+  background: rgba(74, 144, 226, 0.08);
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* Smart-alignment guides — thin magenta lines while dragging, like Figma's snap hints. */
+.board-guide {
+  position: absolute;
+  background: #f5397e;
+  pointer-events: none;
+  z-index: 60;
+}
+.board-guide-x {
+  width: 1px;
+}
+.board-guide-y {
+  height: 1px;
+}

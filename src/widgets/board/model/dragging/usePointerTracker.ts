@@ -9,27 +9,36 @@ export interface PointerTracker {
   inViewport: RefObject<boolean>;
   /** True while the cursor sits on a floating panel — edge-pan must not fight the toolbar. */
   onUi: RefObject<boolean>;
-  viewportProps: { onMouseEnter: () => void; onMouseLeave: () => void };
+  viewportProps: { onPointerEnter: () => void; onPointerLeave: () => void };
   /** Spread onto any floating panel: marks it as UI and keeps clicks off the canvas. */
   uiProps: {
-    onMouseDown: (e: React.MouseEvent) => void;
-    onMouseEnter: () => void;
-    onMouseLeave: () => void;
+    onPointerDown: (e: React.PointerEvent) => void;
+    onPointerEnter: () => void;
+    onPointerLeave: () => void;
   };
 }
 
+/**
+ * Указатель — мышь, перо или палец: доска слушает pointer-события, а не mouse.
+ *
+ * Совместимостные mouse-события браузер шлёт только по завершении касания и
+ * только для одиночных тапов — перетаскивания через них не видно вовсе, поэтому
+ * на сенсорном экране доска с mouse-обработчиками просто не работала.
+ * `pointerenter`/`pointerleave` по касанию тоже приходят, так что флаг `onUi`
+ * остаётся верным и во время жеста на плавающей панели.
+ */
 export function usePointerTracker(vpRef: RefObject<HTMLDivElement | null>): PointerTracker {
   const pos = useRef<XY>({ x: -1, y: -1 });
   const inViewport = useRef(false);
   const onUi = useRef(false);
 
   useEffect(() => {
-    const onMove = (e: MouseEvent) => {
+    const onMove = (e: PointerEvent) => {
       const r = vpRef.current?.getBoundingClientRect();
       pos.current = { x: e.clientX - (r?.left ?? 0), y: e.clientY - (r?.top ?? 0) };
     };
-    window.addEventListener('mousemove', onMove);
-    return () => window.removeEventListener('mousemove', onMove);
+    window.addEventListener('pointermove', onMove);
+    return () => window.removeEventListener('pointermove', onMove);
   }, [vpRef]);
 
   return useMemo(
@@ -38,19 +47,19 @@ export function usePointerTracker(vpRef: RefObject<HTMLDivElement | null>): Poin
       inViewport,
       onUi,
       viewportProps: {
-        onMouseEnter: () => {
+        onPointerEnter: () => {
           inViewport.current = true;
         },
-        onMouseLeave: () => {
+        onPointerLeave: () => {
           inViewport.current = false;
         },
       },
       uiProps: {
-        onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
-        onMouseEnter: () => {
+        onPointerDown: (e: React.PointerEvent) => e.stopPropagation(),
+        onPointerEnter: () => {
           onUi.current = true;
         },
-        onMouseLeave: () => {
+        onPointerLeave: () => {
           onUi.current = false;
         },
       },

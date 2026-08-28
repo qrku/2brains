@@ -21,15 +21,17 @@ import {
   findConnectorMagnet,
   mkDrawNode,
   mkNode,
+  nodesInFrame,
   nodesInRect,
   resizeGuides,
   toC,
   zoomTo,
   type BNode,
+  type BoardNodeRef,
   type Rect,
   type XY,
 } from '@/entities/board';
-import type { BoardAction, BoardState, PointerPos } from './types';
+import type { BoardAction, BoardState, PasteMode, PointerPos } from './types';
 
 /** Below this screen distance, a select drag is treated as a click on empty canvas. */
 const SELECT_THRESHOLD_PX = 4;
@@ -42,6 +44,7 @@ const FIT_PADDING = 80,
 
 export const initialBoardState: BoardState = {
   ready: false,
+  boardId: null,
   nodes: [],
   edges: [],
   view: DEF_VIEW,
@@ -317,7 +320,7 @@ function onDragEnd(state: BoardState, pos: PointerPos): BoardState {
   }
 }
 
-function onPaste(state: BoardState, at: XY | null): BoardState {
+function onPaste(state: BoardState, at: XY | null, mode: PasteMode): BoardState {
   const clip = state.clipboard;
   if (!clip?.nodes.length) return state;
 
@@ -328,11 +331,23 @@ function onPaste(state: BoardState, at: XY | null): BoardState {
   const dx = anchor.x - center.x,
     dy = anchor.y - center.y;
 
+  // Вставка на ту же доску — всегда самостоятельный дубликат: связывать ноду с соседкой по
+  // тому же холсту нечем, обе жили бы в одной папке и делили один файл.
+  const linked = mode === 'link' && clip.boardId !== state.boardId;
+
+  /** Первоисточник ноды: у связанной копии — тот, на кого она сама ссылается. */
+  const originOf = (n: BNode): BoardNodeRef => n.link ?? { boardId: clip.boardId, nodeId: n.id };
+
   const idMap = new Map<string, string>();
   const newNodes = clip.nodes.map((n) => {
     const id = uid();
     idMap.set(n.id, id);
-    return { ...n, id, x: n.x + dx, y: n.y + dy };
+    const origin = originOf(n);
+    return linked
+      ? { ...n, id, x: n.x + dx, y: n.y + dy, link: origin, copiedFrom: undefined }
+      : // Дубликат ни на что не ссылается, но помнит, откуда его содержимое, — зеркало
+        // перенесёт текст файла в новый при его создании.
+        { ...n, id, x: n.x + dx, y: n.y + dy, link: undefined, copiedFrom: origin };
   });
   const newEdges = clip.edges.map((ev) => ({
     ...ev,
@@ -362,6 +377,7 @@ export function boardReducer(state: BoardState, action: BoardAction): BoardState
       return {
         ...initialBoardState,
         ready: true,
+        boardId: action.boardId,
         nodes: action.nodes,
         edges: action.edges,
         settings: action.settings,
@@ -552,11 +568,21 @@ export function boardReducer(state: BoardState, action: BoardAction): BoardState
     }
 
     case 'COPY': {
+      if (!state.selected.length || !state.boardId) return state;
+
+      // Фрейм копируется вместе с содержимым — так же, как он вместе с ним перетаскивается.
+      // Иначе связанная копия фрейма приезжала бы на другую доску пустой рамкой.
       const ids = new Set(state.selected);
-      if (!ids.size) return state;
+      for (const n of state.nodes) {
+        if (n.kind === 'frame' && ids.has(n.id)) {
+          for (const inner of nodesInFrame(state.nodes, n)) ids.add(inner.id);
+        }
+      }
+
       return {
         ...state,
         clipboard: {
+          boardId: state.boardId,
           nodes: state.nodes.filter((n) => ids.has(n.id)).map((n) => ({ ...n })),
           // Only edges wholly inside the selection — a dangling half-edge can't be pasted.
           edges: state.edges
@@ -567,7 +593,23 @@ export function boardReducer(state: BoardState, action: BoardAction): BoardState
     }
 
     case 'PASTE':
-      return onPaste(state, action.at);
+      return onPaste(state, action.at, action.mode);
+
+    case 'UNLINK': {
+      const texts = new Map(action.items.map((i) => [i.id, i.text]));
+      if (!texts.size) return state;
+
+      return {
+        ...state,
+        nodes: state.nodes.map((n) => {
+          const text = texts.get(n.id);
+          if (text === undefined || !n.link) return n;
+          // Связь становится происхождением: зеркало заведёт ноде свой файл и перенесёт
+          // в него текст оригинала — ровно как при вставке дубликатом.
+          return { ...n, text, link: undefined, copiedFrom: n.link };
+        }),
+      };
+    }
 
     case 'UPDATE_SETTINGS':
       return { ...state, settings: { ...state.settings, ...action.patch } };
@@ -580,6 +622,12 @@ export function boardReducer(state: BoardState, action: BoardAction): BoardState
 
     case 'DRAG_END':
       return onDragEnd(state, action.pos);
+
+    // Незавершённый жест ничего после себя не оставляет: начатая рамка выделения,
+    // недорисованный штрих и тянущаяся стрелка просто исчезают. Уже применённые
+    // перемещения при этом остаются — их DRAG_MOVE записал в узлы по ходу.
+    case 'DRAG_CANCEL':
+      return { ...state, drag: { type: 'none' }, guides: [] };
 
     default:
       return state;

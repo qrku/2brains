@@ -1,0 +1,103 @@
+.space-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  height: var(--app-h);
+  overflow: hidden;
+
+  /* Шапки обеих панелей — дерева и редактора — берут высоту отсюда, а не набирают
+     её содержимым: иначе стоит убрать из тулбара кнопку, и его нижняя граница
+     разъезжается с соседней. Значение совпадает с высотой навигации сверху. */
+  --space-header-h: var(--nav-h);
+}
+
+.space-sidebar {
+  border-right: 1px solid var(--border-2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.space-main {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  /* Опора для кнопки вызова дерева на узком экране. */
+  position: relative;
+}
+
+/* Кнопка и подложка нужны только выдвижному дереву — на широком экране оно
+   всегда на месте, открывать нечего. */
+.space-menu-btn,
+.space-backdrop {
+  display: none;
+}
+
+/* Планшет: дерево остаётся колонкой, но отдаёт тексту всё, что может. */
+@media (max-width: 1024px) {
+  .space-layout {
+    grid-template-columns: 180px 1fr;
+  }
+}
+
+/* ─── Мобильный ───────────────────────────────────────────────────────────
+ * Дерево и текст рядом не помещаются: на 360 px колонка в 180 px забирает
+ * половину строки. Дерево уходит в панель поверх редактора — открывается
+ * кнопкой в шапке, закрывается выбором файла или нажатием мимо. */
+@media (max-width: 720px) {
+  .space-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .space-sidebar {
+    position: fixed;
+    top: var(--nav-h);
+    bottom: 0;
+    left: 0;
+    z-index: 300;
+    width: 82vw;
+    max-width: 320px;
+    background: var(--paper);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.16);
+    transform: translateX(-100%);
+    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .space-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .space-backdrop {
+    display: block;
+    position: fixed;
+    inset: var(--nav-h) 0 0;
+    z-index: 290;
+    background: rgba(0, 0, 0, 0.35);
+  }
+
+  .space-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    left: 8px;
+    top: calc((var(--space-header-h) - 36px) / 2);
+    z-index: 10;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-3);
+    cursor: pointer;
+  }
+  .space-menu-btn:hover {
+    background: var(--bg-1);
+    color: var(--ink);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .space-sidebar {
+    transition: none;
+  }
+}

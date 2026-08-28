@@ -1,0 +1,24 @@
+/* Pencil color/thickness panel — appears next to the tool panel while the pencil tool is active */
+.board-pen-panel {
+  position: absolute;
+  left: 84px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--dark-chrome);
+  border-radius: 10px;
+  padding: 6px 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+  z-index: 100;
+}
+
+/* Сдвиг вслед за панелью инструментов: без подписей она стала уже. */
+@media (max-width: 720px) {
+  .board-pen-panel {
+    left: 60px;
+    max-width: calc(100vw - 72px);
+    flex-wrap: wrap;
+  }
+}

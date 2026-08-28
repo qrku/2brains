@@ -20,7 +20,8 @@ export interface BoardsStore {
   select: (id: string) => void;
   create: () => void;
   rename: (id: string, name: string) => void;
-  remove: (id: string) => void;
+  /** Возвращает `false`, если удалить нельзя — например, доска в воркспейсе последняя. */
+  remove: (id: string) => boolean;
 }
 
 interface State {
@@ -95,7 +96,7 @@ export function useBoards(): BoardsStore {
   const remove = useCallback(
     (id: string) => {
       // A workspace always keeps at least one board — there'd be nothing to draw on otherwise.
-      if (boards.length < 2 || !boards.some((b) => b.id === id)) return;
+      if (boards.length < 2 || !boards.some((b) => b.id === id)) return false;
 
       const next = boards.filter((b) => b.id !== id);
       const nextCurrent = currentId === id ? next[0].id : currentId;
@@ -103,6 +104,7 @@ export function useBoards(): BoardsStore {
       if (nextCurrent !== currentId) saveCurrentBoardId(nextCurrent!, wsId);
       deleteBoardData(wsId, id);
       setState((s) => ({ ...s, boards: next, currentId: nextCurrent }));
+      return true;
     },
     [boards, currentId, wsId],
   );

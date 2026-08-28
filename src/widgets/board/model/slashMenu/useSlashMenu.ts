@@ -1,15 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
+import { spaceRefNotation } from '@/entities/board';
 import { useSpaceStore } from '@/entities/space';
 
 export interface SpaceFile {
   id: string;
   name: string;
 }
-
-/** How a reference to a Space file is stored inside a node's plain-text body. */
-export const spaceRefNotation = (f: SpaceFile) => `[[space:${f.id}|${f.name}]]`;
 
 /**
  * Where to hang the menu, in viewport coords.

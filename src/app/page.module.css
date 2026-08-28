@@ -1,0 +1,157 @@
+.land {
+  /* dvh, а не vh: иначе адресная строка мобильного браузера срезает подвал. */
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--paper);
+  padding: 0 24px;
+}
+
+/* Header */
+.land-header {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 32px 0 0;
+}
+.land-logo-text {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+/* Hero */
+.land-hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 0 40px;
+  max-width: 560px;
+  width: 100%;
+}
+
+/* Animated ovals */
+.land-ovals {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 44px;
+}
+
+.land-oval {
+  width: 52px;
+  height: 90px;
+  background: var(--ink);
+  border-radius: 99px;
+  transform-origin: center center;
+}
+
+.land-oval-l {
+  animation: oval-blink 5s ease-in-out infinite;
+}
+.land-oval-r {
+  animation: oval-blink 5s ease-in-out 0.3s infinite;
+}
+
+@keyframes oval-blink {
+  /* спокойное состояние */
+  0%,
+  65%,
+  100% {
+    transform: scaleY(1) scaleX(1);
+  }
+  /* лёгкий подъём перед морганием — как приподнятые брови */
+  68% {
+    transform: scaleY(1.07) scaleX(0.95);
+  }
+  /* быстрое закрытие */
+  73% {
+    transform: scaleY(0.1) scaleX(1.08);
+  }
+  /* закрыт */
+  76% {
+    transform: scaleY(0.09) scaleX(1.1);
+  }
+  /* открытие чуть медленнее закрытия */
+  83% {
+    transform: scaleY(1.04) scaleX(0.97);
+  }
+  /* возврат в норму */
+  87% {
+    transform: scaleY(1) scaleX(1);
+  }
+}
+
+.land-h1 {
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin: 0 0 16px;
+  line-height: 1.1;
+}
+
+.land-sub {
+  font-size: 17px;
+  color: var(--text-3);
+  line-height: 1.6;
+  margin: 0 0 36px;
+}
+
+/* Footer */
+.land-footer {
+  font-size: 12px;
+  color: var(--text-5);
+  padding: 0 0 32px;
+}
+
+/* ─── Адаптив ─────────────────────────────────────────────────────────────
+ * Экран лендинга держится на одном крупном заголовке, поэтому уменьшается
+ * именно он — а вертикальные отступы вокруг него сжимаются сильнее всего,
+ * чтобы форма ввода оставалась выше клавиатуры на телефоне. */
+@media (max-width: 720px) {
+  .land {
+    padding: 0 20px;
+  }
+  .land-header {
+    padding-top: 24px;
+  }
+  .land-hero {
+    padding: 32px 0 24px;
+  }
+  .land-ovals {
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  .land-oval {
+    width: 42px;
+    height: 72px;
+  }
+  .land-h1 {
+    font-size: 32px;
+  }
+  .land-sub {
+    font-size: 15px;
+    margin-bottom: 28px;
+  }
+  .land-footer {
+    padding-bottom: 24px;
+  }
+}
+
+@media (max-width: 400px) {
+  .land-h1 {
+    font-size: 27px;
+  }
+  /* Подзаголовок сверстан с ручным переносом под широкую строку — на узком
+     экране он ломается сам, и лишний <br> оставил бы висячую строку. */
+  .land-sub br {
+    display: none;
+  }
+}

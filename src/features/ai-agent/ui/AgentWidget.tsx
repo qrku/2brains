@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAgentChat } from '../model/useAgentChat';
-import { AgentBubble } from './AgentBubble';
-import { AgentPanel } from './AgentPanel';
+import { AgentBubble } from './AgentBubble/AgentBubble';
+import { AgentPanel } from './AgentPanel/AgentPanel';
 
 /**
  * Кружок агента и панель чата — монтируются один раз на всё приложение.

@@ -1,0 +1,96 @@
+.editor-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-5);
+}
+.editor-empty-icon {
+  font-size: 28px;
+}
+.editor-empty-text {
+  font-size: 13px;
+}
+
+.editor-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--space-header-h, 43px);
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border-2);
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.editor-filename {
+  font-size: 13px;
+  color: var(--text-3);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editor-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.editor-saving {
+  font-size: 11px;
+  color: var(--text-4);
+}
+
+/* Хост CodeMirror: скролл живёт внутри `.cm-scroller`, поэтому здесь нужен
+   только заданный размер — иначе редактор растянет колонку по содержимому. */
+.editor-host {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.editor-width-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.editor-width-control input[type='range'] {
+  width: 90px;
+  accent-color: var(--ink);
+}
+.editor-width-value {
+  font-size: 11px;
+  color: var(--text-4);
+  min-width: 32px;
+  text-align: right;
+}
+
+/* ─── Мобильный ───────────────────────────────────────────────────────────
+ * Слева от имени файла страница Пространства ставит кнопку вызова дерева —
+ * шапка освобождает под неё место. Регулятор ширины текста здесь не нужен и
+ * не помещается: колонка и так во весь экран. */
+@media (max-width: 720px) {
+  .editor-toolbar {
+    padding: 0 12px 0 52px;
+  }
+  .editor-width-control {
+    display: none;
+  }
+  /* Ширина приходит инлайновым стилем из usePreviewWidth — перебиваем её, а не
+     правим хук: на широком экране сохранённое значение должно остаться прежним. */
+  .editor-host {
+    --preview-width: 100% !important;
+  }
+}

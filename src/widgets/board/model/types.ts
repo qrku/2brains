@@ -39,8 +39,21 @@ export type Drag =
       origin: XY;
     };
 
+/** Как вставляется содержимое буфера, скопированное с другой доски. */
+export type PasteMode = 'duplicate' | 'link';
+
+/**
+ * Буфер обмена доски. Помнит доску-источник: вставка на неё же — обычный дубликат, а вставка
+ * на другую доску сначала спрашивает, нужен дубликат или связанная копия.
+ */
+export interface BoardClipboard extends BoardDoc {
+  boardId: string;
+}
+
 export interface BoardState {
   ready: boolean;
+  /** Доска, которую держит состояние; нужна буферу, чтобы отличить свою вставку от чужой. */
+  boardId: string | null;
   nodes: BNode[];
   edges: BEdge[];
   view: T;
@@ -54,7 +67,7 @@ export interface BoardState {
   penColor: string;
   penWidth: number;
   settings: BoardSettings;
-  clipboard: BoardDoc | null;
+  clipboard: BoardClipboard | null;
 }
 
 /**
@@ -69,7 +82,14 @@ export interface PointerPos {
 }
 
 export type BoardAction =
-  | { type: 'LOAD'; nodes: BNode[]; edges: BEdge[]; settings: BoardSettings; view: T }
+  | {
+      type: 'LOAD';
+      boardId: string;
+      nodes: BNode[];
+      edges: BEdge[];
+      settings: BoardSettings;
+      view: T;
+    }
   | { type: 'SET_VIEW'; view: T }
   | { type: 'PAN_BY'; dx: number; dy: number }
   | { type: 'ZOOM_AT'; factor: number; mx: number; my: number }
@@ -92,8 +112,17 @@ export type BoardAction =
   | { type: 'DELETE_EDGE_POINT'; edgeId: string; index: number }
   | { type: 'DELETE_SELECTION' }
   | { type: 'COPY' }
-  | { type: 'PASTE'; at: XY | null }
+  | { type: 'PASTE'; at: XY | null; mode: PasteMode }
+  /**
+   * Разрывает связь у перечисленных нод, превращая их в самостоятельные копии.
+   * `text` приходит снаружи: у связанной ноды подпись берётся из имени файла оригинала, а
+   * после отвязки её ведёт собственный `text` — без него нода вернулась бы к снимку,
+   * сделанному при вставке, и новый файл получил бы устаревшее имя.
+   */
+  | { type: 'UNLINK'; items: { id: string; text: string }[] }
   | { type: 'UPDATE_SETTINGS'; patch: Partial<BoardSettings> }
   | { type: 'DRAG_START'; drag: Drag }
   | { type: 'DRAG_MOVE'; pos: PointerPos }
-  | { type: 'DRAG_END'; pos: PointerPos };
+  | { type: 'DRAG_END'; pos: PointerPos }
+  /** Жест оборван системой или вторым пальцем — в отличие от DRAG_END ничего не создаёт. */
+  | { type: 'DRAG_CANCEL' };

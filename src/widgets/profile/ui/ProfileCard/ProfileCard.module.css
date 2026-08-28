@@ -1,0 +1,58 @@
+.profile-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 28px 0 24px;
+  border-bottom: 1px solid var(--border-2);
+  margin-bottom: 24px;
+}
+.profile-avatar {
+  font-size: 52px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.profile-info {
+  flex: 1;
+  min-width: 0;
+}
+.profile-actions {
+  flex-shrink: 0;
+}
+
+.profile-name {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  margin-bottom: 5px;
+}
+.profile-name--empty {
+  color: var(--text-4);
+  font-weight: 400;
+}
+.profile-hint {
+  font-size: 13px;
+  color: var(--text-4);
+}
+
+/* Аватар и имя остаются в строке, а кнопка редактирования переезжает под них:
+   втроём на 360 px они сжимают имя до пары символов. */
+@media (max-width: 560px) {
+  .profile-card {
+    flex-wrap: wrap;
+    gap: 14px;
+    padding-top: 20px;
+  }
+  .profile-avatar {
+    font-size: 40px;
+  }
+  .profile-info {
+    /* Меньше ширины аватара с отступом — чтобы имя точно осталось с ним в строке. */
+    flex-basis: calc(100% - 56px);
+  }
+  .profile-name {
+    font-size: 19px;
+  }
+  .profile-actions {
+    width: 100%;
+  }
+}

@@ -1,0 +1,388 @@
+.top-nav {
+  background: var(--paper);
+  border-bottom: 1px solid var(--border-2);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.nav-inner {
+  padding: 0 24px;
+  display: flex;
+  align-items: stretch;
+  /* На широком экране высоту набирают ссылки; на узком они уезжают в меню, и без
+     этой опоры полоса схлопнулась бы. Заодно это тот же источник высоты, из
+     которого полноэкранные страницы вычитают навигацию. */
+  min-height: var(--nav-h);
+}
+
+.nav-spacer {
+  flex: 1;
+}
+
+/* 2brain logo — left side of nav */
+.nav-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px 0 0;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: opacity 120ms;
+}
+.nav-logo:hover {
+  opacity: 0.65;
+}
+.nav-logo-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.5px;
+}
+
+/* Thin separator between logo and links */
+.nav-divider {
+  width: 1px;
+  background: var(--bg-1);
+  margin: 10px 8px 10px 0;
+  flex-shrink: 0;
+}
+
+/* Theme toggle — cycles system → light → dark */
+.nav-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-4);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 120ms,
+    color 120ms;
+}
+.nav-theme-toggle:hover {
+  background: var(--bg-1);
+  color: var(--ink);
+}
+
+/* Profile avatar — right side of nav */
+.nav-profile {
+  margin-left: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 0 0 14px;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  margin-bottom: -1px;
+  transition: opacity 120ms;
+  flex-shrink: 0;
+}
+.nav-profile:hover {
+  opacity: 0.7;
+}
+.nav-profile.active {
+  border-bottom-color: var(--ink);
+}
+.nav-profile-avatar {
+  font-size: 16px;
+  line-height: 1;
+}
+.nav-profile-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  max-width: 88px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nav-profile.active .nav-profile-name {
+  color: var(--ink);
+}
+
+/* Section nav links */
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 14px 14px 13px;
+  font-size: 13px;
+  color: var(--text-4);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 120ms;
+  border-bottom: 1px solid transparent;
+  margin-bottom: -1px;
+}
+.nav-link::before {
+  content: '';
+  display: inline-block;
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border: 1.5px solid var(--border-1);
+  transition:
+    background-color 120ms,
+    border-color 120ms;
+}
+.nav-link:hover {
+  color: var(--text-3);
+}
+.nav-link.active {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+.nav-link.active::before {
+  background: var(--ink);
+  border-color: transparent;
+}
+
+/* Workspace dropdown */
+.nav-workspace {
+  position: relative;
+}
+.nav-workspace-trigger {
+  background: none;
+  border: none;
+  border-bottom: 1px solid transparent;
+  font: inherit;
+}
+.nav-workspace-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 160px;
+  background: var(--paper);
+  border: 1.5px solid var(--border-2);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: 6px;
+  z-index: 20;
+}
+.nav-workspace-item {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 5px;
+  font-size: 13px;
+  color: var(--text-3);
+  text-decoration: none;
+  text-align: left;
+  background: none;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 120ms,
+    color 120ms;
+}
+.nav-workspace-item:hover {
+  background: var(--bg-2);
+  color: var(--ink);
+}
+.nav-workspace-item.active {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.nav-workspace-divider {
+  height: 1px;
+  background: var(--bg-1);
+  margin: 6px 4px;
+}
+
+.nav-workspace-add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-4);
+}
+.nav-workspace-add:hover {
+  color: var(--ink);
+}
+
+.nav-workspace-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1.5px solid var(--border-2);
+  border-radius: 5px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--ink);
+  outline: none;
+}
+.nav-workspace-input:focus {
+  border-color: var(--border-1);
+}
+
+/* ─── Мобильное меню ──────────────────────────────────────────────────────
+ * Кнопка и панель существуют в разметке всегда, но показываются только ниже
+ * 720 px: ссылки, переключатель workspace и профиль в одну строку там уже не
+ * помещаются, а горизонтальная прокрутка навигации прячет как раз то, ради чего
+ * в неё лезут. */
+.nav-burger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 36px;
+  height: 36px;
+  margin-left: 2px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-3);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.nav-burger:hover {
+  background: var(--bg-1);
+  color: var(--ink);
+}
+
+/* Подложка ловит нажатие мимо меню. Начинается под навигацией, чтобы бургер
+   оставался нажимаемым и закрывал меню повторным касанием. */
+.nav-menu-backdrop {
+  display: none;
+  position: fixed;
+  inset: var(--nav-h) 0 0;
+  z-index: 40;
+}
+
+.nav-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 45;
+  background: var(--paper);
+  border-bottom: 1px solid var(--border-2);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+  padding: 8px;
+  max-height: calc(100vh - var(--nav-h));
+  overflow-y: auto;
+}
+
+.nav-menu-label {
+  padding: 8px 12px 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+
+.nav-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  /* 44 px — минимальная цель, в которую уверенно попадают пальцем. */
+  min-height: 44px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--text-3);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.nav-menu-item:hover {
+  background: var(--bg-2);
+}
+.nav-menu-item.active {
+  background: var(--bg-1);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.nav-menu-add {
+  color: var(--text-4);
+}
+
+.nav-menu-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1.5px solid var(--border-2);
+  border-radius: 8px;
+  background: var(--paper);
+  font-family: inherit;
+  /* 16 px — порог, ниже которого iOS увеличивает страницу при фокусе в поле. */
+  font-size: 16px;
+  color: var(--ink);
+  outline: none;
+}
+.nav-menu-input:focus {
+  border-color: var(--border-1);
+}
+
+.nav-menu-divider {
+  height: 1px;
+  background: var(--border-3);
+  margin: 8px 4px;
+}
+
+/* ─── Планшет ─────────────────────────────────────────────────────────────
+ * Всё ещё одна строка, но без украшений: точки перед ссылками и длинное имя
+ * профиля первыми крадут ширину, а смысла несут меньше всего. */
+@media (max-width: 1024px) {
+  .nav-inner {
+    padding: 0 16px;
+  }
+  .nav-link {
+    padding: 14px 10px 13px;
+    gap: 0;
+  }
+  .nav-link::before {
+    display: none;
+  }
+  .nav-profile {
+    padding-left: 10px;
+  }
+  .nav-profile-name {
+    max-width: 64px;
+  }
+}
+
+/* ─── Мобильный ───────────────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .nav-inner {
+    padding: 0 8px 0 14px;
+    align-items: center;
+  }
+
+  /* Разделы, переключатель workspace и профиль переезжают в меню под бургером. */
+  .nav-divider,
+  .nav-workspace,
+  .nav-link,
+  .nav-profile {
+    display: none;
+  }
+
+  .nav-burger,
+  .nav-menu,
+  .nav-menu-backdrop {
+    display: flex;
+  }
+  .nav-menu {
+    flex-direction: column;
+  }
+
+  .nav-theme-toggle {
+    width: 36px;
+    height: 36px;
+  }
+}

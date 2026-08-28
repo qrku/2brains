@@ -1,0 +1,71 @@
+/* Form */
+.land-form {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 420px;
+}
+.land-input {
+  flex: 1;
+  font-size: 14px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border-1);
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: inherit;
+}
+.land-input:focus {
+  border-color: var(--border-1);
+}
+.land-input.err {
+  border-color: var(--danger);
+}
+.land-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 22px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.land-btn:hover {
+  opacity: 0.82;
+}
+.land-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.land-error {
+  font-size: 13px;
+  color: var(--danger);
+  margin: 8px 0 0;
+}
+
+/* Поле и кнопка встают друг под друга: рядом на 320 px в поле остаётся меньше
+   половины строки, и введённая почта в него не помещается целиком.
+   16 px у input — граница, ниже которой iOS зумит страницу при фокусе. */
+@media (max-width: 520px) {
+  .land-form {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .land-input {
+    font-size: 16px;
+    padding: 13px 16px;
+  }
+  .land-btn {
+    width: 100%;
+    padding: 14px 22px;
+    font-size: 15px;
+  }
+}

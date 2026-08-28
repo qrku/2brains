@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { toC } from '@/entities/board';
+import { useEffect, useRef, useState } from 'react';
+import { toC, type XY } from '@/entities/board';
 import type { PointerTracker } from '../dragging/usePointerTracker';
 import type { BoardStore } from '../useBoardStore';
 
@@ -14,8 +14,18 @@ import type { BoardStore } from '../useBoardStore';
 export function useBoardHotkeys(
   { dispatch, stateRef }: BoardStore,
   tracker: PointerTracker,
+  /**
+   * Куда уходит Ctrl/Cmd+V. Сама вставка здесь не диспатчится: содержимое с другой доски
+   * сперва спрашивает, дубликат нужен или связанная копия, а этот вопрос задаёт холст.
+   */
+  onPaste: (at: XY | null) => void,
 ): boolean {
   const [spacePan, setSpacePan] = useState(false);
+
+  // Обработчик клавиш регистрируется один раз, поэтому колбэк берётся через ref —
+  // замыкание на пропе устарело бы на первом же ре-рендере холста.
+  const onPasteRef = useRef(onPaste);
+  onPasteRef.current = onPaste;
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -63,7 +73,7 @@ export function useBoardHotkeys(
         const at = tracker.inViewport.current
           ? toC(tracker.pos.current.x, tracker.pos.current.y, stateRef.current.view)
           : null;
-        dispatch({ type: 'PASTE', at });
+        onPasteRef.current(at);
       }
     };
 

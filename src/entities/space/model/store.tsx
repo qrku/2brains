@@ -39,6 +39,20 @@ function reducer(state: SpaceState, action: SpaceAction): SpaceState {
         nodes: state.nodes.map((n) => (n.id === action.id ? { ...n, name: action.name } : n)),
       };
 
+    case 'DETACH_ORIGIN': {
+      // Узел перестаёт быть зеркалом доски и становится обычным. Нужен там, где доски или
+      // фрейма больше нет, а в папке остался ручной контент: удалять его нельзя, но и
+      // держать ссылку на несуществующую доску — тоже.
+      return {
+        ...state,
+        nodes: state.nodes.map((n) => {
+          if (n.id !== action.id || !n.origin) return n;
+          const { origin: _origin, ...rest } = n;
+          return rest;
+        }),
+      };
+    }
+
     case 'OPEN_FILE':
       return { ...state, openFileId: action.id };
 

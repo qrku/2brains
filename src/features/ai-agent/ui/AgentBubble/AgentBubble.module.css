@@ -1,0 +1,144 @@
+/* Bubble: floating circle avatar with two blinking oval eyes (logo motif).
+   z-index sits above ordinary page content but below mikro-ui's own
+   Modal (1000) and toast (9000+) layers — see node_modules/mikro-ui/dist/index.css. */
+.agent-bubble {
+  /* `position: fixed` also serves as the positioning context for the
+     absolutely-positioned .agent-bubble-badge below. */
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 1px solid var(--border-1);
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  z-index: 600;
+  transition:
+    box-shadow 0.15s,
+    transform 0.15s,
+    border-color 0.15s;
+}
+.agent-bubble:hover {
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.16);
+  transform: translateY(-1px);
+}
+.agent-bubble:active {
+  transform: translateY(0);
+}
+.agent-bubble:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+.agent-bubble--open {
+  border-color: var(--border-1);
+}
+
+/* Eyes reuse the landing page's `oval-blink` motion — same keyframes, miniature size.
+   Duplicated below rather than shared: CSS Modules scope `@keyframes` names per file,
+   so `animation: oval-blink` here can't resolve a definition living in page.module.css.
+   Only these two elements get `will-change`, never the bubble itself. */
+.agent-bubble-eye {
+  width: 8px;
+  height: 14px;
+  background: var(--ink);
+  border-radius: 99px;
+  transform-origin: center center;
+  will-change: transform;
+}
+.agent-bubble-eye--l {
+  animation: oval-blink 5s ease-in-out infinite;
+}
+.agent-bubble-eye--r {
+  animation: oval-blink 5s ease-in-out 0.3s infinite;
+}
+
+@keyframes oval-blink {
+  /* спокойное состояние */
+  0%,
+  65%,
+  100% {
+    transform: scaleY(1) scaleX(1);
+  }
+  /* лёгкий подъём перед морганием — как приподнятые брови */
+  68% {
+    transform: scaleY(1.07) scaleX(0.95);
+  }
+  /* быстрое закрытие */
+  73% {
+    transform: scaleY(0.1) scaleX(1.08);
+  }
+  /* закрыт */
+  76% {
+    transform: scaleY(0.09) scaleX(1.1);
+  }
+  /* открытие чуть медленнее закрытия */
+  83% {
+    transform: scaleY(1.04) scaleX(0.97);
+  }
+  /* возврат в норму */
+  87% {
+    transform: scaleY(1) scaleX(1);
+  }
+}
+
+/* Paused whenever the panel is open (contract: .agent-bubble--open) or the
+   tab is hidden (toggled from AgentBubble's visibilitychange listener). */
+.agent-bubble--paused .agent-bubble-eye {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-bubble-eye {
+    animation: none;
+  }
+}
+
+/* "Agent is working" indicator dot */
+.agent-bubble-badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-strong);
+  border: 2px solid var(--paper);
+  will-change: transform;
+  animation: agent-badge-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes agent-badge-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-bubble-badge {
+    animation: none;
+  }
+}
+
+/* Кружок уходит от нижнего края на высоту домашней полоски iPhone, иначе
+   системный жест «домой» перехватывает нажатие по нему. */
+@media (max-width: 720px) {
+  .agent-bubble {
+    right: 14px;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    width: 48px;
+    height: 48px;
+  }
+}

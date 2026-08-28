@@ -2,6 +2,7 @@ export type {
   BNode,
   BEdge,
   BoardDoc,
+  BoardNodeRef,
   BoardMeta,
   BoardSettings,
   NodeKind,
@@ -43,6 +44,7 @@ export {
   clamp,
   distToSegment,
   findConnectorMagnet,
+  frameOf,
   nodesInFrame,
   nodesInRect,
   sidePoint,
@@ -50,6 +52,9 @@ export {
   toS,
   zoomTo,
 } from './lib/geometry';
+
+export type { SpaceRef } from './lib/spaceRef';
+export { spaceRefNotation, spaceRefRe, stripSpaceRefs } from './lib/spaceRef';
 
 export { edgeVerts, routeConnector } from './lib/routing';
 export { roundedPath, smoothPath } from './lib/path';

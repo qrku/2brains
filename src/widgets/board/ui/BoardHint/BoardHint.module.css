@@ -1,0 +1,22 @@
+/* Hint */
+.board-hint {
+  position: absolute;
+  /* Отступ справа освобождает угол под кружок ИИ-агента (52px + поля). */
+  bottom: 20px;
+  right: 88px;
+  font-size: 11px;
+  color: var(--text-4);
+  pointer-events: none;
+}
+.board-hint-dot {
+  font-size: 8px;
+  vertical-align: middle;
+}
+
+/* Подсказка описывает работу мышью и клавишами — на телефоне она не только не
+   помещается между панелью масштаба и кружком агента, но и неверна. */
+@media (max-width: 720px) {
+  .board-hint {
+    display: none;
+  }
+}

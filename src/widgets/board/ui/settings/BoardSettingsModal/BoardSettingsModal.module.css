@@ -1,0 +1,167 @@
+/* Settings modal */
+.board-settings-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 56px 20px;
+  pointer-events: none;
+}
+.board-settings-modal {
+  pointer-events: all;
+  /* Окно лежит внутри холста, а тот забирает все жесты себе (`touch-action: none`
+     во вьюпорте доски). Здесь жесты возвращаются браузеру: без этого ползунки
+     ниже не тянутся пальцем — их перетаскивание и есть штатное действие. */
+  touch-action: auto;
+  background: var(--paper);
+  border: 1px solid var(--border-1);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  width: 280px;
+  padding: 0;
+  overflow: hidden;
+}
+.bsm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 14px;
+  border-bottom: 1px solid var(--border-3);
+}
+.bsm-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.bsm-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-4);
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.bsm-close:hover {
+  background: var(--bg-1);
+  color: var(--text-3);
+}
+.bsm-group {
+  padding: 16px 18px;
+}
+.bsm-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.bsm-label {
+  font-size: 12px;
+  color: var(--text-3);
+}
+.bsm-val {
+  font-size: 12px;
+  color: var(--text-4);
+  font-variant-numeric: tabular-nums;
+}
+.bsm-sliders {
+  margin-top: 16px;
+  transition: opacity 0.15s;
+}
+.bsm-sliders.off {
+  opacity: 0.35;
+  pointer-events: none;
+}
+.bsm-slider {
+  width: 100%;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--bg-1);
+  border-radius: 2px;
+  cursor: pointer;
+  outline: none;
+}
+.bsm-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ink);
+  cursor: pointer;
+}
+.bsm-slider:disabled {
+  cursor: default;
+}
+
+/* Toggle switch */
+.bsm-toggle {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.bsm-toggle input {
+  display: none;
+}
+.bsm-track {
+  width: 34px;
+  height: 18px;
+  background: var(--bg-1);
+  border-radius: 99px;
+  position: relative;
+  transition: background 0.18s;
+}
+.bsm-toggle input:checked ~ .bsm-track {
+  background: var(--ink);
+}
+.bsm-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: var(--paper);
+  border-radius: 50%;
+  transition: transform 0.18s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.bsm-toggle input:checked ~ .bsm-track .bsm-thumb {
+  transform: translateX(16px);
+}
+
+/* На узком экране окно уезжает от правого нижнего угла в центр: там оно
+   накрывало бы панель масштаба и кружок агента, которыми его и закрывают. */
+@media (max-width: 720px) {
+  .board-settings-overlay {
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .board-settings-modal {
+    width: 100%;
+    max-width: 320px;
+  }
+  .bsm-slider {
+    height: 6px;
+  }
+  .bsm-slider::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+  }
+  .bsm-track {
+    width: 42px;
+    height: 24px;
+  }
+  .bsm-thumb {
+    width: 20px;
+    height: 20px;
+  }
+  .bsm-toggle input:checked ~ .bsm-track .bsm-thumb {
+    transform: translateX(18px);
+  }
+}

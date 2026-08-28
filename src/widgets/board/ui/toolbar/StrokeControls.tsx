@@ -1,5 +1,8 @@
 import { DRAW_COLORS } from '@/entities/board';
 import { Icon } from '@/shared/ui/Icon';
+import { cx } from '@/shared/lib/cx';
+// Reuses PropertyBars' bp-* vocabulary — same floating-bar controls, same markup.
+import styles from './PropertyBars/PropertyBars.module.css';
 
 interface Props {
   color: string;
@@ -18,18 +21,18 @@ export function StrokeControls({ color, width, onColor, onWidth }: Props) {
       {DRAW_COLORS.map((c) => (
         <button
           key={c}
-          className={`bp-btn bp-swatch${color === c ? ' active' : ''}`}
+          className={cx(styles['bp-btn'], styles['bp-swatch'], color === c && styles.active)}
           style={{ background: c }}
           title={c}
           onClick={() => onColor(c)}
         />
       ))}
-      <div className="bp-sep" />
-      <button className="bp-btn" onClick={() => onWidth(-1)} title="Тоньше">
+      <div className={styles['bp-sep']} />
+      <button className={styles['bp-btn']} onClick={() => onWidth(-1)} title="Тоньше">
         <Icon name="remove" size={13} />
       </button>
-      <span className="bp-val">{width}px</span>
-      <button className="bp-btn" onClick={() => onWidth(+1)} title="Толще">
+      <span className={styles['bp-val']}>{width}px</span>
+      <button className={styles['bp-btn']} onClick={() => onWidth(+1)} title="Толще">
         <Icon name="add" size={13} />
       </button>
     </>

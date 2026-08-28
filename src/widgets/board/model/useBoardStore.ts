@@ -78,6 +78,7 @@ export function useBoardStore(boardId: string | null): BoardStore {
     target.current = { wsId, boardId };
     dispatch({
       type: 'LOAD',
+      boardId,
       nodes: doc.nodes,
       edges: doc.edges,
       settings: loadBoardSettings(wsId, boardId),

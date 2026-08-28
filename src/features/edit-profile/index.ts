@@ -1,1 +1,1 @@
-export { EditProfileModal } from './ui/EditProfileModal';
+export { EditProfileModal } from './ui/EditProfileModal/EditProfileModal';

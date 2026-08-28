@@ -1,0 +1,29 @@
+/* Inline space reference chip */
+.board-ref-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 100%;
+  padding: 1px 7px 1px 5px;
+  background: var(--bg-1);
+  border: 1px solid var(--border-1);
+  border-radius: 5px;
+  color: var(--text-2);
+  text-decoration: none;
+  font-weight: 500;
+  /* Long file names wrap inside the pill instead of overflowing the block; the chip as a whole
+     still follows the node's text-align. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  vertical-align: top;
+  transition: background 0.12s;
+}
+/* Keep the file icon from being squeezed when the label wraps. */
+.board-ref-chip svg {
+  flex-shrink: 0;
+}
+.board-ref-chip:hover {
+  background: var(--bg-2);
+  color: var(--ink);
+}

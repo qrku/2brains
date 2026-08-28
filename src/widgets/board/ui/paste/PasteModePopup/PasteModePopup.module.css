@@ -1,0 +1,80 @@
+.paste-popup {
+  position: absolute;
+  z-index: 200;
+  width: 264px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--paper);
+  border: 1px solid var(--border-1);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
+  /* Точка вставки — это курсор; попап уводится вниз-вправо, чтобы не оказаться под ним. */
+  transform: translate(8px, 8px);
+}
+
+.paste-popup-title {
+  padding: 4px 8px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-4);
+}
+
+.paste-popup-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.paste-popup-option:hover {
+  background: var(--bg-2);
+}
+
+.paste-popup-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--bg-1);
+  color: var(--text-3);
+}
+.paste-popup-option:hover .paste-popup-icon {
+  color: var(--ink);
+}
+
+.paste-popup-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.paste-popup-hint {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-4);
+}
+
+/* Попап встаёт у точки вставки: у правого края экрана фиксированные 264 px
+   уводили бы его за границу холста. */
+@media (max-width: 720px) {
+  .paste-popup {
+    width: min(264px, calc(100vw - 32px));
+  }
+  .paste-popup-option {
+    padding: 10px 8px;
+  }
+}

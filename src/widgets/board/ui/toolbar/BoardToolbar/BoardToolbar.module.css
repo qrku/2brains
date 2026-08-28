@@ -1,0 +1,80 @@
+/* Left tool panel */
+.board-panel {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--paper);
+  border: 1px solid var(--border-1);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.09);
+  z-index: 100;
+}
+.board-panel-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 10px;
+  border: 1.5px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  background: transparent;
+  min-width: 50px;
+  transition:
+    background 0.1s,
+    border-color 0.1s;
+}
+.board-panel-btn:hover {
+  background: var(--bg-2);
+}
+.board-panel-btn.active {
+  background: var(--bg-1);
+  border-color: var(--border-1);
+}
+.board-panel-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: var(--text-3);
+}
+.board-panel-btn.active .board-panel-icon {
+  color: var(--ink);
+}
+.board-panel-label {
+  font-size: 10px;
+  color: var(--text-4);
+  font-weight: 500;
+}
+.board-panel-btn.active .board-panel-label {
+  color: var(--text-2);
+}
+
+/* ─── Узкий экран ─────────────────────────────────────────────────────────
+ * Панель остаётся у левого края, но теряет подписи: с ними она занимает 62 px
+ * из 360, то есть шестую часть холста. Кнопки при этом не уменьшаются — палец
+ * должен попадать в них так же уверенно, как раньше курсор. */
+@media (max-width: 720px) {
+  .board-panel {
+    left: 8px;
+    padding: 4px;
+    border-radius: 10px;
+  }
+  .board-panel-btn {
+    min-width: 0;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 7px;
+  }
+  .board-panel-label {
+    display: none;
+  }
+}

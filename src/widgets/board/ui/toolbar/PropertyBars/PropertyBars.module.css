@@ -1,0 +1,105 @@
+/* Property panel (dark pill above selected node). Shared with StrokeControls.tsx — same
+   floating-bar vocabulary reused there for the pencil's colour/thickness controls. */
+.board-props {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 10px));
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--dark-chrome);
+  border-radius: 10px;
+  padding: 5px 7px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+  z-index: 200;
+  white-space: nowrap;
+}
+.bp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-5);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.bp-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--paper);
+}
+.bp-btn.active {
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--paper);
+}
+.bp-shape {
+  font-size: 15px;
+  padding: 4px 6px;
+}
+.bp-align {
+  padding: 4px 5px;
+}
+.bp-align svg {
+  display: block;
+}
+.bp-val {
+  font-size: 11px;
+  color: var(--text-4);
+  min-width: 34px;
+  text-align: center;
+}
+.bp-sep {
+  width: 1px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 3px;
+  flex-shrink: 0;
+}
+.bp-del {
+  color: #f87;
+}
+.bp-del:hover {
+  background: rgba(255, 60, 60, 0.18);
+  color: #faa;
+}
+.bp-swatch {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  box-sizing: content-box;
+}
+.bp-swatch.active {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* ─── Узкий экран ─────────────────────────────────────────────────────────
+ * Панель свойств выстроена в строку и на телефоне вылезала бы за оба края
+ * экрана: она привязана к центру блока, а не к окну. Здесь она переносится по
+ * строкам и ограничена шириной экрана — `nowrap` снимается ради этого. */
+@media (max-width: 720px) {
+  .board-props {
+    flex-wrap: wrap;
+    justify-content: center;
+    white-space: normal;
+    max-width: calc(100vw - 24px);
+    row-gap: 4px;
+  }
+  .bp-btn {
+    padding: 8px 10px;
+  }
+  .bp-shape {
+    padding: 8px;
+  }
+  .bp-align {
+    padding: 8px 7px;
+  }
+  .bp-swatch {
+    width: 22px;
+    height: 22px;
+  }
+}
