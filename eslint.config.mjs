@@ -19,7 +19,8 @@ export default tseslint.config(
       'node_modules/**',
       'next-env.d.ts',
       // Generated from the icon set by scratchpad/gen-icons.mjs — lint would only fight the generator.
-      'src/shared/ui/Icon.tsx',
+      // Only the table is generated; the Icon component next to it is hand-written and linted.
+      'src/shared/ui/icons.generated.ts',
     ],
   },
 

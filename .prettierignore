@@ -16,4 +16,4 @@ docs
 .claude
 
 # Generated from the icon set by scratchpad/gen-icons.mjs.
-src/shared/ui/Icon.tsx
+src/shared/ui/icons.generated.ts
