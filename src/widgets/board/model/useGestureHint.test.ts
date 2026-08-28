@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { useGestureHint } from './useGestureHint';
 
-const KEY = 'board_touch_hint_v1';
+const KEY = 'board_touch_hint_v1__safe';
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -13,7 +13,7 @@ afterEach(() => {
 });
 
 it('всплывает по просьбе и уходит сама', () => {
-  const { result } = renderHook(() => useGestureHint());
+  const { result } = renderHook(() => useGestureHint('safe'));
 
   act(() => result.current.show());
   expect(result.current.visible).toBe(true);
@@ -26,7 +26,7 @@ it('всплывает по просьбе и уходит сама', () => {
 
 it('молчит, если жест уже делали в прошлый раз', () => {
   localStorage.setItem(KEY, '1');
-  const { result } = renderHook(() => useGestureHint());
+  const { result } = renderHook(() => useGestureHint('safe'));
 
   act(() => result.current.show());
 
@@ -34,7 +34,7 @@ it('молчит, если жест уже делали в прошлый раз
 });
 
 it('сделанный жест гасит подсказку и запоминается до следующего раза', () => {
-  const { result } = renderHook(() => useGestureHint());
+  const { result } = renderHook(() => useGestureHint('safe'));
 
   act(() => result.current.show());
   act(() => result.current.markGestureLearned());
@@ -45,4 +45,14 @@ it('сделанный жест гасит подсказку и запомин�
   // И даже в этой же сессии больше не поднимается.
   act(() => result.current.show());
   expect(result.current.visible).toBe(false);
+});
+
+it('память своя на каждый режим: раскладки разные', () => {
+  localStorage.setItem(KEY, '1');
+  const { result } = renderHook(() => useGestureHint('default'));
+
+  act(() => result.current.show());
+
+  // Освоенный «аккуратный» ничего не говорит про жесты «обычного».
+  expect(result.current.visible).toBe(true);
 });

@@ -79,7 +79,7 @@ function renderNode(node: BNode) {
       selected={false}
       soloSelected={false}
       editing={false}
-      dragging={false}
+      lifted={false}
       dropSide={null}
       handlers={handlers}
     />,
@@ -142,7 +142,7 @@ describe('BoardNode render branches', () => {
           selected
           soloSelected={false}
           editing={false}
-          dragging={false}
+          lifted={false}
           dropSide={null}
           handlers={handlers}
         />,
@@ -157,7 +157,7 @@ describe('BoardNode render branches', () => {
           selected={false}
           soloSelected={false}
           editing={false}
-          dragging={false}
+          lifted={false}
           dropSide="n"
           handlers={handlers}
         />,
@@ -309,7 +309,7 @@ describe('кнопка файла ноды', () => {
         selected={false}
         soloSelected={false}
         editing={false}
-        dragging={false}
+        lifted={false}
         dropSide={null}
         handlers={handlers}
         {...props}
@@ -369,7 +369,7 @@ describe('связанная копия', () => {
         selected={false}
         soloSelected={false}
         editing={false}
-        dragging={false}
+        lifted={false}
         dropSide={null}
         fileId="f1"
         fileName="Кэширование.md"

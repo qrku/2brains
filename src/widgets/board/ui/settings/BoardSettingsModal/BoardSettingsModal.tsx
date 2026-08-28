@@ -1,17 +1,31 @@
 import type { BoardSettings } from '@/entities/board';
 import { Icon } from '@/shared/ui/Icon';
 import type { PointerTracker } from '../../../model/dragging/usePointerTracker';
+import { TOUCH_MODES, TOUCH_MODE_LIST, type TouchMode } from '../../../model/touchModes';
 import { cx } from '@/shared/lib/cx';
 import styles from './BoardSettingsModal.module.css';
 
 interface Props {
   settings: BoardSettings;
   onChange: (patch: Partial<BoardSettings>) => void;
+  /**
+   * Раскладка жестов. Приходит только с тач-устройств: на мыши выбирать нечего,
+   * там жесты одни и те же. Оба поля идут парой — есть выбор, есть и настройка.
+   */
+  touchMode?: TouchMode;
+  onTouchMode?: (mode: TouchMode) => void;
   onClose: () => void;
   uiProps: PointerTracker['uiProps'];
 }
 // Test deploy
-export function BoardSettingsModal({ settings, onChange, onClose, uiProps }: Props) {
+export function BoardSettingsModal({
+  settings,
+  onChange,
+  touchMode,
+  onTouchMode,
+  onClose,
+  uiProps,
+}: Props) {
   return (
     <div
       className={styles['board-settings-overlay']}
@@ -27,6 +41,27 @@ export function BoardSettingsModal({ settings, onChange, onClose, uiProps }: Pro
             <Icon name="close" size={13} />
           </button>
         </div>
+
+        {/* Список режимов берётся из таблицы: новый появится здесь сам. */}
+        {touchMode && onTouchMode && (
+          <div className={styles['bsm-group']}>
+            <div className={styles['bsm-row']}>
+              <span className={styles['bsm-label']}>Управление пальцем</span>
+            </div>
+            <div className={styles['bsm-modes']}>
+              {TOUCH_MODE_LIST.map((id) => (
+                <button
+                  key={id}
+                  className={cx(styles['bsm-mode'], id === touchMode && styles.on)}
+                  onClick={() => onTouchMode(id)}
+                >
+                  <span className={styles['bsm-mode-name']}>{TOUCH_MODES[id].label}</span>
+                  <span className={styles['bsm-mode-about']}>{TOUCH_MODES[id].about}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className={styles['bsm-group']}>
           <div className={styles['bsm-row']}>

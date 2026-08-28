@@ -21,7 +21,11 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   width: 280px;
   padding: 0;
-  overflow: hidden;
+  /* Раскладки жестов добавили окну роста, и на невысоком экране оно упирается
+     в края: прокрутка внутри себя — единственное, что тут можно сделать. */
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .bsm-header {
   display: flex;
@@ -68,6 +72,42 @@
   font-size: 12px;
   color: var(--text-4);
   font-variant-numeric: tabular-nums;
+}
+
+/* Раскладки жестов: карточки в столбик, а не переключатель в строку. Название
+   без разбора жестов ничего не значит, а разбор — это вторая строка текста. */
+.bsm-modes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bsm-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  text-align: left;
+  border: 1.5px solid var(--border-2);
+  border-radius: 9px;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
+}
+.bsm-mode.on {
+  border-color: var(--accent);
+  background: var(--today-tint);
+}
+.bsm-mode-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.bsm-mode-about {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--text-4);
 }
 .bsm-sliders {
   margin-top: 16px;

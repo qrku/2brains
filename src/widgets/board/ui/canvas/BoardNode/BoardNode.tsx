@@ -33,9 +33,8 @@ export interface NodeHandlers {
   onDown: (e: React.PointerEvent, node: BNode) => void;
   onEdit: (id: string) => void;
   /**
-   * Пальцем блок взяли в руку: дальше он едет за пальцем. Касание само перенос
-   * не начинает — иначе доску нельзя было бы листать, не сдвинув то, чего
-   * коснулся, — поэтому перенос заводит именно жест.
+   * Палец простоял на блоке. Что за этим последует — перенос или правка —
+   * решает выбранная раскладка жестов (см. touchModes), блок про неё не знает.
    */
   onLongPress: (id: string, at: PressPoint) => void;
   /**
@@ -57,8 +56,8 @@ interface Props {
   selected: boolean;
   soloSelected: boolean;
   editing: boolean;
-  /** Блок сейчас едет за указателем — на пальце он остаётся приподнятым, как в момент захвата. */
-  dragging: boolean;
+  /** Блок несут жестом: он остаётся приподнятым, как в момент захвата. */
+  lifted: boolean;
   /** Side that a dragged arrow would snap to, when this node is the current drop target. */
   dropSide: Side | null;
   /** Файл Пространства, которым отражается эта нода; отсутствует у видов, которые не зеркалятся. */
@@ -74,7 +73,7 @@ export const BoardNode = memo(function BoardNode({
   selected,
   soloSelected,
   editing,
-  dragging,
+  lifted,
   dropSide,
   fileId,
   fileName,
@@ -140,9 +139,8 @@ export const BoardNode = memo(function BoardNode({
   );
 
   /**
-   * Долгое нажатие берёт блок в руку — дальше он едет за пальцем. Простой тап
-   * только выделяет: касание, сразу тянущее блок, не даёт ни листать доску, ни
-   * просто ткнуть в блок, не сдвинув его.
+   * Долгое нажатие. Блок только сообщает, что оно случилось и где: холст сам
+   * разберёт, перенос это или правка, — раскладка жестов лежит там.
    */
   const press = useLongPress(
     useCallback((at: PressPoint) => handlers.onLongPress(node.id, at), [handlers, node.id]),
@@ -182,7 +180,7 @@ export const BoardNode = memo(function BoardNode({
   const className = cx(
     styles['board-node'],
     press.pressing && styles.pressing,
-    dragging && styles.lifted,
+    lifted && styles.lifted,
     isText && styles['bk-text'],
     isDraw && styles['draw-kind'],
     isFrame && styles['bk-frame'],

@@ -23,6 +23,8 @@ import { useWorkspaceStore } from '@/entities/workspace';
 import { createBoardTools } from '../../../model/agentTools/agentTools';
 import { useBoards } from '../../../model/useBoards';
 import { useGestureHint } from '../../../model/useGestureHint';
+import { TOUCH_MODES } from '../../../model/touchModes';
+import { useTouchMode } from '../../../model/useTouchMode';
 import { useBoardStore } from '../../../model/useBoardStore';
 import { useBoardGeometry, viewportCursor } from '../../../model/geometry/useBoardGeometry';
 import { useBoardHotkeys } from '../../../model/hotkeys/useBoardHotkeys';
@@ -147,7 +149,16 @@ export function BoardCanvas() {
    */
   const touchUi = useMediaQuery('(pointer: coarse)');
   const [toolsFor, setToolsFor] = useState<string | null>(null);
-  const { visible: hintVisible, show: showHint, markGestureLearned } = useGestureHint();
+
+  // Раскладка жестов: что делает касание блока, а что — долгое нажатие. См. touchModes.
+  const { mode: touchMode, setMode: setTouchMode } = useTouchMode();
+  const touchSpec = TOUCH_MODES[touchMode];
+  const {
+    visible: hintVisible,
+    show: showHint,
+    hide: hideHint,
+    markGestureLearned,
+  } = useGestureHint(touchMode);
 
   // Нода, из которой открыта панель: по ней решается, есть ли что отвязывать.
   const noteNode = useMemo(
@@ -205,10 +216,18 @@ export function BoardCanvas() {
    * оторвётся, и без него подсказка всплывала бы прямо под движущимся блоком.
    */
   useEffect(() => {
-    if (!touchUi || editing || toolsFor) return;
-    if (selected.length !== 1 || state.drag.type !== 'none') return;
-    showHint();
-  }, [touchUi, editing, toolsFor, selected, state.drag.type, showHint]);
+    const wanted =
+      touchUi &&
+      !editing &&
+      !toolsFor &&
+      !settingsOpen &&
+      selected.length === 1 &&
+      state.drag.type === 'none';
+    // Уход обязателен так же, как появление: начатый перенос или открытое окно
+    // делают подсказку неуместной ровно в тот момент, когда они случились.
+    if (wanted) showHint();
+    else hideHint();
+  }, [touchUi, editing, toolsFor, settingsOpen, selected, state.drag.type, showHint, hideHint]);
 
   // Frames are containers, so they paint behind everything else. A stable partition (rather than a
   // sort) keeps each node's relative order — and thus its React key position — untouched.
@@ -217,7 +236,11 @@ export function BoardCanvas() {
     return [...nodes.filter((n) => n.kind === 'frame'), ...nodes.filter((n) => n.kind !== 'frame')];
   }, [nodes]);
 
-  /** Блоки, едущие за указателем прямо сейчас: на пальце они рисуются приподнятыми. */
+  /**
+   * Блоки, едущие за указателем прямо сейчас. Приподнятыми они рисуются только
+   * там, где перенос начинает жест: в режиме, где блок едет с первого касания,
+   * подчёркивать нечего — подрастал бы каждый тап.
+   */
   const draggingIds = useMemo(
     () => new Set(state.drag.type === 'nodes' ? state.drag.ids : []),
     [state.drag],
@@ -347,6 +370,68 @@ export function BoardCanvas() {
   /* ── Nodes ────────────────────────────────────────────────────────── */
 
   /**
+   * Отражение доски в Пространстве — тем обработчикам, что живут дольше рендера.
+   *
+   * Сам индекс меняется на любую правку дерева файлов, а обработчики блоков
+   * собраны в один объект на весь холст и пересобираться от этого не должны.
+   */
+  const mirrorRef = useRef({ index: mirrorIndex, boardId });
+  useEffect(() => {
+    mirrorRef.current = { index: mirrorIndex, boardId };
+  });
+
+  /**
+   * Открывает файл блока в редакторе — то же, что кнопка файла на самом блоке.
+   *
+   * Возвращает `false`, если открывать нечего: файл заводится не всякому виду
+   * (см. MIRRORED_KINDS), и у подписи, рисунка или фрейма его нет.
+   */
+  const openNodeNote = useCallback(
+    (id: string) => {
+      const node = stateRef.current.nodes.find((n) => n.id === id);
+      if (!node) return false;
+
+      const { index, boardId: current } = mirrorRef.current;
+      const mirror = mirrorNodeFor(index, current, node);
+      if (!mirror) return false;
+
+      // Касание могло уже завести перенос: панель открывается, а блок бы ехал.
+      dispatch({ type: 'DRAG_CANCEL' });
+      setNote({
+        id: mirror.id,
+        name: mirror.name,
+        origin: node.link ?? (current ? { boardId: current, nodeId: node.id } : undefined),
+        nodeId: node.id,
+      });
+      return true;
+    },
+    [dispatch, stateRef],
+  );
+
+  /**
+   * Открывает блок пальцем: правка текста и панель свойств разом.
+   *
+   * Вызывается двойным тапом всегда, а долгим нажатием — в тех режимах, где оно
+   * отдано под правку (см. touchModes).
+   */
+  const openNodeTools = useCallback(
+    (id: string) => {
+      const node = stateRef.current.nodes.find((n) => n.id === id);
+      if (!node) return;
+
+      // Касание могло уже завести перенос блока: без отмены палец, оставшийся на
+      // экране, таскал бы открытый на правку блок за собой.
+      dispatch({ type: 'DRAG_CANCEL' });
+      setToolsFor(id);
+
+      // Рисунку править нечего, связанной копии — негде (текст ведёт оригинал);
+      // панель со свойствами им всё равно полагается.
+      if (node.kind !== 'draw' && !node.link) dispatch({ type: 'EDIT', id });
+    },
+    [dispatch, stateRef],
+  );
+
+  /**
    * Заводит перенос блоков. Отдельно от обработчика нажатия, потому что источников
    * два: мышь начинает перенос сразу, а палец — только после долгого нажатия.
    *
@@ -400,13 +485,17 @@ export function BoardCanvas() {
         // Панель принадлежит одному блоку: касание любого другого её закрывает.
         setToolsFor((cur) => (cur === node.id ? cur : null));
 
+        // До того, как касание изменит выделение: уже выделенный блок едет за пальцем
+        // в любом режиме — выбрав его, человек уже сказал, что имеет в виду именно его.
+        const wasSelected = selected.includes(node.id);
+
         let ids: string[];
         if (e.ctrlKey || e.metaKey) {
           ids = selected.includes(node.id)
             ? selected.filter((id) => id !== node.id)
             : [...selected, node.id];
           dispatch({ type: 'SELECT', ids });
-        } else if (selected.includes(node.id)) {
+        } else if (wasSelected) {
           // Dragging one node of an existing multi-selection moves the whole group.
           ids = selected;
         } else {
@@ -414,9 +503,9 @@ export function BoardCanvas() {
           dispatch({ type: 'SELECT', ids });
         }
 
-        // Мышью нажатие и есть начало переноса. Пальцем — только выделение: перенос
-        // ждёт долгого нажатия, иначе доску не пролистать, не сдвинув то, за что взялся.
-        if (e.pointerType === 'mouse') beginNodeDrag(ids, e);
+        // Мышью нажатие и есть начало переноса, режимы её не касаются.
+        const drags = e.pointerType === 'mouse' || touchSpec.tap === 'drag' || wasSelected;
+        if (drags) beginNodeDrag(ids, e);
       },
 
       onLongPress: (id, at) => {
@@ -424,6 +513,14 @@ export function BoardCanvas() {
         if (!nodes.some((n) => n.id === id)) return;
 
         markGestureLearned();
+
+        // Файла у блока может не быть — тогда жест не пропадает впустую, а делает
+        // ближайшее осмысленное: открывает подпись на правку.
+        if (touchSpec.hold === 'note' && openNodeNote(id)) return;
+        if (touchSpec.hold === 'note' || touchSpec.hold === 'open') {
+          openNodeTools(id);
+          return;
+        }
         // Выделение уже случилось на касании — группу, если блок в ней, несём целиком.
         beginNodeDrag(selected.includes(id) ? selected : [id], at);
       },
@@ -437,18 +534,8 @@ export function BoardCanvas() {
       },
 
       onTouchOpen: (id) => {
-        const node = stateRef.current.nodes.find((n) => n.id === id);
-        if (!node) return;
-
-        // Нажатие уже завело перенос блока: без отмены палец, оставшийся на
-        // экране, таскал бы открытый на правку блок за собой.
-        dispatch({ type: 'DRAG_CANCEL' });
-        setToolsFor(id);
         markGestureLearned();
-
-        // Рисунку править нечего, связанной копии — негде (текст ведёт оригинал);
-        // панель со свойствами им всё равно полагается.
-        if (node.kind !== 'draw' && !node.link) dispatch({ type: 'EDIT', id });
+        openNodeTools(id);
       },
 
       onConnectorDown: (e, node, side) => {
@@ -481,7 +568,7 @@ export function BoardCanvas() {
       onBlur: () => dispatch({ type: 'EDIT', id: null }),
       onOpenNote: setNote,
     }),
-    [dispatch, stateRef, beginNodeDrag, markGestureLearned],
+    [dispatch, stateRef, beginNodeDrag, openNodeTools, openNodeNote, markGestureLearned, touchSpec],
   );
 
   /* ── Edges ────────────────────────────────────────────────────────── */
@@ -611,7 +698,7 @@ export function BoardCanvas() {
                 selected={selected.includes(node.id)}
                 soloSelected={selected.length === 1 && selected[0] === node.id}
                 editing={editing === node.id}
-                dragging={draggingIds.has(node.id)}
+                lifted={draggingIds.has(node.id) && touchSpec.hold === 'drag'}
                 dropSide={geom.dropTargetId === node.id ? geom.dropTargetSide : null}
                 fileId={mirror?.id}
                 fileName={mirror?.name}
@@ -732,12 +819,14 @@ export function BoardCanvas() {
         )}
 
         <BoardHint tool={tool} />
-        <GestureHint visible={hintVisible} />
+        <GestureHint visible={hintVisible} text={touchSpec.hint} />
 
         {settingsOpen && (
           <BoardSettingsModal
             settings={state.settings}
             onChange={(patch) => dispatch({ type: 'UPDATE_SETTINGS', patch })}
+            touchMode={touchUi ? touchMode : undefined}
+            onTouchMode={touchUi ? setTouchMode : undefined}
             onClose={() => setSettingsOpen(false)}
             uiProps={tracker.uiProps}
           />
