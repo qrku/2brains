@@ -53,6 +53,7 @@ export function BoardSwitcher({ boards, uiProps }: Props) {
   return (
     <div className={styles['board-switch']} ref={rootRef} {...uiProps}>
       <button
+        data-testid="board-switch-trigger"
         className={cx(styles['board-switch-trigger'], open && styles.active)}
         onClick={() => setOpen((v) => !v)}
         title="Доски"
@@ -66,6 +67,10 @@ export function BoardSwitcher({ boards, uiProps }: Props) {
           {boards.boards.map((b) => (
             <div
               key={b.id}
+              data-testid="board-switch-item"
+              // Активность отдана атрибутом, а не только классом: класс хеширует
+              // CSS Modules, и составной селектор в e2e по нему не собрать.
+              data-active={b.id === boards.current?.id || undefined}
               className={cx(
                 styles['board-switch-item'],
                 b.id === boards.current?.id && styles.active,
@@ -74,6 +79,7 @@ export function BoardSwitcher({ boards, uiProps }: Props) {
               {renamingId === b.id ? (
                 <input
                   ref={inputRef}
+                  data-testid="board-switch-input"
                   className={styles['board-switch-input']}
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
@@ -86,6 +92,7 @@ export function BoardSwitcher({ boards, uiProps }: Props) {
               ) : (
                 <>
                   <button
+                    data-testid="board-switch-pick"
                     className={styles['board-switch-pick']}
                     onClick={() => {
                       boards.select(b.id);
@@ -96,6 +103,7 @@ export function BoardSwitcher({ boards, uiProps }: Props) {
                     {b.name}
                   </button>
                   <button
+                    data-testid="board-switch-rename"
                     className={styles['board-switch-act']}
                     onClick={() => startRename(b.id, b.name)}
                     title="Переименовать"
@@ -104,6 +112,7 @@ export function BoardSwitcher({ boards, uiProps }: Props) {
                   </button>
                   {boards.boards.length > 1 && (
                     <button
+                      data-testid="board-switch-delete"
                       className={styles['board-switch-act']}
                       onClick={() => handleDelete(b.id, b.name)}
                       title="Удалить"
@@ -119,6 +128,7 @@ export function BoardSwitcher({ boards, uiProps }: Props) {
           <div className={styles['board-switch-divider']} />
 
           <button
+            data-testid="board-switch-add"
             className={styles['board-switch-add']}
             onClick={() => {
               boards.create();

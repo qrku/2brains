@@ -441,6 +441,9 @@ export function BoardCanvas() {
     <div className={styles['board-wrap']}>
       <div
         ref={vpRef}
+        // Точка входа для e2e. Имена классов хеширует CSS Modules, поэтому цепляться
+        // тестам не за что — атрибут переживает любое переименование стилей.
+        data-testid="board-viewport"
         className={styles['board-vp']}
         style={{ cursor: viewportCursor(state, spacePan) }}
         onPointerDown={onViewportDown}

@@ -12,7 +12,7 @@ test.describe('core navigation', () => {
 
     await page.locator('a[href="/board"]').click();
     await expect(page).toHaveURL(/\/board/);
-    await expect(page.locator('.board-panel')).toBeVisible();
+    await expect(page.getByTestId('board-toolbar')).toBeVisible();
 
     await page.locator('a[href="/calendar"]').click();
     await expect(page).toHaveURL(/\/calendar/);
@@ -20,6 +20,6 @@ test.describe('core navigation', () => {
 
   test('opening /board directly renders the canvas', async ({ page }) => {
     await page.goto('/board');
-    await expect(page.locator('.board-panel')).toBeVisible();
+    await expect(page.getByTestId('board-toolbar')).toBeVisible();
   });
 });

@@ -165,6 +165,7 @@ export const BoardNode = memo(function BoardNode({
 
   return (
     <div
+      data-testid="board-node"
       className={className}
       style={{ left: node.x, top: node.y, width: node.w, height: isCircle ? node.w : node.h }}
       onPointerDown={onPointerDown}

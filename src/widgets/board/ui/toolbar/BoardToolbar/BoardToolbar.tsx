@@ -13,7 +13,7 @@ interface Props {
 
 export function BoardToolbar({ tool, onSelect, uiProps }: Props) {
   return (
-    <div className={styles['board-panel']} {...uiProps}>
+    <div data-testid="board-toolbar" className={styles['board-panel']} {...uiProps}>
       {TOOLS.map((t) => (
         <button
           key={t.id}
