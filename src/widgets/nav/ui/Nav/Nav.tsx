@@ -174,7 +174,7 @@ export function Nav() {
       <div className={styles['nav-inner']}>
         <Link href="/" className={styles['nav-logo']}>
           <BrainIcon />
-          <span className={styles['nav-logo-text']}>2brain</span>
+          <span className={styles['nav-logo-text']}>2brains</span>
         </Link>
 
         <div className={styles['nav-divider']} />

@@ -1,71 +1,79 @@
-/* Form */
+/* Токены лендинга объявлены на его корне (page.module.css) — форма их
+   наследует, потому что живёт внутри. */
+.land-form-wrap {
+  /* Над карточками сцены: на узком экране они заходят под содержимое фоном. */
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+/* Поле и кнопка — одна рамка: стрелка лежит внутри поля, а не рядом с ним,
+   поэтому фокус подсвечивает их вместе. */
 .land-form {
   display: flex;
-  gap: 8px;
+  align-items: center;
   width: 100%;
-  max-width: 420px;
-}
-.land-input {
-  flex: 1;
-  font-size: 14px;
-  padding: 12px 16px;
-  border: 1.5px solid var(--border-1);
-  border-radius: 12px;
-  outline: none;
+  border: 1px solid var(--land-field-border);
+  border-radius: 14px;
+  background: var(--land-field-bg);
   transition: border-color 0.15s;
-  font-family: inherit;
 }
-.land-input:focus {
-  border-color: var(--border-1);
+.land-form:focus-within {
+  border-color: #3e3e47;
 }
-.land-input.err {
+.land-form.err {
   border-color: var(--danger);
 }
+
+.land-input {
+  flex: 1;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--land-title);
+  padding: 16px 4px 16px 20px;
+  border: none;
+  background: none;
+  outline: none;
+}
+.land-input::placeholder {
+  color: var(--land-placeholder);
+}
+
 .land-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 700;
-  background: var(--ink);
-  color: var(--paper);
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  color: var(--land-title);
+  background: none;
   border: none;
   border-radius: 12px;
-  padding: 12px 22px;
   cursor: pointer;
-  white-space: nowrap;
   transition: opacity 0.15s;
-  flex-shrink: 0;
 }
 .land-btn:hover {
-  opacity: 0.82;
+  opacity: 0.6;
 }
 .land-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: default;
 }
+
 .land-error {
   font-size: 13px;
   color: var(--danger);
-  margin: 8px 0 0;
+  margin: 10px 0 0;
 }
 
-/* Поле и кнопка встают друг под друга: рядом на 320 px в поле остаётся меньше
-   половины строки, и введённая почта в него не помещается целиком.
-   16 px у input — граница, ниже которой iOS зумит страницу при фокусе. */
+/* 16px у input — порог, ниже которого iOS зумит страницу при фокусе. */
 @media (max-width: 520px) {
-  .land-form {
-    flex-direction: column;
-    gap: 10px;
-  }
   .land-input {
     font-size: 16px;
-    padding: 13px 16px;
-  }
-  .land-btn {
-    width: 100%;
-    padding: 14px 22px;
-    font-size: 15px;
+    padding: 15px 4px 15px 18px;
   }
 }

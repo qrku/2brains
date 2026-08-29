@@ -305,8 +305,8 @@ export async function POST(request: Request): Promise<Response> {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         // OpenRouter использует эти два заголовка для атрибуции приложения.
-        'HTTP-Referer': request.headers.get('origin') ?? 'https://2brain.local',
-        'X-Title': '2brain',
+        'HTTP-Referer': request.headers.get('origin') ?? 'https://2brains.local',
+        'X-Title': '2brains',
       },
       body: JSON.stringify({
         model,

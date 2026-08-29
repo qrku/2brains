@@ -8,7 +8,7 @@ import 'mikro-ui/tokens';
 import 'mikro-ui/styles';
 
 export const metadata: Metadata = {
-  title: '2brain',
+  title: '2brains',
   description: 'Подготовка к собеседованию',
 };
 

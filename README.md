@@ -1,4 +1,4 @@
-# 2brain
+# 2brains
 
 Personal knowledge and prep tracker. Built as a single-user web app — no backend, everything lives in localStorage.
 

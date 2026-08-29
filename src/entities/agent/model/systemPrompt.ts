@@ -26,7 +26,7 @@ const PLACE: Record<AgentContext['page'], string> = {
 
 export function buildSystemPrompt(ctx: AgentContext, toolCount: number): string {
   const lines = [
-    'Ты — встроенный ассистент приложения 2brain: это личная база знаний и трекер подготовки к собеседованиям.',
+    'Ты — встроенный ассистент приложения 2brains: это личная база знаний и трекер подготовки к собеседованиям.',
     `Сейчас пользователь ${PLACE[ctx.page]}, воркспейс «${ctx.workspaceName}».`,
   ];
 

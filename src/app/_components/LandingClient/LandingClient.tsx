@@ -13,6 +13,9 @@ export function LandingClient() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // В разработке лендинг открывается и залогиненным: иначе его не посмотреть,
+    // не разлогинившись, — а правится он чаще всего именно с живой сессией.
+    if (process.env.NODE_ENV === 'development') return;
     if (localStorage.getItem('auth_v1')) router.replace('/space');
   }, [router]);
 
@@ -27,10 +30,10 @@ export function LandingClient() {
   };
 
   return (
-    <>
-      <div className={styles['land-form']}>
+    <div className={styles['land-form-wrap']}>
+      <div className={cx(styles['land-form'], error && styles.err)}>
         <input
-          className={cx(styles['land-input'], error && styles.err)}
+          className={styles['land-input']}
           type="email"
           placeholder="Электронная почта"
           value={email}
@@ -39,19 +42,17 @@ export function LandingClient() {
             setError('');
           }}
           onKeyDown={(e) => e.key === 'Enter' && submit()}
-          autoFocus
         />
-        <button className={styles['land-btn']} onClick={submit} disabled={loading}>
-          {loading ? (
-            '...'
-          ) : (
-            <>
-              Начать <Icon name="arrow-forward" size={12} />
-            </>
-          )}
+        <button
+          className={styles['land-btn']}
+          onClick={submit}
+          disabled={loading}
+          aria-label="Начать"
+        >
+          <Icon name="arrow-forward" size={16} />
         </button>
       </div>
       {error && <p className={styles['land-error']}>{error}</p>}
-    </>
+    </div>
   );
 }
